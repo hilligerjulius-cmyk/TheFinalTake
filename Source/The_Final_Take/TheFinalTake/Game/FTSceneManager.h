@@ -43,7 +43,7 @@ public:
 	void OnBreakerRestored();
 
 	// ---- world feedback
-	void ReportEvent(FName Event, AActor* Source, AFTCharacter* Instigator);
+	void ReportEvent(FName Event, AActor* Source, AFTCharacter* EventInstigator);
 	void AdjustCondition(float Delta, const FText& Reason);
 	bool WasEventDuringRecording(FName Event) const;
 	float GetLastEventTime(FName Event) const;

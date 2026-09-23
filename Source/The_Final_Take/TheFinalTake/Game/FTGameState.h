@@ -66,6 +66,9 @@ public:
 	/** Whoever currently has the script book open (only one at a time). */
 	UPROPERTY(ReplicatedUsing = OnRep_State, BlueprintReadOnly) TObjectPtr<APlayerState> ScriptBookUser;
 
+	/** Local only: still frames grabbed from the film camera when a take is accepted (premiere montage). */
+	UPROPERTY(Transient) TMap<int32, TObjectPtr<class UTextureRenderTarget2D>> LocalStills;
+
 	// ---- helpers (all machines)
 	const UFTFilmDefinition* GetFilm() const;
 	const FFTSceneDefinition* GetCurrentScene() const;
@@ -99,4 +102,7 @@ public:
 	void NotifyStateChanged();
 	void NotifyFloodChanged();
 	void NotifyPowerChanged();
+
+private:
+	EFTShootPhase LastSeenPhase = EFTShootPhase::Lobby;
 };

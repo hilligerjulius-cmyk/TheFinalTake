@@ -46,6 +46,10 @@ public:
 	virtual void OnFloodStageChanged(EFTFloodStage NewStage) {}
 	/** All machines: main power for stage lighting changed. */
 	virtual void OnStagePowerChanged(bool bPowered) {}
+	/** Server: a gameplay event happened somewhere (siren, lunge, "Director.Defeat"...). */
+	virtual void OnSceneEvent(FName Event, AActor* Source) {}
+	/** All machines: the shoot phase changed (premiere dims lights, blackout...). */
+	virtual void OnShootPhaseChanged(EFTShootPhase Phase) {}
 
 	/** Used by DeviceActive objectives and cue scoring. */
 	virtual bool IsDeviceActive() const { return false; }
@@ -59,7 +63,7 @@ protected:
 	AFTGameState* GetFTGameState() const;
 	AFTSceneManager* GetSceneManager() const;
 	/** Server: report a gameplay event to the scene manager (scoring / key actions). */
-	void ReportEvent(FName Event, AFTCharacter* Instigator = nullptr);
+	void ReportEvent(FName Event, AFTCharacter* EventInstigator = nullptr);
 	void Announce(const FText& Text, EFTAnnounceStyle Style, EFTSound Sound = EFTSound::None);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Studio")

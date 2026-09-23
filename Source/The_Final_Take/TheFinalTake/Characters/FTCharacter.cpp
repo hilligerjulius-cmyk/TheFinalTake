@@ -857,7 +857,7 @@ void AFTCharacter::UpdateBodyPose(float DeltaSeconds)
 	KnockAlpha = FMath::FInterpTo(KnockAlpha, bKnockedDown ? 1.f : 0.f, DeltaSeconds, bKnockedDown ? 9.f : 4.f);
 
 	const float Swing = FMath::Sin(WalkPhase) * FMath::Min(SpeedN, 1.3f) * 38.f;
-	float LegL = Swing, LegR = -Swing;
+	float LegAngleL = Swing, LegAngleR = -Swing;
 	float ArmPitchL = -Swing * 0.8f, ArmPitchR = Swing * 0.8f;
 	float ArmRollL = 8.f, ArmRollR = -8.f;
 	float ChestPitch = -SpeedN * 7.f;
@@ -866,7 +866,7 @@ void AFTCharacter::UpdateBodyPose(float DeltaSeconds)
 
 	if (bAir)
 	{
-		LegL = 30.f; LegR = -12.f;
+		LegAngleL = 30.f; LegAngleR = -12.f;
 		ArmRollL = 55.f; ArmRollR = -55.f;
 		ArmPitchL = ArmPitchR = 10.f;
 	}
@@ -909,12 +909,12 @@ void AFTCharacter::UpdateBodyPose(float DeltaSeconds)
 	{
 		ArmRollL = FMath::Lerp(ArmRollL, 110.f, KnockAlpha);
 		ArmRollR = FMath::Lerp(ArmRollR, -110.f, KnockAlpha);
-		LegL = FMath::Lerp(LegL, 40.f, KnockAlpha);
-		LegR = FMath::Lerp(LegR, 25.f, KnockAlpha);
+		LegAngleL = FMath::Lerp(LegAngleL, 40.f, KnockAlpha);
+		LegAngleR = FMath::Lerp(LegAngleR, 25.f, KnockAlpha);
 	}
 
-	HipL->SetRelativeRotation(FRotator(LegL, 0.f, 0.f));
-	HipR->SetRelativeRotation(FRotator(LegR, 0.f, 0.f));
+	HipL->SetRelativeRotation(FRotator(LegAngleL, 0.f, 0.f));
+	HipR->SetRelativeRotation(FRotator(LegAngleR, 0.f, 0.f));
 	ShoulderL->SetRelativeRotation(FRotator(ArmPitchL, 0.f, ArmRollL));
 	ShoulderR->SetRelativeRotation(FRotator(ArmPitchR, 0.f, ArmRollR));
 	Chest->SetRelativeRotation(FRotator(ChestPitch, 0.f, FMath::Sin(WalkPhase) * 3.f * FMath::Min(SpeedN, 1.f)));
@@ -1065,10 +1065,10 @@ FText AFTCharacter::GetPromptText(bool& bOutAvailable, FText& OutReason) const
 	{
 		return FText::GetEmpty();
 	}
-	const AFTStudioActor* Owner = C->GetStudioOwner();
-	bOutAvailable = Owner->CanInteract(C, this, OutReason);
-	const FText Verb = Owner->GetPromptVerb(C, this);
-	const FText Label = Owner->GetPromptLabel(C);
+	const AFTStudioActor* TargetOwner = C->GetStudioOwner();
+	bOutAvailable = TargetOwner->CanInteract(C, this, OutReason);
+	const FText Verb = TargetOwner->GetPromptVerb(C, this);
+	const FText Label = TargetOwner->GetPromptLabel(C);
 	if (Label.IsEmpty())
 	{
 		return Verb;

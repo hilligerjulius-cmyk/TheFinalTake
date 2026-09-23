@@ -9,6 +9,7 @@ class UFTTitleMenuWidget;
 class UFTScriptBookWidget;
 class UFTPauseMenuWidget;
 class UFTResultsWidget;
+class UUserWidget;
 
 UCLASS()
 class THE_FINAL_TAKE_API AFTPlayerController : public APlayerController
@@ -21,8 +22,8 @@ public:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void Tick(float DeltaSeconds) override;
-	virtual void SetupInputComponent() override;
 	virtual void OnPossess(APawn* InPawn) override;
+	virtual void AcknowledgePossession(APawn* P) override;
 
 	// ---- local UI
 	void ShowToast(const FText& Text, bool bError);
@@ -31,7 +32,6 @@ public:
 	void ClosePause();
 	bool IsUIBlockingGameplay() const;
 	UFTHUDWidget* GetHUDWidget() const { return HUD; }
-	void OpenTitleMenu();
 
 	// ---- script book
 	UFUNCTION(Client, Reliable) void ClientOpenScriptBook();
@@ -45,22 +45,28 @@ public:
 	UFUNCTION(Server, Reliable) void ServerPing(FVector_NetQuantize Location);
 	UFUNCTION(Client, Reliable) void ClientToast(const FText& Text, bool bError);
 
-	void StartDemo(bool bListen);
+	// ---- title / session
+	void StartDemo(bool bHost);
 	void JoinStudio(const FString& Address);
 	void LeaveToTitle();
+	void QuitGame();
 
 private:
 	void EnsureWidgets();
-	void RefreshResults();
 	void ApplyInputMode();
 	void OnStateChanged();
+	void SetupInputContext();
+	void UpdateTitleCamera();
 
 	UPROPERTY(Transient) TObjectPtr<UFTHUDWidget> HUD;
 	UPROPERTY(Transient) TObjectPtr<UFTTitleMenuWidget> TitleMenu;
 	UPROPERTY(Transient) TObjectPtr<UFTScriptBookWidget> ScriptBook;
 	UPROPERTY(Transient) TObjectPtr<UFTPauseMenuWidget> PauseMenu;
 	UPROPERTY(Transient) TObjectPtr<UFTResultsWidget> Results;
+	UPROPERTY(Transient) TObjectPtr<class UAudioComponent> Music;
 
-	bool bTitleSetupDone = false;
+	bool bTitleShown = false;
+	bool bBookOpen = false;
+	bool bPaused = false;
 	FDelegateHandle StateHandle;
 };

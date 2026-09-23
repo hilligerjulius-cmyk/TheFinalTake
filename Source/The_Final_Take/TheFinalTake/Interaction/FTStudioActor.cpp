@@ -50,11 +50,11 @@ AFTSceneManager* AFTStudioActor::GetSceneManager() const
 	return AFTSceneManager::Get(this);
 }
 
-void AFTStudioActor::ReportEvent(FName Event, AFTCharacter* Instigator)
+void AFTStudioActor::ReportEvent(FName Event, AFTCharacter* EventInstigator)
 {
 	if (AFTSceneManager* SM = GetSceneManager())
 	{
-		SM->ReportEvent(Event, this, Instigator);
+		SM->ReportEvent(Event, this, EventInstigator);
 	}
 }
 

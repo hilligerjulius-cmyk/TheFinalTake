@@ -6,6 +6,7 @@
 #include "TheFinalTake/World/FTFloodController.h"
 #include "TheFinalTake/Game/FTGameState.h"
 #include "TheFinalTake/Game/FTSceneManager.h"
+#include "TheFinalTake/Props/FTSetPieces.h"
 #include "Camera/CameraComponent.h"
 #include "Components/PointLightComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -33,6 +34,7 @@ void AFTProp::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AFTProp, Carrier);
+	DOREPLIFETIME(AFTProp, Holder);
 	DOREPLIFETIME(AFTProp, bFloating);
 	DOREPLIFETIME(AFTProp, ReelSceneIndex);
 }
@@ -83,6 +85,7 @@ void AFTProp::PickUp(AFTCharacter* NewCarrier)
 	{
 		return;
 	}
+	ReleaseFromHolder();
 	Carrier = NewCarrier;
 	bFalling = false;
 	bFloating = false;
@@ -148,6 +151,7 @@ void AFTProp::ReturnHome(bool bAnnounce)
 		Carrier->ForceNetUpdate();
 		Carrier = nullptr;
 	}
+	ReleaseFromHolder();
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	SetCarriedCollision(false);
 	SetActorTransform(HomeTransform);
@@ -181,6 +185,42 @@ void AFTProp::OnUserLeft(AFTCharacter* User)
 	{
 		Drop(false);
 	}
+}
+
+void AFTProp::AttachToHolder(USceneComponent* Anchor, AActor* NewHolder)
+{
+	if (!HasAuthority() || !Anchor)
+	{
+		return;
+	}
+	if (Carrier)
+	{
+		Carrier->HeldProp = nullptr;
+		Carrier->ForceNetUpdate();
+		Carrier = nullptr;
+	}
+	Holder = NewHolder;
+	bFalling = false;
+	bFloating = false;
+	AttachToComponent(Anchor, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	SetActorRelativeRotation(CarryRotation);
+	SetCarriedCollision(false);
+	MulticastSound(EFTSound::Rustle, GetActorLocation(), 0.6f, 1.1f);
+	ForceNetUpdate();
+}
+
+void AFTProp::ReleaseFromHolder()
+{
+	if (AFTStandIn* S = Cast<AFTStandIn>(Holder))
+	{
+		S->ClearHeld();
+		S->ForceNetUpdate();
+	}
+	if (Holder)
+	{
+		DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	}
+	Holder = nullptr;
 }
 
 void AFTProp::SetCarriedCollision(bool bCarried)
@@ -228,6 +268,15 @@ void AFTProp::Tick(float DeltaSeconds)
 		if (!IsValid(Carrier))
 		{
 			Drop(false);
+		}
+		return;
+	}
+	if (Holder)
+	{
+		if (!IsValid(Holder))
+		{
+			ReleaseFromHolder();
+			bFalling = true;
 		}
 		return;
 	}

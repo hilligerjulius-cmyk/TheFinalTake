@@ -133,6 +133,14 @@ void AFTGameState::MulticastSound2D_Implementation(EFTSound Sound, float Volume)
 
 void AFTGameState::OnRep_State()
 {
+	if (ShootPhase != LastSeenPhase)
+	{
+		LastSeenPhase = ShootPhase;
+		for (TActorIterator<AFTStudioActor> It(GetWorld()); It; ++It)
+		{
+			It->OnShootPhaseChanged(ShootPhase);
+		}
+	}
 	OnStateChanged.Broadcast();
 }
 

@@ -27,11 +27,11 @@ AFTFilmCamera::AFTFilmCamera()
 
 	Track = CreateDefaultSubobject<USceneComponent>(TEXT("Track"));
 	Track->SetupAttachment(Root);
-	RailL = FTVis::MakePart(this, Track, TEXT("RailL"), EFTShape::Box, FVector(0.f, -34.f, 4.f), FVector(900.f, 8.f, 8.f), Grey);
-	RailR = FTVis::MakePart(this, Track, TEXT("RailR"), EFTShape::Box, FVector(0.f, 34.f, 4.f), FVector(900.f, 8.f, 8.f), Grey);
+	RailL = FTVis::MakePart(this, Track, TEXT("RailL"), EFTShape::Box, FVector(-34.f, 0.f, 4.f), FVector(8.f, 900.f, 8.f), Grey);
+	RailR = FTVis::MakePart(this, Track, TEXT("RailR"), EFTShape::Box, FVector(34.f, 0.f, 4.f), FVector(8.f, 900.f, 8.f), Grey);
 	for (int32 i = 0; i < NumSleepers; ++i)
 	{
-		Sleepers.Add(FTVis::MakePart(this, Track, *FString::Printf(TEXT("Sleeper%d"), i), EFTShape::Box, FVector(0.f, 0.f, 2.f), FVector(12.f, 96.f, 4.f), WoodDark));
+		Sleepers.Add(FTVis::MakePart(this, Track, *FString::Printf(TEXT("Sleeper%d"), i), EFTShape::Box, FVector(0.f, 0.f, 2.f), FVector(96.f, 12.f, 4.f), WoodDark));
 	}
 
 	Dolly = CreateDefaultSubobject<USceneComponent>(TEXT("Dolly"));
@@ -63,7 +63,7 @@ AFTFilmCamera::AFTFilmCamera()
 	FTVis::MakePart(this, TiltHead, TEXT("Body"), EFTShape::Box, FVector(0.f, 0.f, 0.f), FVector(56.f, 30.f, 34.f), Teal);
 	FTVis::MakePart(this, TiltHead, TEXT("BodyStripe"), EFTShape::Box, FVector(0.f, 0.f, -12.f), FVector(58.f, 32.f, 6.f), TealDark);
 	FTVis::MakePart(this, TiltHead, TEXT("Badge"), EFTShape::Box, FVector(10.f, 15.5f, 4.f), FVector(12.f, 2.f, 8.f), Coral);
-	FTVis::MakePart(this, TiltHead, TEXT("Lens"), EFTShape::Cylinder, FVector(40.f, 0.f, 0.f), FVector(22.f, 22.f, 28.f), Charcoal, FRotator(-90.f, 0.f, 0.f));
+	FTVis::MakePart(this, TiltHead, TEXT("LensBarrel"), EFTShape::Cylinder, FVector(40.f, 0.f, 0.f), FVector(22.f, 22.f, 28.f), Charcoal, FRotator(-90.f, 0.f, 0.f));
 	FTVis::MakePart(this, TiltHead, TEXT("LensRing"), EFTShape::Cylinder, FVector(50.f, 0.f, 0.f), FVector(25.f, 25.f, 5.f), GreyDark, FRotator(-90.f, 0.f, 0.f));
 	FTVis::MakePart(this, TiltHead, TEXT("LensGlass"), EFTShape::Cylinder, FVector(55.f, 0.f, 0.f), FVector(16.f, 16.f, 2.f), Cyan, FRotator(-90.f, 0.f, 0.f), 1.5f);
 	FTVis::MakePart(this, TiltHead, TEXT("MatteBox"), EFTShape::Box, FVector(62.f, 0.f, 0.f), FVector(8.f, 38.f, 30.f), Charcoal);
@@ -114,15 +114,15 @@ void AFTFilmCamera::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 void AFTFilmCamera::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	FTVis::ApplyShape(RailL, EFTShape::Box, FVector(TrackLength + 60.f, 8.f, 8.f));
-	FTVis::ApplyShape(RailR, EFTShape::Box, FVector(TrackLength + 60.f, 8.f, 8.f));
+	FTVis::ApplyShape(RailL, EFTShape::Box, FVector(8.f, TrackLength + 60.f, 8.f));
+	FTVis::ApplyShape(RailR, EFTShape::Box, FVector(8.f, TrackLength + 60.f, 8.f));
 	for (int32 i = 0; i < Sleepers.Num(); ++i)
 	{
 		const float A = Sleepers.Num() > 1 ? (float)i / (Sleepers.Num() - 1) : 0.5f;
-		Sleepers[i]->SetRelativeLocation(FVector(FMath::Lerp(-TrackLength * 0.5f - 20.f, TrackLength * 0.5f + 20.f, A), 0.f, 2.f));
+		Sleepers[i]->SetRelativeLocation(FVector(0.f, FMath::Lerp(-TrackLength * 0.5f - 20.f, TrackLength * 0.5f + 20.f, A), 2.f));
 	}
 	DollyAlpha = DefaultDolly;
-	Dolly->SetRelativeLocation(FVector(FMath::Lerp(-TrackLength * 0.5f, TrackLength * 0.5f, DollyAlpha), 0.f, 0.f));
+	Dolly->SetRelativeLocation(FVector(0.f, FMath::Lerp(-TrackLength * 0.5f, TrackLength * 0.5f, DollyAlpha), 0.f));
 }
 
 void AFTFilmCamera::BeginPlay()
@@ -209,16 +209,13 @@ void AFTFilmCamera::Release(const FText& Reason)
 	{
 		return;
 	}
+	// A camera left while rolling keeps recording as a locked-off shot (solo crews rely on this).
 	AFTCharacter* Old = Operator;
-	if (bRecording)
-	{
-		if (AFTSceneManager* SM = GetSceneManager())
-		{
-			SM->RequestRecordToggle(this, Old);
-		}
-		SetRecording(false);
-	}
 	Operator = nullptr;
+	if (bRecording && Reason.IsEmpty())
+	{
+		Old->ClientFeedback(NSLOCTEXT("FinalTakeCamera", "LockedOff", "Locked-off shot: the camera keeps rolling. Go do the action!"));
+	}
 	if (Old->UsingActor == this)
 	{
 		Old->SetUsingActor(nullptr);
@@ -422,7 +419,7 @@ void AFTFilmCamera::Tick(float DeltaSeconds)
 		VisualDolly = FMath::FInterpTo(VisualDolly, TDolly, DeltaSeconds, Speed);
 	}
 
-	Dolly->SetRelativeLocation(FVector(FMath::Lerp(-TrackLength * 0.5f, TrackLength * 0.5f, VisualDolly), 0.f, 0.f));
+	Dolly->SetRelativeLocation(FVector(0.f, FMath::Lerp(-TrackLength * 0.5f, TrackLength * 0.5f, VisualDolly), 0.f));
 	PanHead->SetRelativeRotation(FRotator(0.f, VisualPan, 0.f));
 	TiltHead->SetRelativeRotation(FRotator(VisualTilt, 0.f, 0.f));
 	const float FOV = FMath::Lerp(FOVRange.Y, FOVRange.X, VisualZoom);

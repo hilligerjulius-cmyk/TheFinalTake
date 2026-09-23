@@ -41,6 +41,11 @@ public:
 	bool IsCritical() const { return bCritical; }
 	AFTCharacter* GetCarrier() const { return Carrier; }
 	bool IsFloating() const { return bFloating; }
+	/** Server: hand the prop to a non-player holder (e.g. a stand-in). */
+	void AttachToHolder(USceneComponent* Anchor, AActor* NewHolder);
+	AActor* GetHolder() const { return Holder; }
+	/** Distance from the home shelf. */
+	float DistanceFromHome() const { return FVector::Dist(GetActorLocation(), HomeTransform.GetLocation()); }
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Prop") FName PropTag;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Prop") FText PropName;
@@ -64,7 +69,9 @@ protected:
 	UPROPERTY(VisibleAnywhere) TObjectPtr<USceneComponent> Visual;
 	UPROPERTY(VisibleAnywhere) TObjectPtr<UFTInteractableComponent> Grab;
 	UPROPERTY(ReplicatedUsing = OnRep_Carrier) TObjectPtr<AFTCharacter> Carrier;
+	UPROPERTY(Replicated) TObjectPtr<AActor> Holder;
 	UPROPERTY(Replicated) bool bFloating = false;
+	void ReleaseFromHolder();
 
 	FTransform HomeTransform;
 	FVector Velocity = FVector::ZeroVector;
