@@ -38,6 +38,8 @@ public:
 	void RequestRecordToggle(AFTFilmCamera* Camera, AFTCharacter* User);
 	void RequestRestart(APlayerController* PC);
 	bool RequestStartPremiere(AFTCharacter* User, FText& OutReason);
+	/** Optional preview on the studio screen (does not release the film). */
+	bool RequestTestScreening(AFTCharacter* User, FText& OutReason);
 	void OnReelLoaded(int32 ReelSceneIndex);
 	void OnProjectorPowered();
 	void OnBreakerRestored();
@@ -84,6 +86,10 @@ private:
 	/** Computes the box-office report for the finished film and books it once in the career. */
 	void RecordRelease();
 	bool bReleaseRecorded = false;
+	/** Seats the whole crew in the Grand Cinema when the premiere starts. */
+	void SeatCrew();
+	/** Dawn warnings already given this night (bit per threshold). */
+	int32 DawnWarned = 0;
 	AFTFilmCamera* FindCamera() const;
 	bool IsCostumeInZone(EFTCostume Costume, FName Zone) const;
 	bool IsDeviceActive(FName DeviceTag) const;

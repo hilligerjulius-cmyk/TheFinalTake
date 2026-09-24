@@ -81,9 +81,17 @@ AFTStudioShell::AFTStudioShell()
 	Groups[Blocker]->SetHiddenInGame(true);
 	Groups[Blocker]->SetCastShadow(false);
 
-	for (int32 i = 0; i < 72; ++i)
+	AddPools(72, 36, 12);
+	TankWater = FTVis::MakePart(this, Root, TEXT("TankWater"), EFTShape::WaterGrid, FVector(1800.f, 100.f, -50.f), FVector(920.f, 1920.f, 100.f), Hex(0x2E8FE8));
+	TankWater->SetCastShadow(false);
+	TankWater->SetBoundsScale(2.f);
+}
+
+void AFTStudioShell::AddPools(int32 NumTexts, int32 NumPoints, int32 NumSpots)
+{
+	for (int32 n = 0; n < NumTexts; ++n)
 	{
-		UTextRenderComponent* T = CreateDefaultSubobject<UTextRenderComponent>(*FString::Printf(TEXT("Text%02d"), i));
+		UTextRenderComponent* T = CreateDefaultSubobject<UTextRenderComponent>(*FString::Printf(TEXT("Text%02d"), Texts.Num()));
 		T->SetupAttachment(Root);
 		T->SetHorizontalAlignment(EHTA_Center);
 		T->SetVerticalAlignment(EVRTA_TextCenter);
@@ -96,25 +104,22 @@ AFTStudioShell::AFTStudioShell()
 		}
 		Texts.Add(T);
 	}
-	for (int32 i = 0; i < 36; ++i)
+	for (int32 n = 0; n < NumPoints; ++n)
 	{
-		UPointLightComponent* P = CreateDefaultSubobject<UPointLightComponent>(*FString::Printf(TEXT("Point%02d"), i));
+		UPointLightComponent* P = CreateDefaultSubobject<UPointLightComponent>(*FString::Printf(TEXT("Point%02d"), Points.Num()));
 		P->SetupAttachment(Root);
 		P->SetMobility(EComponentMobility::Movable);
 		P->SetCastShadows(false);
 		Points.Add(P);
 	}
-	for (int32 i = 0; i < 12; ++i)
+	for (int32 n = 0; n < NumSpots; ++n)
 	{
-		USpotLightComponent* S = CreateDefaultSubobject<USpotLightComponent>(*FString::Printf(TEXT("Spot%02d"), i));
+		USpotLightComponent* S = CreateDefaultSubobject<USpotLightComponent>(*FString::Printf(TEXT("Spot%02d"), Spots.Num()));
 		S->SetupAttachment(Root);
 		S->SetMobility(EComponentMobility::Movable);
 		S->SetCastShadows(false);
 		Spots.Add(S);
 	}
-	TankWater = FTVis::MakePart(this, Root, TEXT("TankWater"), EFTShape::WaterGrid, FVector(1800.f, 100.f, -50.f), FVector(920.f, 1920.f, 100.f), Hex(0x2E8FE8));
-	TankWater->SetCastShadow(false);
-	TankWater->SetBoundsScale(2.f);
 }
 
 void AFTStudioShell::OnConstruction(const FTransform& Transform)
@@ -398,6 +403,16 @@ void AFTStudioShell::Truss(float Y, float Z)
 void AFTStudioShell::Build()
 {
 	ClearAll();
+	BuildContent();
+	for (UInstancedStaticMeshComponent* I : Groups)
+	{
+		I->MarkRenderStateDirty();
+	}
+	ApplyLighting();
+}
+
+void AFTStudioShell::BuildContent()
+{
 	BuildExterior();
 	BuildLobby();
 	BuildOffice();
@@ -406,11 +421,6 @@ void AFTStudioShell::Build()
 	BuildTankSet();
 	BuildUpperLevel();
 	BuildWarehouse();
-	for (UInstancedStaticMeshComponent* I : Groups)
-	{
-		I->MarkRenderStateDirty();
-	}
-	ApplyLighting();
 }
 
 void AFTStudioShell::BuildExterior()
@@ -512,7 +522,8 @@ void AFTStudioShell::BuildExterior()
 	}
 	// buildings across the street
 	struct FB { float Y, W, H; FLinearColor C; };
-	const FB Blocks[] = { { -1700.f, 700.f, 900.f, NavyLight }, { -900.f, 600.f, 1300.f, Hex(0x3A3F6E) }, { -150.f, 700.f, 800.f, Hex(0x4A3F72) },
+	// (the gap between Y -600 and 300 is the boulevard to the Grand Cinema, built by AFTCityShell)
+	const FB Blocks[] = { { -1700.f, 700.f, 900.f, NavyLight }, { -900.f, 600.f, 1300.f, Hex(0x3A3F6E) },
 		{ 700.f, 800.f, 1150.f, NavyLight }, { 1600.f, 700.f, 950.f, Hex(0x3A3F6E) }, { 2300.f, 600.f, 1400.f, Hex(0x2F355E) } };
 	for (const FB& B : Blocks)
 	{
@@ -527,7 +538,8 @@ void AFTStudioShell::BuildExterior()
 		}
 	}
 	// invisible street bounds
-	Add(Blocker, FVector(-3620.f, 200.f, 300.f), FVector(40.f, 4800.f, 600.f), White);
+	Add(Blocker, FVector(-3620.f, -1400.f, 300.f), FVector(40.f, 1600.f, 600.f), White);
+	Add(Blocker, FVector(-3620.f, 1450.f, 300.f), FVector(40.f, 2300.f, 600.f), White);
 	Add(Blocker, FVector(-2700.f, -2210.f, 300.f), FVector(1900.f, 40.f, 600.f), White);
 	Add(Blocker, FVector(-2700.f, 2610.f, 300.f), FVector(1900.f, 40.f, 600.f), White);
 	// coral arrows from the kerb into the lobby
@@ -1048,6 +1060,10 @@ void AFTStudioShell::ApplyLighting()
 		else if (Zone == ZLobby)
 		{
 			F = PhaseDim < 0.2f ? 0.4f : 1.f;
+		}
+		else if (Zone == ZoneHall)
+		{
+			F = PhaseDim < 0.2f ? 0.06f : 1.f;
 		}
 		const float I = LightBase[i] * F;
 		if (i < Points.Num())

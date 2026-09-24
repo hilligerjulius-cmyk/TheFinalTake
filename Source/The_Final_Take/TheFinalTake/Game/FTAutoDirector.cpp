@@ -13,6 +13,7 @@
 #include "TheFinalTake/Production/FTFilmCamera.h"
 #include "TheFinalTake/Props/FTProp.h"
 #include "TheFinalTake/Props/FTSetPieces.h"
+#include "TheFinalTake/World/FTCity.h"
 
 #include "EngineUtils.h"
 #include "UnrealClient.h"
@@ -320,6 +321,37 @@ void AFTAutoDirector::BuildSteps()
 			*FFTEconomy::MoneyString(G->StudioMoney), G->CareerFilmsTotal, G->OwnedItems.Num(), G->OwnedVehicles.Num(), G->UnlockedStages.Num()));
 		return true;
 	} });
+	// ------------------------------------------------ -FTDawnTest: a short night that nobody finishes (fair loss at dawn)
+	if (FParse::Param(FCommandLine::Get(), TEXT("FTDawnTest")))
+	{
+		Steps.Add({ TEXT("Greenlight a film with a short night"), [this, SM, PC, GS]()
+		{
+			FText Why;
+			if (!SM() || !PC() || !SM()->RequestOpenScriptBook(PC(), Why) || !SM()->RequestSelectFilm(PC(), FTTags::FilmJaws, Why))
+			{
+				return false;
+			}
+			Log(FString::Printf(TEXT("night length %.0f s, dawn in %.0f s"), GS()->DawnDuration, GS()->GetDawnRemaining()), GS()->DawnDuration > 120.f);
+			return GS()->ShootPhase == EFTShootPhase::Shooting;
+		} });
+		Steps.Add({ TEXT("Dawn breaks: the shoot fails fairly"), [this, GS]()
+		{
+			if (GS()->ShootPhase != EFTShootPhase::Failed)
+			{
+				return false;
+			}
+			const bool bDawn = GS()->FailReason.ToString().Contains(TEXT("DAWN"));
+			Log(FString::Printf(TEXT("failed with: %s (money unchanged: %s)"), *GS()->FailReason.ToString(), GS()->StudioMoney == StartMoney ? TEXT("yes") : TEXT("NO")), !bDawn || GS()->StudioMoney != StartMoney);
+			return true;
+		}, 200.f });
+		Steps.Add({ TEXT("Restart after the failed night"), [this, SM, PC, GS]()
+		{
+			SM()->RequestRestart(PC());
+			return GS()->ShootPhase == EFTShootPhase::Lobby && GS()->GetDawnRemaining() > 0.f;
+		}, 5.f });
+		return;
+	}
+
 	// ------------------------------------------------ studio shop (WP2)
 	// fresh career: $5,000 buys exactly the test kit (a costume for the stand-in + a practical effect)
 	static const FName TestCostume(TEXT("Acc.DirectorBeret"));
@@ -689,25 +721,135 @@ void AFTAutoDirector::BuildSteps()
 	Steps.Add({ TEXT("Lunge for the staged defeat"), [this]() { return Use(TEXT("FTSharkRig"), TEXT("Rig3")); } });
 	Steps.Add({ TEXT("Take 3 accepted"), [TakeAccepted]() { return TakeAccepted(2); }, 25.f });
 	Steps.Add({ TEXT("Finale: projection room unlocked"), [GS]() { return GS()->ShootPhase == EFTShootPhase::Finale && GS()->bProjectionUnlocked; }, 20.f });
-	Steps.Add({ TEXT("Load all reels into the projector"), [this, GS]()
+	Steps.Add({ TEXT("Test screening in the studio projection room (optional)"), [this, GS]()
 	{
-		if (GS()->ReelsLoaded >= GS()->GetCompletedTakeCount())
+		Teleport(FVector(20.f, -1125.f, 520.f));
+		if (!GS()->bProjectorPower)
+		{
+			Use(TEXT("FTProjector"), TEXT("Power"), TEXT("Projector.Studio"));
+			return false;
+		}
+		if (!GS()->IsTestScreeningActive())
+		{
+			Use(TEXT("FTProjector"), TEXT("Start"), TEXT("Projector.Studio"));
+		}
+		return GS()->IsTestScreeningActive() && GS()->ShootPhase == EFTShootPhase::Finale;
+	}, 10.f });
+	if (bShots)
+	{
+		Steps.Add({ TEXT("Watch the test screening"), [this]() { Teleport(FVector(200.f, -1250.f, 520.f), 30.f); return StepTime > 9.f; } });
+		AddShot(TEXT("07a_test_screening"));
+	}
+	Steps.Add({ TEXT("Pack every reel into the film case"), [this, GS]()
+	{
+		if (GS()->ReelsPacked >= GS()->GetCompletedTakeCount())
 		{
 			return true;
 		}
-		if (!Crew->HeldProp)
+		if (!Cast<AFTProp_Reel>(Crew->HeldProp))
 		{
+			Crew->ReleaseProp(false);
 			Carry(TEXT("FTProp_Reel"));
+			return false;
 		}
-		Teleport(FVector(20.f, -1125.f, 520.f));
-		Use(TEXT("FTProjector"), TEXT("Load"));
+		for (TActorIterator<AFTFilmCase> It(GetWorld()); It; ++It)
+		{
+			Teleport(It->GetActorLocation() + FVector(-110.f, 0.f, 100.f));
+		}
+		Use(TEXT("FTFilmCase"), TEXT("Carry"));
 		return false;
-	}, 15.f });
-	Steps.Add({ TEXT("Restore projector power"), [this, GS]() { Use(TEXT("FTProjector"), TEXT("Power")); return GS()->bProjectorPower; } });
-	Steps.Add({ TEXT("Start the premiere"), [this, GS]() { Use(TEXT("FTProjector"), TEXT("Start")); return GS()->ShootPhase == EFTShootPhase::Premiere; } });
+	}, 20.f });
+	// no softlock on foot: the whole walk from Stage 4 to the cinema booth must be open for a crew-sized capsule
+	Steps.Add({ TEXT("Walking route studio -> Grand Cinema is open"), [this]()
+	{
+		const FVector Route[] = { FVector(-450.f, 0.f, 100.f), FVector(-1300.f, 0.f, 100.f), FVector(-2000.f, 0.f, 100.f), FVector(-3000.f, -150.f, 100.f),
+			FVector(-5500.f, -150.f, 100.f), FVector(-8500.f, -150.f, 100.f), FVector(-10500.f, -150.f, 100.f), FVector(-11600.f, -150.f, 100.f),
+			FVector(-12720.f, -50.f, 100.f), FVector(-11600.f, -150.f, 100.f), FVector(-11330.f, -700.f, 100.f), FVector(-11330.f, -1250.f, 100.f) };
+		FCollisionQueryParams Params(SCENE_QUERY_STAT(FTRoute), false, Crew.Get());
+		const FCollisionShape Capsule = FCollisionShape::MakeCapsule(34.f, 60.f);
+		int32 Blocked = 0;
+		for (int32 i = 0; i + 1 < UE_ARRAY_COUNT(Route); ++i)
+		{
+			FHitResult Hit;
+			if (GetWorld()->SweepSingleByChannel(Hit, Route[i], Route[i + 1], FQuat::Identity, ECC_Pawn, Capsule, Params))
+			{
+				++Blocked;
+				Log(FString::Printf(TEXT("route blocked between %s and %s by %s"), *Route[i].ToCompactString(), *Route[i + 1].ToCompactString(), Hit.GetActor() ? *Hit.GetActor()->GetName() : TEXT("?")), true);
+			}
+		}
+		// the booth stairs: every step must have floor under it and the mezzanine must be reachable
+		int32 MissingSteps = 0;
+		for (int32 k = 0; k < 21; ++k)
+		{
+			FHitResult Hit;
+			const FVector P(-11400.f - 30.f * (k + 0.5f), -1250.f, 24.f + 20.f * (k + 1) + 60.f);
+			if (!GetWorld()->LineTraceSingleByChannel(Hit, P, P - FVector(0.f, 0.f, 150.f), ECC_Visibility, Params) || FMath::Abs(Hit.ImpactPoint.Z - (4.f + 20.f * (k + 1))) > 6.f)
+			{
+				++MissingSteps;
+			}
+		}
+		Log(FString::Printf(TEXT("route check: %d blocked segment(s), %d stair step(s) without floor"), Blocked, MissingSteps), MissingSteps > 0);
+		return true;
+	} });
 	if (bShots)
 	{
-		Steps.Add({ TEXT("Watch the premiere"), [this]() { Teleport(FVector(200.f, -1250.f, 520.f), 30.f); return StepTime > 9.f; } });
+		Steps.Add({ TEXT("Look down the boulevard"), [this]() { Teleport(FVector(-3500.f, -150.f, 120.f), 180.f); return StepTime > 2.f; } });
+		AddShot(TEXT("07b_boulevard"));
+		Steps.Add({ TEXT("Look at the Grand Cinema"), [this]() { Teleport(FVector(-9700.f, -250.f, 120.f), 180.f); return StepTime > 2.f; } });
+		AddShot(TEXT("07c_cinema_exterior"));
+		Steps.Add({ TEXT("Look around the foyer"), [this]() { Teleport(FVector(-11350.f, 300.f, 120.f), 200.f); return StepTime > 2.f; } });
+		AddShot(TEXT("07d_foyer"));
+	}
+	Steps.Add({ TEXT("Carry the film case to the Grand Cinema booth"), [this]()
+	{
+		AFTFilmCase* Case = nullptr;
+		for (TActorIterator<AFTFilmCase> It(GetWorld()); It; ++It) { Case = *It; }
+		if (!Case)
+		{
+			return false;
+		}
+		if (Crew->HeldProp != Case)
+		{
+			Crew->ReleaseProp(false);
+			Carry(TEXT("FTFilmCase"));
+			return false;
+		}
+		Teleport(FVector(-12200.f, -1000.f, 520.f), 180.f);
+		return Case->GetCarrier() == Crew.Get() && Crew->GetActorLocation().X < -12000.f;
+	} });
+	Steps.Add({ TEXT("Load the reels into the cinema projector"), [this, GS]()
+	{
+		Use(TEXT("FTProjector"), TEXT("Load"), TEXT("Projector.Premiere"));
+		return GS()->ReelsLoaded >= GS()->GetCompletedTakeCount() && GS()->ReelsPacked == 0;
+	} });
+	Steps.Add({ TEXT("Start the premiere in the Grand Cinema"), [this, GS]() { Use(TEXT("FTProjector"), TEXT("Start"), TEXT("Projector.Premiere")); return GS()->ShootPhase == EFTShootPhase::Premiere; } });
+	Steps.Add({ TEXT("Crew is seated in the cinema hall"), [this]()
+	{
+		const FVector L = Crew->GetActorLocation();
+		const bool bInHall = L.X < -12650.f && L.X > -14700.f && L.Y > -1350.f && L.Y < 1050.f;
+		Log(FString::Printf(TEXT("crew seat at %s"), *L.ToCompactString()), !bInHall);
+		return true;
+	} });
+	Steps.Add({ TEXT("Audience fills the hall for the release"), [this, GS]()
+	{
+		const AFTCinemaSeating* Seats = AFTCinemaSeating::Find(GetWorld());
+		const FFTReleaseReport& R = GS()->LastRelease;
+		if (!Seats || !R.bValid)
+		{
+			return false;
+		}
+		const int32 Expected = FMath::RoundToInt(FFTEconomy::FillRatio(R.Audience, *UFTEconomyConfig::Get()) * Seats->GetAudienceSeats());
+		if (Seats->GetShownAudience() < Seats->GetTargetAudience() && StepTime < 8.f)
+		{
+			return false;
+		}
+		Log(FString::Printf(TEXT("crowd: %d of %d seats for %d viewers (expected %d, shown %d)"), Seats->GetTargetAudience(), Seats->GetAudienceSeats(), R.Audience, Expected, Seats->GetShownAudience()),
+			Seats->GetTargetAudience() != Expected || Seats->GetShownAudience() != Expected);
+		return true;
+	}, 10.f });
+	if (bShots)
+	{
+		Steps.Add({ TEXT("Watch the premiere"), [this]() { return StepTime > 9.f; } });
 		AddShot(TEXT("07_premiere"));
 	}
 	Steps.Add({ TEXT("Premiere ends on the results"), [this, GS]()
@@ -774,6 +916,12 @@ void AFTAutoDirector::BuildSteps()
 		}
 		Log(FString::Printf(TEXT("after restart: phase=%d flood=%d power=%d takes=%d harpoonHome=%d reelsLeft=%d"),
 			(int32)G->ShootPhase, (int32)G->FloodStage, G->bStagePower ? 1 : 0, G->TakeResults.Num(), bHarpoonHome ? 1 : 0, Reels));
+		bool bCaseHome = false;
+		for (TActorIterator<AFTFilmCase> It(GetWorld()); It; ++It)
+		{
+			bCaseHome = It->DistanceFromHome() < 5.f && It->NumReels() == 0;
+		}
+		Log(FString::Printf(TEXT("film case home and empty: %d, crew back in the studio: %d"), bCaseHome ? 1 : 0, Crew->GetActorLocation().X > -2000.f ? 1 : 0), !bCaseHome || Crew->GetActorLocation().X < -2000.f);
 		return G->ShootPhase == EFTShootPhase::Lobby && G->FloodStage == EFTFloodStage::Dry && G->bStagePower && G->TakeResults.Num() == 0 && bHarpoonHome;
 	}, 5.f });
 }

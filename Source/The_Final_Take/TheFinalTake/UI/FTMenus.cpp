@@ -1043,7 +1043,7 @@ void UFTPremiereWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
 		return;
 	}
 	const UFTFilmDefinition* Film = GS->GetFilm();
-	const bool bShowing = GS->ShootPhase == EFTShootPhase::Premiere || GS->ShootPhase == EFTShootPhase::Results;
+	const bool bShowing = bTestScreening ? GS->IsTestScreeningActive() : (GS->ShootPhase == EFTShootPhase::Premiere || GS->ShootPhase == EFTShootPhase::Results);
 	if (!bShowing || !Film)
 	{
 		Backdrop->SetBrushColor(FLinearColor(0.93f, 0.93f, 0.9f, 1.f));
@@ -1054,14 +1054,14 @@ void UFTPremiereWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
 		LastCard = -2;
 		return;
 	}
-	const float T = GS->GetServerWorldTimeSeconds() - GS->PremiereStartTime;
+	const float T = GS->GetServerWorldTimeSeconds() - (bTestScreening ? GS->TestScreeningStart : GS->PremiereStartTime);
 	const int32 Scenes = Film->Scenes.Num();
 	int32 Card = -1; // -1 title, 0..N-1 scenes, N credits, N+1 box office
 	if (T > 8.f)
 	{
 		Card = FMath::Min(FMath::FloorToInt((T - 8.f) / 6.f), Scenes + 1);
 	}
-	if (GS->ShootPhase == EFTShootPhase::Results)
+	if (GS->ShootPhase == EFTShootPhase::Results && !bTestScreening)
 	{
 		Card = Scenes + 1;
 	}
@@ -1121,6 +1121,13 @@ void UFTPremiereWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
 			}
 			SubText->SetText(FText::FromString(Names));
 			FTAudio::Play2D(this, EFTSound::ApplauseBig, 0.8f);
+		}
+		else if (bTestScreening)
+		{
+			Backdrop->SetBrushColor(Film->PosterPrimary * 0.35f + FLinearColor(0.f, 0.f, 0.f, 1.f));
+			BigText->SetText(LOCTEXT("TestOver", "TEST SCREENING OVER"));
+			SubText->SetText(LOCTEXT("TestOverSub", "The premiere audience is waiting at the GRAND CINEMA downtown.\nPack the reels into the film case and go!"));
+			FTAudio::Play2D(this, EFTSound::ApplauseSmall, 0.5f);
 		}
 		else
 		{

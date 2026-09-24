@@ -63,6 +63,10 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_State, BlueprintReadOnly) bool bProjectorPower = false;
 	UPROPERTY(ReplicatedUsing = OnRep_State, BlueprintReadOnly) int32 ReelsLoaded = 0;
 	UPROPERTY(ReplicatedUsing = OnRep_State, BlueprintReadOnly) float PremiereStartTime = 0.f;
+	/** Reels sitting in the film case (not yet loaded into the cinema projector). */
+	UPROPERTY(ReplicatedUsing = OnRep_State, BlueprintReadOnly) int32 ReelsPacked = 0;
+	/** Server time the optional studio test screening started (0 = none). */
+	UPROPERTY(ReplicatedUsing = OnRep_State, BlueprintReadOnly) float TestScreeningStart = 0.f;
 	UPROPERTY(ReplicatedUsing = OnRep_State, BlueprintReadOnly) FText FailReason;
 	UPROPERTY(ReplicatedUsing = OnRep_State, BlueprintReadOnly) FText Callout;
 	UPROPERTY(ReplicatedUsing = OnRep_State, BlueprintReadOnly) bool bTitleMode = false;
@@ -98,6 +102,8 @@ public:
 	/** Studio clock text, e.g. "03:42 AM". */
 	FText GetStudioClockText() const;
 	int32 GetCompletedTakeCount() const;
+	float GetTestScreeningLength() const;
+	bool IsTestScreeningActive() const;
 	const FFTTakeResult* GetBestTake(int32 InSceneIndex) const;
 	bool IsShootActive() const { return ShootPhase == EFTShootPhase::Shooting || ShootPhase == EFTShootPhase::Finale; }
 

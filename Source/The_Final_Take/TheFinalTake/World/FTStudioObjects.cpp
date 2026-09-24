@@ -1,4 +1,5 @@
 #include "TheFinalTake/World/FTStudioObjects.h"
+#include "TheFinalTake/World/FTCity.h"
 
 #include "TheFinalTake/Core/FTVisuals.h"
 #include "TheFinalTake/Characters/FTCharacter.h"
@@ -393,7 +394,30 @@ void AFTProjector::BeginPlay()
 {
 	Super::BeginPlay();
 	PowerPanel->SetRelativeLocation(PowerPanelOffset);
+	if (ProjectorRole == EFTProjectorRole::Premiere)
+	{
+		// the cinema booth is always powered; only reels + lever matter here
+		PowerPanel->SetVisibility(false, true);
+		PowerSwitch->SetInteractionEnabled(false);
+		StartLever->Label = LOCTEXT("PremiereLeverLabel", "Premiere lever");
+		LoadReel->Label = LOCTEXT("CinemaProjectorLabel", "Cinema projector");
+	}
+	else
+	{
+		// the studio projector only runs test screenings; the reels go to the Grand Cinema
+		LoadReel->SetInteractionEnabled(false);
+		StartLever->Label = LOCTEXT("TestLeverLabel", "Test screening lever");
+	}
+	// aim at the nearest screen (studio projector -> studio screen, booth -> cinema screen)
+	AFTCinemaScreen* Best = nullptr;
 	for (TActorIterator<AFTCinemaScreen> It(GetWorld()); It; ++It)
+	{
+		if (!Best || FVector::DistSquared(It->GetActorLocation(), GetActorLocation()) < FVector::DistSquared(Best->GetActorLocation(), GetActorLocation()))
+		{
+			Best = *It;
+		}
+	}
+	if (AFTCinemaScreen* It = Best)
 	{
 		const FVector From = BeamRoot->GetComponentLocation();
 		const FVector To = It->GetActorLocation();
@@ -402,13 +426,14 @@ void AFTProjector::BeginPlay()
 		FTVis::ApplyShape(Beam, EFTShape::Cone, FVector(It->ScreenSize.X * 0.85f, It->ScreenSize.X * 0.85f, Dist));
 		// ApplyShape resets the material to matte - the beam must stay a soft glow shaft
 		Beam->SetMaterial(0, FTVis::Glow());
+		// in the dark cinema hall the audience looks through the whole shaft: keep it a whisper
+		FTVis::SetGlow(Beam, ProjectorRole == EFTProjectorRole::Premiere ? 0.018f : 0.06f);
 		Beam->SetRelativeLocation(FVector(Dist * 0.5f, 0.f, 0.f));
 		BeamLight->SetAttenuationRadius(Dist + 800.f);
 		const float Half = FMath::RadiansToDegrees(FMath::Atan2(It->ScreenSize.X * 0.5f, Dist));
 		BeamLight->SetOuterConeAngle(Half);
 		BeamLight->SetInnerConeAngle(Half * 0.8f);
 		bAimed = true;
-		break;
 	}
 }
 
@@ -422,9 +447,10 @@ bool AFTProjector::CanInteract(const UFTInteractableComponent* Comp, const AFTCh
 	}
 	if (Comp == LoadReel)
 	{
-		if (!User || !Cast<AFTProp_Reel>(User->HeldProp))
+		const AFTFilmCase* Case = User ? Cast<AFTFilmCase>(User->HeldProp) : nullptr;
+		if (!User || (!Cast<AFTProp_Reel>(User->HeldProp) && !(Case && Case->NumReels() > 0)))
 		{
-			OutReason = LOCTEXT("NeedReel", "Carry a finished film reel here");
+			OutReason = LOCTEXT("NeedReel", "Bring the film case (or a film reel) here");
 			return false;
 		}
 		return true;
@@ -433,6 +459,19 @@ bool AFTProjector::CanInteract(const UFTInteractableComponent* Comp, const AFTCh
 	{
 		OutReason = LOCTEXT("PowerOk", "Projector power is on");
 		return false;
+	}
+	if (Comp == StartLever && ProjectorRole == EFTProjectorRole::TestScreening)
+	{
+		if (!GS->bProjectorPower)
+		{
+			OutReason = LOCTEXT("TestNeedsPower", "Restore projector power first (panel on the wall)");
+			return false;
+		}
+		if (GS->IsTestScreeningActive())
+		{
+			OutReason = LOCTEXT("TestRunning", "The test screening is running");
+			return false;
+		}
 	}
 	return true;
 }
@@ -445,6 +484,14 @@ FText AFTProjector::GetPromptVerb(const UFTInteractableComponent* Comp, const AF
 		{
 			return FText::Format(LOCTEXT("LoadN", "Load scene {0} reel"), FText::AsNumber(R->ReelSceneIndex + 1));
 		}
+		if (const AFTFilmCase* C = Cast<AFTFilmCase>(User->HeldProp))
+		{
+			return FText::Format(LOCTEXT("LoadCase", "Load {0} reel(s) from the film case"), FText::AsNumber(C->NumReels()));
+		}
+	}
+	if (Comp == StartLever)
+	{
+		return ProjectorRole == EFTProjectorRole::Premiere ? LOCTEXT("StartPremiereVerb", "Start the premiere") : LOCTEXT("StartTestVerb", "Start a test screening");
 	}
 	return Comp ? Comp->Verb : FText::GetEmpty();
 }
@@ -467,6 +514,14 @@ void AFTProjector::OnInteract(UFTInteractableComponent* Comp, AFTCharacter* User
 			SM->OnReelLoaded(Index);
 			MulticastSound(EFTSound::Stamp, GetActorLocation() + FVector(0.f, 0.f, 150.f), 1.f, 0.8f);
 		}
+		else if (AFTFilmCase* C = Cast<AFTFilmCase>(User->HeldProp))
+		{
+			for (const int32 Index : C->TakeReels())
+			{
+				SM->OnReelLoaded(Index);
+			}
+			MulticastSound(EFTSound::Stamp, GetActorLocation() + FVector(0.f, 0.f, 150.f), 1.f, 0.8f);
+		}
 	}
 	else if (Comp == PowerSwitch)
 	{
@@ -476,7 +531,8 @@ void AFTProjector::OnInteract(UFTInteractableComponent* Comp, AFTCharacter* User
 	else if (Comp == StartLever)
 	{
 		FText Reason;
-		if (!SM->RequestStartPremiere(User, Reason))
+		const bool bOk = ProjectorRole == EFTProjectorRole::Premiere ? SM->RequestStartPremiere(User, Reason) : SM->RequestTestScreening(User, Reason);
+		if (!bOk)
 		{
 			User->ClientRejected(Reason);
 		}
@@ -485,7 +541,19 @@ void AFTProjector::OnInteract(UFTInteractableComponent* Comp, AFTCharacter* User
 
 void AFTProjector::OnShootPhaseChanged(EFTShootPhase Phase)
 {
-	const bool bShow = Phase == EFTShootPhase::Premiere;
+	if (ProjectorRole == EFTProjectorRole::Premiere)
+	{
+		SetBeam(Phase == EFTShootPhase::Premiere);
+	}
+}
+
+void AFTProjector::SetBeam(bool bShow)
+{
+	if (bShow == bBeamOn)
+	{
+		return;
+	}
+	bBeamOn = bShow;
 	Beam->SetVisibility(bShow && bAimed);
 	BeamLight->SetVisibility(bShow);
 	FTVis::SetGlow(LensGlow, bShow ? 30.f : 0.3f);
@@ -515,10 +583,14 @@ void AFTProjector::Tick(float DeltaSeconds)
 	}
 	for (int32 i = 0; i < SlotReels.Num(); ++i)
 	{
-		SlotReels[i]->SetVisibility(i < GS->ReelsLoaded);
+		SlotReels[i]->SetVisibility(ProjectorRole == EFTProjectorRole::Premiere && i < GS->ReelsLoaded);
 	}
 	FTVis::Paint(PowerLamp, GS->bProjectorPower ? Green : Red, 6.f);
-	if (GS->ShootPhase == EFTShootPhase::Premiere)
+	if (ProjectorRole == EFTProjectorRole::TestScreening)
+	{
+		SetBeam(GS->IsTestScreeningActive());
+	}
+	if (bBeamOn)
 	{
 		ReelSpinA->AddLocalRotation(FRotator(0.f, 0.f, 0.f));
 		ReelSpinA->AddLocalRotation(FRotator(-180.f * DeltaSeconds, 0.f, 0.f));
@@ -589,7 +661,11 @@ void AFTCinemaScreen::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	const AFTGameState* GS = GSOf(this);
-	const bool bShow = GS && (GS->ShootPhase == EFTShootPhase::Premiere || GS->ShootPhase == EFTShootPhase::Results);
+	const bool bShow = GS && (bGrandCinema ? (GS->ShootPhase == EFTShootPhase::Premiere || GS->ShootPhase == EFTShootPhase::Results) : GS->IsTestScreeningActive());
+	if (UFTPremiereWidget* W = Cast<UFTPremiereWidget>(Screen->GetUserWidgetObject()))
+	{
+		W->bTestScreening = !bGrandCinema;
+	}
 	const float Target = bShow ? 1.f : 0.f;
 	if (!FMath::IsNearlyEqual(Open, Target, 0.001f))
 	{

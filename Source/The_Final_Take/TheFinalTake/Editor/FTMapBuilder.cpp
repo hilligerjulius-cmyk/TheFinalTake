@@ -12,6 +12,7 @@
 #include "TheFinalTake/Production/FTStations.h"
 #include "TheFinalTake/Props/FTProp.h"
 #include "TheFinalTake/Props/FTSetPieces.h"
+#include "TheFinalTake/World/FTCity.h"
 #include "TheFinalTake/World/FTFloodController.h"
 #include "TheFinalTake/World/FTStudioObjects.h"
 #include "TheFinalTake/World/FTStudioShell.h"
@@ -270,7 +271,25 @@ bool FTBuildStudioMap()
 	});
 	// roller housing just under the 1320 ceiling; the sheet unrolls in front of the sky backdrop
 	Spawn<AFTCinemaScreen>(W, FVector(2360.f, 100.f, 760.f), 180.f, TEXT("CinemaScreen"));
-	Spawn<AFTProjector>(W, FVector(120.f, -1125.f, 420.f), 0.f, TEXT("Projector"), [](AFTProjector* P) { P->PowerPanelOffset = FVector(-250.f, -330.f, 0.f); });
+	Spawn<AFTProjector>(W, FVector(120.f, -1125.f, 420.f), 0.f, TEXT("Projector"), [](AFTProjector* P)
+	{
+		P->PowerPanelOffset = FVector(-250.f, -330.f, 0.f);
+		P->ProjectorRole = EFTProjectorRole::TestScreening;
+		P->Tags.Add(TEXT("Projector.Studio"));
+	});
+	Spawn<AFTFilmCase>(W, FVector(420.f, -520.f, -60.f), 90.f, TEXT("FilmCase"));
+
+	// ---------------------------------------------------------------- downtown: boulevard, blocks, Grand Cinema
+	Spawn<AFTCityShell>(W, FVector::ZeroVector, 0.f, TEXT("CityShell"));
+	Spawn<AFTCinemaMarquee>(W, FVector(-11200.f, -150.f, 0.f), 0.f, TEXT("CinemaMarquee"));
+	Spawn<AFTBoxOfficeBoard>(W, FVector(-12592.f, 700.f, 0.f), 0.f, TEXT("BoxOfficeBoard"));
+	Spawn<AFTCinemaSeating>(W, FVector(-13950.f, -798.f, 4.f), 0.f, TEXT("CinemaSeating"));
+	Spawn<AFTCinemaScreen>(W, FVector(-14720.f, -150.f, 800.f), 0.f, TEXT("GrandCinemaScreen"), [](AFTCinemaScreen* S) { S->bGrandCinema = true; });
+	Spawn<AFTProjector>(W, FVector(-12380.f, -900.f, 424.f), 180.f, TEXT("CinemaProjector"), [](AFTProjector* P)
+	{
+		P->ProjectorRole = EFTProjectorRole::Premiere;
+		P->Tags.Add(TEXT("Projector.Premiere"));
+	});
 
 	// ---------------------------------------------------------------- props
 	Spawn<AFTProp_Harpoon>(W, FVector(2250.f, 1700.f, -36.f), 90.f, TEXT("Prop_Harpoon"));

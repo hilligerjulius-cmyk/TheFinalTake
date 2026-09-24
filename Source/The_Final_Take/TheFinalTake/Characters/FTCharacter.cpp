@@ -61,6 +61,8 @@ AFTCharacter::AFTCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	SetNetUpdateFrequency(60.f);
+	// the Grand Cinema is ~140 m from Stage 4: crew members must stay relevant across the whole district
+	SetNetCullDistanceSquared(FMath::Square(60000.f));
 
 	GetCapsuleComponent()->InitCapsuleSize(36.f, 88.f);
 	bUseControllerRotationYaw = true;

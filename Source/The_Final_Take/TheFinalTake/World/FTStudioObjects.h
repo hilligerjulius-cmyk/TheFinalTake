@@ -90,7 +90,14 @@ protected:
 	float Timer = 0.f;
 };
 
-/** Projector: load reels, restore power, start the premiere. */
+UENUM()
+enum class EFTProjectorRole : uint8
+{
+	TestScreening,	// studio projection room: optional preview on the studio screen (needs projector power)
+	Premiere		// Grand Cinema booth: load the reels, start the real premiere
+};
+
+/** Projector: test screening in the studio, or the real premiere in the Grand Cinema booth. */
 UCLASS()
 class THE_FINAL_TAKE_API AFTProjector : public AFTStudioActor
 {
@@ -106,7 +113,10 @@ public:
 
 	/** Where the power panel hangs (relative). */
 	UPROPERTY(EditAnywhere, Category = "Projector", meta = (MakeEditWidget = true)) FVector PowerPanelOffset = FVector(-150.f, 200.f, 0.f);
+	UPROPERTY(EditAnywhere, Category = "Projector") EFTProjectorRole ProjectorRole = EFTProjectorRole::TestScreening;
 protected:
+	void SetBeam(bool bShow);
+	bool bBeamOn = false;
 	UPROPERTY(VisibleAnywhere) TObjectPtr<USceneComponent> ReelSpinA;
 	UPROPERTY(VisibleAnywhere) TObjectPtr<USceneComponent> ReelSpinB;
 	UPROPERTY(VisibleAnywhere) TObjectPtr<USceneComponent> BeamRoot;
@@ -133,6 +143,8 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
 	UPROPERTY(EditAnywhere, Category = "Screen") FVector2D ScreenSize = FVector2D(1600.f, 900.f);
+	/** The Grand Cinema's screen shows the premiere; the studio screen only the test screening. */
+	UPROPERTY(EditAnywhere, Category = "Screen") bool bGrandCinema = false;
 protected:
 	UPROPERTY(VisibleAnywhere) TObjectPtr<UWidgetComponent> Screen;
 	UPROPERTY(VisibleAnywhere) TObjectPtr<UStaticMeshComponent> Sheet;

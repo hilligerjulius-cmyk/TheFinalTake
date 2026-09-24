@@ -161,7 +161,7 @@ UFTFilm_JawsOfTheStudio::UFTFilm_JawsOfTheStudio()
 		S.CaptureDuration = 3.f;
 		S.CompletionWindow = 35.f;
 		S.DisasterAfterTake = EFTSceneDisaster::ProjectionUnlockAfterTake;
-		S.TransitionText = LOCTEXT("S3Trans", "THAT'S A WRAP! Get the reels to the projection room!");
+		S.TransitionText = LOCTEXT("S3Trans", "THAT'S A WRAP! Everybody - the film is in the can!");
 		S.ScoreHint = LOCTEXT("S3Hint", "Hero, harpoon and shark in the red light.");
 		Scenes.Add(S);
 	}

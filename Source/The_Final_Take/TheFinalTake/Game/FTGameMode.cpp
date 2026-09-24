@@ -1,4 +1,5 @@
 #include "TheFinalTake/Game/FTGameMode.h"
+#include "TheFinalTake/Career/FTEconomy.h"
 
 #include "TheFinalTake/Game/FTGameState.h"
 #include "TheFinalTake/Game/FTPlayerState.h"
@@ -34,6 +35,18 @@ void AFTGameMode::InitGame(const FString& MapName, const FString& Options, FStri
 	{
 		CareerSlot = FMath::Max(1, UGameplayStatics::GetIntOption(Options, TEXT("career"), CareerSlot));
 	}
+	// night length (the dawn deadline): balance data, then ?night=N / -FTNight=N
+	DawnSeconds = UFTEconomyConfig::Get()->NightSeconds;
+	if (UGameplayStatics::HasOption(Options, TEXT("night")))
+	{
+		DawnSeconds = (float)UGameplayStatics::GetIntOption(Options, TEXT("night"), (int32)DawnSeconds);
+	}
+	float NightOverride = 0.f;
+	if (FParse::Value(FCommandLine::Get(), TEXT("FTNight="), NightOverride))
+	{
+		DawnSeconds = NightOverride;
+	}
+	DawnSeconds = FMath::Clamp(DawnSeconds, 20.f, 7200.f);
 }
 
 void AFTGameMode::InitGameState()

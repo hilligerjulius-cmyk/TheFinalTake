@@ -42,6 +42,8 @@ void AFTGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AFTGameState, bProjectorPower);
 	DOREPLIFETIME(AFTGameState, ReelsLoaded);
 	DOREPLIFETIME(AFTGameState, PremiereStartTime);
+	DOREPLIFETIME(AFTGameState, ReelsPacked);
+	DOREPLIFETIME(AFTGameState, TestScreeningStart);
 	DOREPLIFETIME(AFTGameState, FailReason);
 	DOREPLIFETIME(AFTGameState, Callout);
 	DOREPLIFETIME(AFTGameState, bTitleMode);
@@ -104,6 +106,17 @@ FText AFTGameState::GetStudioClockText() const
 	return FText::FromString(FString::Printf(TEXT("%d:%02d AM"), Hour == 0 ? 12 : Hour, TotalMinutes % 60));
 }
 
+float AFTGameState::GetTestScreeningLength() const
+{
+	// title card, one card per finished scene, credits, "see you at the premiere"
+	return 8.f + 6.f * FMath::Max(1, GetCompletedTakeCount()) + 6.f + 6.f;
+}
+
+bool AFTGameState::IsTestScreeningActive() const
+{
+	return TestScreeningStart > 0.f && GetServerWorldTimeSeconds() - TestScreeningStart < GetTestScreeningLength();
+}
+
 int32 AFTGameState::GetCompletedTakeCount() const
 {
 	TSet<int32> Done;
@@ -132,11 +145,8 @@ const FFTTakeResult* AFTGameState::GetBestTake(int32 InSceneIndex) const
 
 void AFTGameState::MulticastAnnounce_Implementation(const FText& Text, EFTAnnounceStyle Style, EFTSound Sound)
 {
-	// clients log what reached them, so multiplayer runs can be verified from the client log alone
-	if (GetNetMode() == NM_Client)
-	{
-		UE_LOG(LogFinalTake, Display, TEXT("[Client] announce: %s"), *Text.ToString());
-	}
+	// every machine logs what reached it, so runs can be verified from the logs alone
+	UE_LOG(LogFinalTake, Display, TEXT("[%s] announce: %s"), GetNetMode() == NM_Client ? TEXT("Client") : TEXT("Host"), *Text.ToString());
 	OnAnnounce.Broadcast(Text, Style, Sound);
 	if (Sound != EFTSound::None && GetNetMode() != NM_DedicatedServer)
 	{

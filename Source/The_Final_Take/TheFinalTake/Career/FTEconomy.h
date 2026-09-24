@@ -67,6 +67,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Premiere") int32 CinemaSeats = 240;
 	/** Audience that fills the cinema completely. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Premiere") int32 FullHouseAudience = 12000;
+	/** Length of the night (studio clock 00:00 -> 06:00) in real seconds. Override with ?night=N or -FTNight=N. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Premiere", meta = (ClampMin = 60, ClampMax = 7200)) float NightSeconds = 1800.f;
 
 	// ---------------------------------------------------------------- catalogues
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Catalogue") TArray<FFTShopItemDef> Items;
@@ -74,7 +76,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Catalogue") TArray<FFTStageDef> Stages;
 
 	/** Bumped whenever the authored defaults change; a data asset with another version is ignored. */
-	static constexpr int32 AuthoredVersion = 2;
+	static constexpr int32 AuthoredVersion = 3;
 	UPROPERTY(VisibleAnywhere, Category = "Catalogue") int32 DataVersion = AuthoredVersion;
 
 	virtual FPrimaryAssetId GetPrimaryAssetId() const override { return FPrimaryAssetId(TEXT("FTEconomy"), TEXT("Default")); }

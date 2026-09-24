@@ -14,6 +14,8 @@
 #include "TheFinalTake/Props/FTProp.h"
 #include "TheFinalTake/Props/FTSetPieces.h"
 #include "TheFinalTake/World/FTFloodController.h"
+#include "TheFinalTake/World/FTCity.h"
+#include "TheFinalTake/World/FTStudioObjects.h"
 #include "TheFinalTake/World/FTZone.h"
 
 #include "EngineUtils.h"
@@ -871,22 +873,19 @@ void AFTSceneManager::UpdateCallout()
 		}
 		break;
 	case EFTShootPhase::Finale:
-		if (!G->bProjectionUnlocked)
+		if (G->ReelsLoaded + G->ReelsPacked < G->GetCompletedTakeCount() && G->ReelsLoaded == 0)
 		{
-			NewCallout = LOCTEXT("CFinaleLocked", "Wait for the projection room to unlock...");
+			NewCallout = FText::Format(LOCTEXT("CPack", "Pack the reels into the FILM CASE next to the reel tray ({0}/{1}). Test screening upstairs is optional."),
+				FText::AsNumber(G->ReelsPacked), FText::AsNumber(G->GetCompletedTakeCount()));
 		}
 		else if (G->ReelsLoaded < G->GetCompletedTakeCount())
 		{
-			NewCallout = FText::Format(LOCTEXT("CReels", "Open the projection room! Carry the reels from the reel tray up the catwalk stairs ({0}/{1} loaded)."),
+			NewCallout = FText::Format(LOCTEXT("CCinema", "Carry the film case down the boulevard to the GRAND CINEMA - booth upstairs ({0}/{1} loaded)."),
 				FText::AsNumber(G->ReelsLoaded), FText::AsNumber(G->GetCompletedTakeCount()));
-		}
-		else if (!G->bProjectorPower)
-		{
-			NewCallout = LOCTEXT("CPower", "Restore projector power at the panel in the projection room.");
 		}
 		else
 		{
-			NewCallout = LOCTEXT("CStart", "Hold E on the projector to start the premiere!");
+			NewCallout = LOCTEXT("CStart", "Hold E on the booth projector's lever to start the premiere!");
 		}
 		break;
 	case EFTShootPhase::Premiere:
@@ -1267,7 +1266,7 @@ void AFTSceneManager::ApplyDisaster(EFTSceneDisaster Disaster)
 	else if (Disaster == EFTSceneDisaster::ProjectionUnlockAfterTake)
 	{
 		G->bProjectionUnlocked = true;
-		G->MulticastAnnounce(LOCTEXT("ProjOpen", "The PROJECTION ROOM is open!  Get the reels up there!"), EFTAnnounceStyle::Success, EFTSound::Fanfare);
+		G->MulticastAnnounce(LOCTEXT("ProjOpen", "That's a wrap!  Pack the reels into the FILM CASE and take them to the GRAND CINEMA downtown - premiere before 06:00!"), EFTAnnounceStyle::Success, EFTSound::Fanfare);
 		G->NotifyStateChanged();
 	}
 }
@@ -1326,7 +1325,7 @@ void AFTSceneManager::OnReelLoaded(int32 ReelSceneIndex)
 		return;
 	}
 	G->ReelsLoaded++;
-	G->MulticastAnnounce(FText::Format(LOCTEXT("ReelLoaded", "Reel {0} loaded into the projector ({1}/{2})"), FText::AsNumber(ReelSceneIndex + 1),
+	G->MulticastAnnounce(FText::Format(LOCTEXT("ReelLoaded", "Reel {0} loaded into the cinema projector ({1}/{2})"), FText::AsNumber(ReelSceneIndex + 1),
 		FText::AsNumber(G->ReelsLoaded), FText::AsNumber(G->GetCompletedTakeCount())), EFTAnnounceStyle::Info, EFTSound::Stamp);
 	G->NotifyStateChanged();
 }
@@ -1359,12 +1358,9 @@ bool AFTSceneManager::RequestStartPremiere(AFTCharacter* User, FText& OutReason)
 		OutReason = FText::Format(LOCTEXT("NeedReels", "Load all reels first ({0}/{1})"), FText::AsNumber(G->ReelsLoaded), FText::AsNumber(G->GetCompletedTakeCount()));
 		return false;
 	}
-	if (!G->bProjectorPower)
-	{
-		OutReason = LOCTEXT("NeedPower", "The projector has no power - use the power panel");
-		return false;
-	}
 	G->ShootPhase = EFTShootPhase::Premiere;
+	G->TestScreeningStart = 0.f;
+	SeatCrew();
 	G->PremiereStartTime = G->GetServerWorldTimeSeconds();
 	G->FrozenRemaining = G->GetDawnRemaining();
 	G->DawnServerTime = 0.f;
@@ -1374,6 +1370,67 @@ bool AFTSceneManager::RequestStartPremiere(AFTCharacter* User, FText& OutReason)
 	RecordRelease();
 	G->NotifyStateChanged();
 	return true;
+}
+
+bool AFTSceneManager::RequestTestScreening(AFTCharacter* User, FText& OutReason)
+{
+	AFTGameState* G = GS();
+	if (!G || G->ShootPhase != EFTShootPhase::Finale)
+	{
+		OutReason = LOCTEXT("TestNotYet", "Finish shooting the film first");
+		return false;
+	}
+	if (!G->bProjectorPower)
+	{
+		OutReason = LOCTEXT("TestNoPower", "The projector has no power - use the power panel");
+		return false;
+	}
+	if (G->IsTestScreeningActive())
+	{
+		OutReason = LOCTEXT("TestBusy", "The test screening is already running");
+		return false;
+	}
+	G->TestScreeningStart = G->GetServerWorldTimeSeconds();
+	G->MulticastAnnounce(LOCTEXT("TestStart", "TEST SCREENING!  (The real premiere is at the GRAND CINEMA downtown.)"), EFTAnnounceStyle::Info, EFTSound::Clapper);
+	G->NotifyStateChanged();
+	return true;
+}
+
+void AFTSceneManager::SeatCrew()
+{
+	const AFTCinemaSeating* Seats = AFTCinemaSeating::Find(GetWorld());
+	if (!Seats)
+	{
+		return;
+	}
+	// everyone looks at the middle of the big screen
+	FVector ScreenCenter = Seats->GetHallCenter();
+	for (TActorIterator<AFTCinemaScreen> It(GetWorld()); It; ++It)
+	{
+		if (It->bGrandCinema)
+		{
+			ScreenCenter = It->GetActorLocation();
+		}
+	}
+	int32 Index = 0;
+	for (TActorIterator<AFTCharacter> It(GetWorld()); It; ++It)
+	{
+		AFTCharacter* C = *It;
+		C->StopUsing();
+		C->ReleaseProp(false);
+		const FTransform Seat = Seats->GetCrewSeat(Index++);
+		C->TeleportTo(Seat.GetLocation(), Seat.Rotator(), false, true);
+		if (AController* Ctl = C->GetController())
+		{
+			const FVector Eye = Seat.GetLocation() + FVector(0.f, 0.f, 64.f);
+			const FRotator Look = (ScreenCenter - Eye).Rotation();
+			Ctl->SetControlRotation(Look);
+			if (APlayerController* PC = Cast<APlayerController>(Ctl))
+			{
+				PC->ClientSetRotation(Look, true); // remote clients own their view rotation
+			}
+		}
+	}
 }
 
 void AFTSceneManager::RecordRelease()
@@ -1491,6 +1548,22 @@ void AFTSceneManager::TickClockAndCondition(float DeltaSeconds)
 		Fail(LOCTEXT("Dawn", "DAWN BROKE - the premiere never started!"));
 		return;
 	}
+	// fair warning before dawn (studio clock time left)
+	if (G->DawnServerTime > 0.f)
+	{
+		const float Left = G->GetDawnRemaining();
+		const float Thresholds[] = { G->DawnDuration * 0.25f, G->DawnDuration * 0.1f, FMath::Min(60.f, G->DawnDuration * 0.05f) };
+		for (int32 i = 0; i < 3; ++i)
+		{
+			if (Left <= Thresholds[i] && !(DawnWarned & (1 << i)))
+			{
+				DawnWarned |= (1 << i);
+				G->MulticastAnnounce(FText::Format(LOCTEXT("DawnWarn", "{0} of night left - the premiere must start before 06:00!"),
+					FText::FromString(FString::Printf(TEXT("%d:%02d"), FMath::FloorToInt(Left / 60.f), FMath::FloorToInt(FMath::Fmod(Left, 60.f))))),
+					i == 2 ? EFTAnnounceStyle::Danger : EFTAnnounceStyle::Hint, i == 2 ? EFTSound::Alarm : EFTSound::None);
+			}
+		}
+	}
 	if (G->FloodStage != EFTFloodStage::Dry)
 	{
 		const float Drain = (G->FloodStage == EFTFloodStage::Flooded ? 0.07f : 0.04f) + (G->bStagePower ? 0.f : 0.02f);
@@ -1605,6 +1678,10 @@ void AFTSceneManager::ResetShoot()
 			if (AController* Ctl = C->GetController())
 			{
 				Ctl->SetControlRotation(S->GetActorRotation());
+				if (APlayerController* PC = Cast<APlayerController>(Ctl))
+				{
+					PC->ClientSetRotation(S->GetActorRotation(), true);
+				}
 			}
 		}
 	}
@@ -1648,6 +1725,9 @@ void AFTSceneManager::ResetShoot()
 	G->bProjectionUnlocked = false;
 	G->bProjectorPower = false;
 	G->ReelsLoaded = 0;
+	G->ReelsPacked = 0;
+	G->TestScreeningStart = 0.f;
+	DawnWarned = 0;
 	G->PremiereStartTime = 0.f;
 	G->FailReason = FText::GetEmpty();
 	G->ScriptBookUser = nullptr;

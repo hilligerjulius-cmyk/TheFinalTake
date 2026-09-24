@@ -34,8 +34,15 @@ public:
 		PrismDeco, RampSolid, TorusDeco, CapsuleDeco, GlassSolid, Blocker, ShorelineDeco, NumGroups
 	};
 
+	/** Light zones: how a light reacts to the shoot phase (premiere dims the stage / cinema hall). */
+	enum ELightZone : int32 { ZoneExterior = 0, ZoneLobby = 1, ZoneStage = 2, ZoneProjection = 3, ZoneHall = 4 };
+
 protected:
 	void Build();
+	/** Everything this shell consists of (the studio by default; the city overrides it). */
+	virtual void BuildContent();
+	/** Extra text / light slots for subclasses (created in their constructor). */
+	void AddPools(int32 NumTexts, int32 NumPoints, int32 NumSpots);
 	void ClearAll();
 	int32 Add(int32 Group, const FVector& Center, const FVector& Size, const FLinearColor& Color, float Emissive = 0.f, const FRotator& Rot = FRotator::ZeroRotator, float Gloss = 0.f);
 	void Text(const FString& S, const FVector& Loc, float Yaw, float Size, const FColor& Color, float Pitch = 0.f);

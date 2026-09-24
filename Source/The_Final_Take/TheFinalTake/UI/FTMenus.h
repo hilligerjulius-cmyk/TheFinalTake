@@ -171,6 +171,9 @@ UCLASS()
 class THE_FINAL_TAKE_API UFTPremiereWidget : public UUserWidget
 {
 	GENERATED_BODY()
+public:
+	/** Studio screen: plays the optional test screening instead of the premiere. */
+	bool bTestScreening = false;
 protected:
 	virtual void NativeOnInitialized() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;

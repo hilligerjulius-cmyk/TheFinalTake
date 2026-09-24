@@ -479,7 +479,7 @@ void UFTHUDWidget::UpdateCallSheet()
 
 	CalloutText->SetText(GS->Callout);
 
-	FString Sig = FString::Printf(TEXT("%d|%d|%d|%s|%d|"), (int32)GS->ShootPhase, GS->SceneIndex, (int32)GS->SceneState, *GS->FilmId.ToString(), GS->ReelsLoaded);
+	FString Sig = FString::Printf(TEXT("%d|%d|%d|%s|%d|%d|%d|"), (int32)GS->ShootPhase, GS->SceneIndex, (int32)GS->SceneState, *GS->FilmId.ToString(), GS->ReelsLoaded, GS->ReelsPacked, GS->TestScreeningStart > 0.f ? 1 : 0);
 	for (const FFTObjectiveStatus& S : GS->Objectives)
 	{
 		Sig += FString::Printf(TEXT("%d"), (int32)S.State);
@@ -565,11 +565,16 @@ void UFTHUDWidget::UpdateCallSheet()
 		FilmLine->SetText(Film ? Film->Title : FText::GetEmpty());
 		SceneTitle->SetText(LOCTEXT("Finale", "Finale: The Premiere"));
 		StateText->SetText(LOCTEXT("FinaleState", "FINALE"));
-		AddRow(LOCTEXT("F1", "Projection room unlocked"), GS->bProjectionUnlocked ? EFTObjectiveState::Complete : EFTObjectiveState::Available, true);
-		AddRow(FText::Format(LOCTEXT("F2", "Load the reels ({0}/{1})"), FText::AsNumber(GS->ReelsLoaded), FText::AsNumber(GS->GetCompletedTakeCount())),
-			GS->ReelsLoaded >= GS->GetCompletedTakeCount() ? EFTObjectiveState::Complete : EFTObjectiveState::Available, true);
-		AddRow(LOCTEXT("F3", "Restore projector power"), GS->bProjectorPower ? EFTObjectiveState::Complete : EFTObjectiveState::Available, true);
-		AddRow(LOCTEXT("F4", "Hold E on the projector: start the premiere"), EFTObjectiveState::Available, true);
+		{
+			const int32 Takes = GS->GetCompletedTakeCount();
+			AddRow(FText::Format(LOCTEXT("F1", "Pack the reels into the film case ({0}/{1})"), FText::AsNumber(FMath::Min(Takes, GS->ReelsPacked + GS->ReelsLoaded)), FText::AsNumber(Takes)),
+				GS->ReelsPacked + GS->ReelsLoaded >= Takes ? EFTObjectiveState::Complete : EFTObjectiveState::Available, true);
+			AddRow(LOCTEXT("F2", "Take them to the GRAND CINEMA downtown"), GS->ReelsLoaded > 0 ? EFTObjectiveState::Complete : EFTObjectiveState::Available, true);
+			AddRow(FText::Format(LOCTEXT("F3", "Load the booth projector ({0}/{1})"), FText::AsNumber(GS->ReelsLoaded), FText::AsNumber(Takes)),
+				GS->ReelsLoaded >= Takes ? EFTObjectiveState::Complete : EFTObjectiveState::Available, true);
+			AddRow(LOCTEXT("F4", "Hold E on the lever: start the premiere"), EFTObjectiveState::Available, true);
+			AddRow(LOCTEXT("F5", "Optional: test screening in the studio"), GS->TestScreeningStart > 0.f ? EFTObjectiveState::Complete : EFTObjectiveState::Available, false);
+		}
 		break;
 	case EFTShootPhase::Premiere:
 		SceneTitle->SetText(LOCTEXT("PremiereNow", "Premiere!"));
@@ -618,7 +623,10 @@ void UFTHUDWidget::UpdateClock()
 		SaveText->SetColorAndOpacity(FSlateColor(Cream));
 	}
 
-	const bool bDanger = GS->IsShootActive() && (!GS->bStagePower || GS->FloodStage != EFTFloodStage::Dry);
+	// the flood / blackout alarm frame only matters inside the studio building, not downtown
+	const APawn* Me = GetOwningPlayerPawn();
+	const bool bInStudio = !Me || Me->GetActorLocation().X > -1850.f;
+	const bool bDanger = bInStudio && GS->IsShootActive() && (!GS->bStagePower || GS->FloodStage != EFTFloodStage::Dry);
 	const float A = bDanger ? 0.25f + 0.2f * FMath::Sin(Time * 5.f) : 0.f;
 	for (UImage* E : DangerEdges)
 	{
