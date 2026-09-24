@@ -573,11 +573,11 @@ void AFTStudioShell::BuildLobby()
 	Add(CubeDeco, FVector(-1300.f, -968.f, 300.f), FVector(4.f, 400.f, 90.f), Teal);
 	Text(TEXT("RECEPTION"), FVector(-1300.f, -965.f, 300.f), 90.f, 40.f, FColor(255, 240, 220));
 	// benches, plants, posters
-	Add(BoxSolid, FVector(-1650.f, 700.f, 25.f), FVector(80.f, 260.f, 50.f), Teal);
-	Add(BoxDeco, FVector(-1650.f, 700.f, 55.f), FVector(90.f, 270.f, 10.f), Coral);
+	// waiting bench (the north-west corner is the loading bay, the north-east corner the Studio Supply counter)
+	Add(BoxSolid, FVector(-1650.f, -470.f, 25.f), FVector(80.f, 260.f, 50.f), Teal);
+	Add(BoxDeco, FVector(-1650.f, -470.f, 55.f), FVector(90.f, 270.f, 10.f), Coral);
 	Plant(FVector(-1720.f, -900.f, 0.f), 1.1f);
 	Plant(FVector(-700.f, -900.f, 0.f), 1.1f);
-	Plant(FVector(-700.f, 900.f, 0.f), 1.0f);
 	Poster(FVector(-1100.f, -975.f, 260.f), 90.f, 0, 1.f);
 	Poster(FVector(-800.f, -975.f, 260.f), 90.f, 1, 1.f);
 	Poster(FVector(-1600.f, -975.f, 260.f), 90.f, 2, 1.f);
@@ -676,19 +676,8 @@ void AFTStudioShell::BuildWardrobe()
 	Wall(FVector(-1800.f, -1600.f, 460.f), FVector(-600.f, -1000.f, 480.f), Ceiling);
 	Add(CubeDeco, FVector(-1200.f, -1577.f, 60.f), FVector(1200.f, 4.f, 120.f), Magenta);
 	Add(CubeDeco, FVector(-1200.f, -1023.f, 60.f), FVector(1200.f, 4.f, 120.f), Magenta);
-	// makeup mirror with bulbs
-	Add(BoxDeco, FVector(-1150.f, -1570.f, 100.f), FVector(260.f, 30.f, 80.f), Cream);
-	Add(CubeDeco, FVector(-1150.f, -1570.f, 200.f), FVector(200.f, 6.f, 110.f), SkyBlue, 0.3f);
-	for (float X : { -1254.f, -1046.f })
-	{
-		Add(BoxDeco, FVector(X, -1564.f, 202.f), FVector(8.f, 12.f, 124.f), Cream, 0.f, FRotator::ZeroRotator, 0.3f);
-	}
-	Add(BoxDeco, FVector(-1150.f, -1564.f, 142.f), FVector(216.f, 12.f, 8.f), Cream, 0.f, FRotator::ZeroRotator, 0.3f);
-	for (int32 i = 0; i < 6; ++i)
-	{
-		Add(SphereDeco, FVector(-1240.f + i * 36.f, -1562.f, 262.f), FVector(12.f), Cream, 10.f);
-	}
-	Point(FVector(-1150.f, -1450.f, 250.f), FLinearColor(1.f, 0.85f, 0.7f), 3000.f, 600.f, ZLobby);
+	// the makeup mirror + accessory wall is an actor (AFTAccessoryStand); keep its warm vanity light
+	Point(FVector(-1190.f, -1420.f, 250.f), FLinearColor(1.f, 0.85f, 0.7f), 3400.f, 650.f, ZLobby);
 	// lockers
 	for (int32 i = 0; i < 5; ++i)
 	{
@@ -830,9 +819,10 @@ void AFTStudioShell::BuildStage()
 		++w;
 	}
 	// clutter
-	FlightCase(FVector(-100.f, 1100.f, -120.f), FVector(100.f, 70.f, 80.f), 12.f);
-	FlightCase(FVector(-100.f, 1100.f, -40.f), FVector(90.f, 60.f, 50.f), -5.f);
-	FlightCase(FVector(100.f, 1500.f, -120.f), FVector(120.f, 70.f, 90.f), 80.f);
+	// (the floor between the landing and the lighting desk is the PROP DEPOT delivery bay)
+	FlightCase(FVector(-480.f, 1080.f, -120.f), FVector(100.f, 70.f, 80.f), 12.f);
+	FlightCase(FVector(-480.f, 1080.f, -40.f), FVector(90.f, 60.f, 50.f), -5.f);
+	FlightCase(FVector(-490.f, 1640.f, -120.f), FVector(120.f, 70.f, 90.f), 80.f);
 	Cone(FVector(250.f, -950.f, -120.f));
 	Cone(FVector(1180.f, -1000.f, -120.f));
 	Cone(FVector(1180.f, 1150.f, -120.f));

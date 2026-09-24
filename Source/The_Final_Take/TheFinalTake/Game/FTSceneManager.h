@@ -50,6 +50,12 @@ public:
 
 	/** Framing evaluation for a camera (server + used for operator feedback). */
 	FFTFrameReport EvaluateFrame(const AFTFilmCamera* Camera, const FFTSceneDefinition& Scene) const;
+	/** 0..1: how well a point of the given size reads through the camera (centering, size, occlusion, smoke). */
+	float ScoreInFrame(const AFTFilmCamera* Camera, const FVector& Center, float Radius, const AActor* Ignore, float Smoke) const;
+	/** Seconds each purchased upgrade has been visible in the current take. */
+	const TMap<FName, float>& GetShowcaseTimes() const { return ShowcaseTime; }
+	/** An upgrade must be in frame this long during a take to count for production value. */
+	static constexpr float ShowcaseMinSeconds = 1.f;
 	static bool FindSubject(const UWorld* World, FName SubjectTag, FVector& OutCenter, float& OutRadius, AActor*& OutActor);
 
 	void ResetShoot();
@@ -65,6 +71,7 @@ private:
 	bool EvaluateObjective(const FFTObjectiveDefinition& Def, float& OutProgress) const;
 	bool AreSetupObjectivesComplete() const;
 	void TickRecording(float DeltaSeconds);
+	void UpdateShowcase(const AFTFilmCamera* Camera, float Smoke, float Step);
 	void FinishTake(bool bManualStop);
 	FFTTakeResult ScoreTake() const;
 	void ApplyDisaster(EFTSceneDisaster Disaster);
@@ -88,6 +95,8 @@ private:
 	float FrameAccum = 0.f;
 	int32 FrameSamples = 0;
 	TMap<FName, float> SubjectBest;
+	TMap<FName, float> ShowcaseTime;
+	float ShowcaseTimer = 0.f;
 	float SmokeAccum = 0.f;
 	float LeakWarningTime = -1.f;
 	float FloodTimer = 0.f;

@@ -1,6 +1,7 @@
 #include "TheFinalTake/Game/FTPlayerController.h"
 
 #include "TheFinalTake/Career/FTCareerManager.h"
+#include "TheFinalTake/Career/FTShopItems.h"
 #include "TheFinalTake/Core/FTAudio.h"
 #include "TheFinalTake/Core/FTInput.h"
 #include "TheFinalTake/Data/FTFilmDefinition.h"
@@ -11,6 +12,7 @@
 #include "TheFinalTake/Production/FTFilmCamera.h"
 #include "TheFinalTake/UI/FTHUDWidget.h"
 #include "TheFinalTake/UI/FTMenus.h"
+#include "TheFinalTake/UI/FTShopWidget.h"
 
 #include "Camera/CameraActor.h"
 #include "Components/AudioComponent.h"
@@ -55,6 +57,10 @@ void AFTPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (Music)
 	{
 		Music->Stop();
+	}
+	if (Shop)
+	{
+		Shop->Shutdown();
 	}
 	Super::EndPlay(EndPlayReason);
 }
@@ -189,6 +195,10 @@ void AFTPlayerController::OnStateChanged()
 	{
 		ScriptBook->Refresh();
 	}
+	if (bShopOpen && Shop)
+	{
+		Shop->Refresh();
+	}
 
 	// music: title & lobby only
 	const bool bWantMusic = GS->ShootPhase == EFTShootPhase::Title || GS->ShootPhase == EFTShootPhase::Lobby;
@@ -239,7 +249,7 @@ void AFTPlayerController::Tick(float DeltaSeconds)
 
 bool AFTPlayerController::IsUIBlockingGameplay() const
 {
-	return bTitleShown || bBookOpen || bPaused || (Results && Results->IsInViewport());
+	return bTitleShown || bBookOpen || bShopOpen || bPaused || (Results && Results->IsInViewport());
 }
 
 void AFTPlayerController::ApplyInputMode()
@@ -297,6 +307,11 @@ void AFTPlayerController::TogglePause()
 	if (bBookOpen)
 	{
 		LocalCloseScriptBook(true);
+		return;
+	}
+	if (bShopOpen)
+	{
+		LocalCloseShop();
 		return;
 	}
 	if (bPaused)
@@ -383,6 +398,44 @@ void AFTPlayerController::ServerCloseScriptBook_Implementation()
 	}
 }
 
+// ============================================================================ shop
+
+void AFTPlayerController::ClientOpenShop_Implementation(AFTShopTerminal* Terminal)
+{
+	if (!IsLocalController() || bTitleShown)
+	{
+		return;
+	}
+	if (bBookOpen)
+	{
+		LocalCloseScriptBook(true);
+	}
+	if (!Shop)
+	{
+		Shop = CreateWidget<UFTShopWidget>(this, UFTShopWidget::StaticClass());
+	}
+	if (!Shop->IsInViewport())
+	{
+		Shop->AddToViewport(30);
+	}
+	Shop->SetTerminal(Terminal);
+	Shop->Refresh();
+	bShopOpen = true;
+	FTAudio::Play2D(this, EFTSound::Rustle, 1.f, 1.1f);
+	ApplyInputMode();
+}
+
+void AFTPlayerController::LocalCloseShop()
+{
+	if (Shop)
+	{
+		Shop->Shutdown();
+		Shop->RemoveFromParent();
+	}
+	bShopOpen = false;
+	ApplyInputMode();
+}
+
 // ============================================================================ shoot control
 
 void AFTPlayerController::ServerRequestRestart_Implementation()
@@ -450,6 +503,15 @@ int32 AFTPlayerController::RequestPurchase(FName Id)
 	return PendingPurchase;
 }
 
+void AFTPlayerController::ClientAutoTestAction_Implementation(FName Action, FName Param)
+{
+	UE_LOG(LogTemp, Display, TEXT("[AutoTest] client action %s %s"), *Action.ToString(), *Param.ToString());
+	if (Action == TEXT("Purchase"))
+	{
+		RequestPurchase(Param);
+	}
+}
+
 void AFTPlayerController::ServerPurchase_Implementation(FName Id, int32 RequestId)
 {
 	FText Message;
@@ -475,6 +537,10 @@ void AFTPlayerController::ClientPurchaseResult_Implementation(int32 RequestId, b
 	LastPurchaseMessage = Message;
 	ShowToast(Message, !bOk);
 	FTAudio::Play2D(this, bOk ? EFTSound::UIConfirm : EFTSound::UIError, 0.8f);
+	if (bShopOpen && Shop)
+	{
+		Shop->OnPurchaseAnswer(bOk);
+	}
 	OnPurchaseAnswer.Broadcast();
 }
 

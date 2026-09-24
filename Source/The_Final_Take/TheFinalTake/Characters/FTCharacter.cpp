@@ -1,5 +1,7 @@
 #include "TheFinalTake/Characters/FTCharacter.h"
 
+#include "TheFinalTake/Career/FTCareerManager.h"
+#include "TheFinalTake/Career/FTEconomy.h"
 #include "TheFinalTake/Core/FTVisuals.h"
 #include "TheFinalTake/Core/FTAudio.h"
 #include "TheFinalTake/Core/FTInput.h"
@@ -275,6 +277,18 @@ void AFTCharacter::BuildBody()
 	CarryAnchor = CreateDefaultSubobject<USceneComponent>(TEXT("CarryAnchor"));
 	CarryAnchor->SetupAttachment(Chest);
 	CarryAnchor->SetRelativeLocation(FVector(38.f, 0.f, 12.f));
+
+	// ---------------------------------------------------------------- purchased accessory anchors
+	AccHead = CreateDefaultSubobject<USceneComponent>(TEXT("AccHead"));
+	AccHead->SetupAttachment(Neck);
+	AccHead->SetRelativeLocation(FVector(0.f, 0.f, 40.f));
+	AccFace = CreateDefaultSubobject<USceneComponent>(TEXT("AccFace"));
+	AccFace->SetupAttachment(Neck);
+	AccFace->SetRelativeLocation(FVector(24.f, 0.f, 24.f));
+	AccBody = CreateDefaultSubobject<USceneComponent>(TEXT("AccBody"));
+	AccBody->SetupAttachment(Chest);
+	AccBody->SetRelativeLocation(FVector(0.f, 0.f, 30.f));
+	Accessories.Init(NAME_None, FFTWornAccessories::NumSlots);
 }
 
 void AFTCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -288,6 +302,7 @@ void AFTCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AFTCharacter, EmoteSerial);
 	DOREPLIFETIME(AFTCharacter, bKnockedDown);
 	DOREPLIFETIME_CONDITION(AFTCharacter, bSprinting, COND_SkipOwner);
+	DOREPLIFETIME(AFTCharacter, Accessories);
 }
 
 void AFTCharacter::BeginPlay()
@@ -307,6 +322,7 @@ void AFTCharacter::PossessedBy(AController* NewController)
 		CrewIndex = PS->CrewIndex;
 		PS->Costume = Costume;
 	}
+	LoadSavedAccessories();
 	ApplyLook();
 	AttachCarryAnchorForView();
 }
@@ -491,6 +507,96 @@ void AFTCharacter::SetCostumePartsVisible()
 	Vis(FKPadR, bFK);
 	Vis(FKShield, bFK);
 	Vis(FKShieldCross, bFK);
+
+	// purchased accessories: a hat replaces the costume headwear, sunglasses replace the crew glasses
+	const bool bHat = !GetAccessory(EFTAccessorySlot::Head).IsNone();
+	const bool bShades = !GetAccessory(EFTAccessorySlot::Face).IsNone();
+	if (bHat)
+	{
+		Vis(CapCrown, false);
+		Vis(CapBrim, false);
+		Vis(CapBadge, false);
+		Vis(PhoneBand, false);
+		Vis(LGHat, false);
+		Vis(LGBrim, false);
+		Vis(SHFin, false);
+		Vis(FKPlume, false);
+		Vis(HairBun, false);
+	}
+	if (bShades)
+	{
+		Vis(GlassL, false);
+		Vis(GlassR, false);
+	}
+	// sit the hat on top of whatever covers the head
+	const float HatZ = bSH ? 56.f : (bFK ? 49.f : (bRC ? 47.f : 40.f));
+	AccHead->SetRelativeLocation(FVector(bSH ? -6.f : 0.f, 0.f, HatZ));
+	AccFace->SetRelativeLocation(FVector(bFK ? 26.f : 24.f, 0.f, 24.f));
+	Worn.Apply(this, { AccHead.Get(), AccFace.Get(), AccBody.Get() }, Accessories, true);
+}
+
+void AFTCharacter::OnRep_Accessories()
+{
+	SetCostumePartsVisible();
+}
+
+void AFTCharacter::SetAccessory(EFTAccessorySlot Slot, FName ItemId)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+	const int32 S = FMath::Clamp((int32)Slot, 0, FFTWornAccessories::NumSlots - 1);
+	if (Accessories.Num() != FFTWornAccessories::NumSlots)
+	{
+		Accessories.SetNum(FFTWornAccessories::NumSlots);
+	}
+	if (Accessories[S] == ItemId)
+	{
+		return;
+	}
+	Accessories[S] = ItemId;
+	SetCostumePartsVisible();
+	ForceNetUpdate();
+	if (AFTCareerManager* CM = AFTCareerManager::Get(this))
+	{
+		CM->SetAccessory(FTShop::WearerKey(FString::Printf(TEXT("Crew.%d"), CrewIndex), (EFTAccessorySlot)S), ItemId);
+	}
+}
+
+void AFTCharacter::LoadSavedAccessories()
+{
+	const AFTCareerManager* CM = AFTCareerManager::Get(this);
+	if (!HasAuthority() || !CM)
+	{
+		return;
+	}
+	Accessories.SetNum(FFTWornAccessories::NumSlots);
+	for (int32 S = 0; S < FFTWornAccessories::NumSlots; ++S)
+	{
+		const FName Id = CM->GetAccessory(FTShop::WearerKey(FString::Printf(TEXT("Crew.%d"), CrewIndex), (EFTAccessorySlot)S));
+		const FFTShopItemDef* Def = UFTEconomyConfig::Get()->FindItem(Id);
+		Accessories[S] = Def && (int32)Def->AccessorySlot == S && CM->Owns(Id) ? Id : NAME_None;
+	}
+	ForceNetUpdate();
+}
+
+void AFTCharacter::GatherShowcase(TArray<FFTShowcaseEntry>& Out) const
+{
+	const USceneComponent* Anchors[] = { AccHead.Get(), AccFace.Get(), AccBody.Get() };
+	for (int32 S = 0; S < FFTWornAccessories::NumSlots && S < Accessories.Num(); ++S)
+	{
+		const FFTShopItemDef* Def = Accessories[S].IsNone() ? nullptr : UFTEconomyConfig::Get()->FindItem(Accessories[S]);
+		if (Def && Anchors[S])
+		{
+			FFTShowcaseEntry E;
+			E.ItemId = Def->ItemId;
+			E.Center = Anchors[S]->GetComponentLocation() + FVector(0.f, 0.f, S == 2 ? -20.f : 8.f);
+			E.Radius = Def->FrameRadius;
+			E.Actor = this;
+			Out.Add(E);
+		}
+	}
 }
 
 void AFTCharacter::UpdateNameTag()

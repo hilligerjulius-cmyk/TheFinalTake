@@ -103,9 +103,11 @@ UFTEconomyConfig::UFTEconomyConfig()
 	{
 		FFTShopItemDef D = Item(TEXT("Acc.HeroCape"), LOCTEXT("Cape", "Hero Cape"),
 			LOCTEXT("CapeD", "Billows dramatically even with the wind machine off."), EFTShopCategory::Costume, 4000, 5, Red, {
-				P(EFTShape::Box, FVector(-14.f, 0.f, -22.f), FVector(4.f, 44.f, 64.f), Red, FRotator(8.f, 0.f, 0.f)),
-				P(EFTShape::Box, FVector(-12.f, 0.f, 10.f), FVector(6.f, 46.f, 6.f), Yellow),
-				P(EFTShape::Sphere, FVector(6.f, 0.f, 10.f), FVector(8.f), Yellow, FRotator::ZeroRotator, 1.f) });
+				P(EFTShape::Box, FVector(-21.f, 0.f, -24.f), FVector(4.f, 46.f, 66.f), Red, FRotator(8.f, 0.f, 0.f)),
+				P(EFTShape::Box, FVector(-18.f, 0.f, 9.f), FVector(6.f, 50.f, 7.f), Yellow),
+				P(EFTShape::Box, FVector(-2.f, -24.f, 9.f), FVector(34.f, 5.f, 6.f), Yellow),
+				P(EFTShape::Box, FVector(-2.f, 24.f, 9.f), FVector(34.f, 5.f, 6.f), Yellow),
+				P(EFTShape::Sphere, FVector(17.f, 0.f, 9.f), FVector(9.f), Yellow, FRotator::ZeroRotator, 1.f) });
 		D.AccessorySlot = EFTAccessorySlot::Body;
 		D.FrameRadius = 55.f;
 		Items.Add(D);
@@ -347,6 +349,12 @@ const UFTEconomyConfig* UFTEconomyConfig::Get()
 		return Cached.Get();
 	}
 	UFTEconomyConfig* Asset = LoadObject<UFTEconomyConfig>(nullptr, TEXT("/Game/TheFinalTake/Data/DA_Economy.DA_Economy"), nullptr, LOAD_NoWarn | LOAD_Quiet);
+	if (Asset && Asset->DataVersion != AuthoredVersion)
+	{
+		// an asset generated from older code would silently override newer balance/catalogue data
+		UE_LOG(LogTemp, Warning, TEXT("[Economy] DA_Economy has data version %d, code expects %d - using the built-in defaults. Re-run the FTContent commandlet."), Asset->DataVersion, AuthoredVersion);
+		Asset = nullptr;
+	}
 	if (Asset)
 	{
 		if (!IsRunningCommandlet() && !Asset->IsRooted())

@@ -1,7 +1,9 @@
 #include "TheFinalTake/Game/FTAutoDirector.h"
 
 #include "The_Final_Take.h"
+#include "TheFinalTake/Career/FTCareerManager.h"
 #include "TheFinalTake/Career/FTEconomy.h"
+#include "TheFinalTake/Career/FTShopItems.h"
 #include "TheFinalTake/Characters/FTCharacter.h"
 #include "TheFinalTake/Game/FTGameState.h"
 #include "TheFinalTake/Game/FTPlayerController.h"
@@ -318,9 +320,124 @@ void AFTAutoDirector::BuildSteps()
 			*FFTEconomy::MoneyString(G->StudioMoney), G->CareerFilmsTotal, G->OwnedItems.Num(), G->OwnedVehicles.Num(), G->UnlockedStages.Num()));
 		return true;
 	} });
+	// ------------------------------------------------ studio shop (WP2)
+	// fresh career: $5,000 buys exactly the test kit (a costume for the stand-in + a practical effect)
+	static const FName TestCostume(TEXT("Acc.DirectorBeret"));
+	static const FName TestEffect(TEXT("Fx.Bubbles"));
+	Steps.Add({ TEXT("Shop: buy the test kit for the team"), [this, GS, PC, WantPlayers]()
+	{
+		AFTGameState* G = GS();
+		const UFTEconomyConfig* Cfg = UFTEconomyConfig::Get();
+		for (const FName Id : { TestCostume, TestEffect })
+		{
+			if (G->IsOwned(Id))
+			{
+				continue;
+			}
+			const FFTShopItemDef* Def = Cfg->FindItem(Id);
+			// multiplayer: the costume is bought by the remote client through its own RPC (client-initiated path)
+			AFTPlayerController* Buyer = PC();
+			if (WantPlayers > 1 && Id == TestCostume)
+			{
+				for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+				{
+					if (AFTPlayerController* P = Cast<AFTPlayerController>(It->Get()); P && !P->IsLocalController())
+					{
+						if (StepTime < 0.2f || FMath::Fmod(StepTime, 5.f) < 0.05f)
+						{
+							P->ClientAutoTestAction(TEXT("Purchase"), Id);
+						}
+						return false; // wait for the client's request to arrive and be booked
+					}
+				}
+			}
+			if (!Buyer || !Def)
+			{
+				return false;
+			}
+			const int32 Before = G->StudioMoney;
+			Buyer->ServerPurchase(Id, 900 + Current);
+			if (!G->IsOwned(Id) || G->StudioMoney != Before - Def->Price)
+			{
+				Log(FString::Printf(TEXT("purchase of %s failed: %s"), *Id.ToString(), *Buyer->LastPurchaseMessage.ToString()), true);
+				return true;
+			}
+		}
+		return G->IsOwned(TestCostume) && G->IsOwned(TestEffect);
+	}, 20.f });
+	Steps.Add({ TEXT("Shop: team account charged exactly once per item"), [this, GS]()
+	{
+		AFTGameState* G = GS();
+		const UFTEconomyConfig* Cfg = UFTEconomyConfig::Get();
+		const bool bFreshKit = StartMoney == G->StudioMoney + Cfg->FindItem(TestCostume)->Price + Cfg->FindItem(TestEffect)->Price;
+		SpentMoney = StartMoney - G->StudioMoney;
+		Log(FString::Printf(TEXT("shop: spent %s, balance %s (%s)"), *FFTEconomy::MoneyString(SpentMoney), *FFTEconomy::MoneyString(G->StudioMoney),
+			bFreshKit ? TEXT("bought both test items now") : (SpentMoney == 0 ? TEXT("kit already owned from an earlier run") : TEXT("partial"))), SpentMoney != 0 && !bFreshKit);
+		return true;
+	} });
+	Steps.Add({ TEXT("Shop: invalid purchases are rejected without charging"), [this, GS]()
+	{
+		AFTGameState* G = GS();
+		AFTCareerManager* CM = AFTCareerManager::Get(this);
+		AFTPlayerController* P = Crew.IsValid() ? Cast<AFTPlayerController>(Crew->GetController()) : nullptr;
+		const UFTEconomyConfig* Cfg = UFTEconomyConfig::Get();
+		const int32 Money = G->StudioMoney;
+		FText Why;
+		const bool bDouble = CM->TryPurchase(P, TestCostume, Why);
+		Log(FString::Printf(TEXT("buy owned item again -> %s"), *Why.ToString()), bDouble || G->StudioMoney != Money);
+		const bool bUnknown = CM->TryPurchase(P, TEXT("Acc.DoesNotExist"), Why);
+		Log(FString::Printf(TEXT("buy unknown item -> %s"), *Why.ToString()), bUnknown || G->StudioMoney != Money);
+		FName TooExpensive;
+		int32 Price = 0;
+		EFTShopCategory Cat = EFTShopCategory::Prop;
+		FText Name;
+		for (const FFTShopItemDef& D : Cfg->Items) { if (!G->IsOwned(D.ItemId) && D.Price > Money) { TooExpensive = D.ItemId; } }
+		for (const FFTStageDef& D : Cfg->Stages) { if (!G->IsOwned(D.StageId) && D.Price > Money) { TooExpensive = D.StageId; } }
+		if (!TooExpensive.IsNone() && Cfg->Describe(TooExpensive, Price, Cat, Name))
+		{
+			const bool bRich = CM->TryPurchase(P, TooExpensive, Why);
+			Log(FString::Printf(TEXT("buy %s (%s) with %s -> %s"), *TooExpensive.ToString(), *FFTEconomy::MoneyString(Price), *FFTEconomy::MoneyString(Money), *Why.ToString()), bRich || G->StudioMoney != Money);
+		}
+		else
+		{
+			Log(TEXT("(every unowned entry is affordable - not-enough-money case skipped this run)"));
+		}
+		return true;
+	} });
+	Steps.Add({ TEXT("Shop: bought effect waits in a delivery bay (or its saved spot)"), [this]()
+	{
+		AFTShopItemActor* A = FTShop::FindItemActor(GetWorld(), TestEffect);
+		AFTCareerManager* CM = AFTCareerManager::Get(this);
+		FTransform Saved;
+		const bool bSaved = CM && CM->GetPlacement(TestEffect, Saved);
+		if (A)
+		{
+			Log(FString::Printf(TEXT("%s spawned at %s, saved placement %s (distance %.0f)"), *TestEffect.ToString(), *A->GetActorLocation().ToCompactString(),
+				bSaved ? *Saved.GetLocation().ToCompactString() : TEXT("none"), bSaved ? FVector::Dist(Saved.GetLocation(), A->GetActorLocation()) : -1.f),
+				!bSaved || FVector::Dist(Saved.GetLocation(), A->GetActorLocation()) > 60.f);
+		}
+		return A != nullptr;
+	}, 5.f });
 	AddShot(TEXT("01_lobby"));
 	if (bShots)
 	{
+		Steps.Add({ TEXT("Look at the Studio Supply counter"), [this]() { Teleport(FVector(-830.f, 520.f, 100.f), 90.f); return StepTime > 1.5f; } });
+		AddShot(TEXT("01b_supply_counter"));
+		Steps.Add({ TEXT("Open the shop catalogue"), [this]() { return StepTime > 0.3f && Use(TEXT("FTShopTerminal"), TEXT("Browse")); } });
+		Steps.Add({ TEXT("Catalogue preview settles"), [this]() { return StepTime > 2.5f; } });
+		AddShot(TEXT("01c_shop"));
+		Steps.Add({ TEXT("Close the shop catalogue"), [this]()
+		{
+			if (AFTPlayerController* P = Crew.IsValid() ? Cast<AFTPlayerController>(Crew->GetController()) : nullptr)
+			{
+				P->LocalCloseShop();
+			}
+			return true;
+		} });
+		Steps.Add({ TEXT("Look at the accessory wall"), [this]() { Teleport(FVector(-1190.f, -1230.f, 100.f), -90.f); return StepTime > 1.5f; } });
+		AddShot(TEXT("01d_accessory_wall"));
+		Steps.Add({ TEXT("Look at the loading bay"), [this]() { Teleport(FVector(-1300.f, 580.f, 100.f), 167.f); return StepTime > 1.5f; } });
+		AddShot(TEXT("01e_loading_bay"));
 		// same path as a player holding E on the book, so the client widget really opens
 		Steps.Add({ TEXT("Open the script book"), [this]()
 		{
@@ -362,6 +479,33 @@ void AFTAutoDirector::BuildSteps()
 	Steps.Add({ TEXT("Swipe keycard at Stage 4"), [this]() { Teleport(FVector(-800.f, -300.f, 100.f)); return Use(TEXT("FTDoor"), TEXT("Keycard")); } });
 	Steps.Add({ TEXT("Pick up the cardboard stand-in"), [this]() { return Carry(TEXT("FTStandIn")); } });
 	Steps.Add({ TEXT("Dress the stand-in as lifeguard"), [this]() { Teleport(FVector(-1550.f, -1300.f, 100.f), 180.f); return Use(TEXT("FTCostumeRack"), TEXT("H0")); } });
+	Steps.Add({ TEXT("Dress the stand-in with the purchased beret at the accessory wall"), [this]()
+	{
+		AFTStandIn* S = Crew.IsValid() ? Cast<AFTStandIn>(Crew->HeldProp) : nullptr;
+		if (!S)
+		{
+			return false;
+		}
+		if (S->GetAccessory(EFTAccessorySlot::Head) == TestCostume)
+		{
+			return true; // still dressed from an earlier session (persisted)
+		}
+		int32 Hook = 0;
+		for (const FFTShopItemDef& D : UFTEconomyConfig::Get()->Items)
+		{
+			if (D.Category == EFTShopCategory::Costume)
+			{
+				if (D.ItemId == TestCostume)
+				{
+					break;
+				}
+				++Hook;
+			}
+		}
+		Teleport(FVector(-1190.f, -1380.f, 100.f), -90.f);
+		Use(TEXT("FTAccessoryStand"), *FString::Printf(TEXT("Hook%d"), Hook));
+		return S->GetAccessory(EFTAccessorySlot::Head) == TestCostume;
+	} });
 	Steps.Add({ TEXT("Put the stand-in on the beach"), [this, ObjectiveDone]()
 	{
 		if (Crew->HeldProp)
@@ -378,11 +522,76 @@ void AFTAutoDirector::BuildSteps()
 		Teleport(FVector(2020.f, -560.f, 90.f));
 		return EnsureActive(TEXT("FTLighthouse"), TEXT("Toggle"), FTTags::DevLighthouse) && ObjectiveDone(1);
 	} });
+	Steps.Add({ TEXT("Carry the bubble machine onto the beach"), [this]()
+	{
+		AFTShopItemActor* A = FTShop::FindItemActor(GetWorld(), TestEffect);
+		if (!A)
+		{
+			return false;
+		}
+		// between the lifeguard stand-in and the lighthouse, so the locked-off scene 1 shot sees it
+		if (FVector::Dist2D(A->GetActorLocation(), FVector(1960.f, -560.f, 0.f)) < 90.f && !A->GetCarrier())
+		{
+			return true;
+		}
+		if (Crew->HeldProp != A)
+		{
+			Crew->ReleaseProp(false);
+			Teleport(A->GetActorLocation() + FVector(-120.f, 0.f, 100.f));
+			Crew->TakeProp(A);
+			return false;
+		}
+		Teleport(FVector(1905.f, -560.f, 90.f), 0.f);
+		Crew->ReleaseProp(false);
+		return false;
+	}, 10.f });
+	Steps.Add({ TEXT("Switch the bubble machine on (placement saved)"), [this]()
+	{
+		AFTShopItemActor* A = FTShop::FindItemActor(GetWorld(), TestEffect);
+		AFTCareerManager* CM = AFTCareerManager::Get(this);
+		FTransform Saved;
+		if (!A || !CM || !CM->GetPlacement(TestEffect, Saved) || FVector::Dist(Saved.GetLocation(), A->GetActorLocation()) > 5.f)
+		{
+			return false; // still falling / not landed yet
+		}
+		if (!A->IsDeviceActive())
+		{
+			Teleport(A->GetActorLocation() + FVector(-140.f, 0.f, 90.f), 0.f);
+			Use(TEXT("FTShopItemActor"), TEXT("Switch"));
+		}
+		return A->IsDeviceActive() && A->IsShowcased();
+	}, 8.f });
 	Steps.Add({ TEXT("Man the camera (scene 1)"), ClaimCamera, 15.f });
 	AddShot(TEXT("03_lens_scene1"));
 	Steps.Add({ TEXT("Roll, operator steps off (scene 1)"), RollCamera });
 	Steps.Add({ TEXT("Hit the warning siren"), [this]() { Teleport(FVector(60.f, -1300.f, -30.f)); return Use(TEXT("FTSoundConsole"), TEXT("Cue0")); } });
 	Steps.Add({ TEXT("Take 1 accepted"), [TakeAccepted]() { return TakeAccepted(0); }, 25.f });
+	Steps.Add({ TEXT("Take 1 counted the purchased upgrades that were in the shot"), [this, GS]()
+	{
+		const FFTTakeResult* R = GS()->GetBestTake(0);
+		if (!R)
+		{
+			return false;
+		}
+		FString Seen;
+		for (const FName Id : R->VisibleItems)
+		{
+			Seen += Id.ToString() + TEXT(" ");
+		}
+		const bool bBoth = R->VisibleItems.Contains(TestCostume) && R->VisibleItems.Contains(TestEffect);
+		Log(FString::Printf(TEXT("take 1 visible upgrades: %s(style %d)"), Seen.IsEmpty() ? TEXT("none ") : *Seen, R->StylePoints), !bBoth);
+		return true;
+	} });
+	Steps.Add({ TEXT("Switch the bubble machine off again"), [this]()
+	{
+		AFTShopItemActor* A = FTShop::FindItemActor(GetWorld(), TestEffect);
+		if (A && A->IsDeviceActive())
+		{
+			Teleport(A->GetActorLocation() + FVector(-140.f, 0.f, 90.f), 0.f);
+			Use(TEXT("FTShopItemActor"), TEXT("Switch"));
+		}
+		return A && !A->IsDeviceActive() && !A->IsShowcased();
+	} });
 	Steps.Add({ TEXT("Scene 2 begins"), [GS]() { return GS()->SceneIndex == 1 && GS()->SceneState == EFTSceneState::Preparation; }, 20.f });
 	Steps.Add({ TEXT("Push the rescue boat into the tank"), [this, ObjectiveDone]()
 	{
@@ -422,6 +631,17 @@ void AFTAutoDirector::BuildSteps()
 	Steps.Add({ TEXT("Roll, operator steps off (scene 2)"), RollCamera });
 	Steps.Add({ TEXT("Shark rig lunge at the boat"), [this]() { Teleport(FVector(1400.f, -1150.f, -30.f)); return Use(TEXT("FTSharkRig"), TEXT("Rig3")); } });
 	Steps.Add({ TEXT("Take 2 accepted"), [TakeAccepted]() { return TakeAccepted(1); }, 25.f });
+	Steps.Add({ TEXT("Switched-off effect did not count in take 2"), [this, GS]()
+	{
+		const FFTTakeResult* R = GS()->GetBestTake(1);
+		if (!R)
+		{
+			return false;
+		}
+		Log(FString::Printf(TEXT("take 2 visible upgrades: %d item(s), bubble machine %s"), R->VisibleItems.Num(), R->VisibleItems.Contains(TestEffect) ? TEXT("COUNTED") : TEXT("not counted")),
+			R->VisibleItems.Contains(TestEffect));
+		return true;
+	} });
 	Steps.Add({ TEXT("Flood: valve bursts (Leaking)"), [GS]() { return GS()->FloodStage != EFTFloodStage::Dry && !GS()->bStagePower; }, 25.f });
 	Steps.Add({ TEXT("Flood: stage fully flooded"), [GS]() { return GS()->FloodStage == EFTFloodStage::Flooded; }, 40.f });
 	if (bShots)
@@ -519,6 +739,15 @@ void AFTAutoDirector::BuildSteps()
 		{
 			Log(FString::Printf(TEXT("   review: %s"), *R.Reviews[i].ToString()));
 		}
+		int32 StyleSum = 0;
+		for (const FName Id : R.VisibleItems)
+		{
+			const FFTShopItemDef* D = UFTEconomyConfig::Get()->FindItem(Id);
+			StyleSum += D ? D->StyleValue : 0;
+		}
+		const int32 ExpectedProduction = FMath::Min(StyleSum, UFTEconomyConfig::Get()->MaxProductionPoints);
+		Log(FString::Printf(TEXT("production value: %d point(s) from %d visible upgrade(s) (expected %d)"), R.ProductionPoints, R.VisibleItems.Num(), ExpectedProduction),
+			R.ProductionPoints != ExpectedProduction || !R.VisibleItems.Contains(TestCostume));
 		const int32 Expected = StartMoney - SpentMoney + R.Revenue;
 		const bool bBooked = G->StudioMoney == Expected && G->CareerFilmsTotal == StartFilms + 1;
 		Log(FString::Printf(TEXT("studio account %s (expected %s), films %d"), *FFTEconomy::MoneyString(G->StudioMoney), *FFTEconomy::MoneyString(Expected), G->CareerFilmsTotal), !bBooked);

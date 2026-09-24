@@ -73,6 +73,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Catalogue") TArray<FFTVehicleDef> Vehicles;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Catalogue") TArray<FFTStageDef> Stages;
 
+	/** Bumped whenever the authored defaults change; a data asset with another version is ignored. */
+	static constexpr int32 AuthoredVersion = 2;
+	UPROPERTY(VisibleAnywhere, Category = "Catalogue") int32 DataVersion = AuthoredVersion;
+
 	virtual FPrimaryAssetId GetPrimaryAssetId() const override { return FPrimaryAssetId(TEXT("FTEconomy"), TEXT("Default")); }
 
 	/** Data asset first, then the authored defaults. Never null. */

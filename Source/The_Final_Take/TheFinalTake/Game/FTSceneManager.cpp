@@ -4,6 +4,7 @@
 #include "TheFinalTake/Career/FTCareerManager.h"
 #include "TheFinalTake/Career/FTCareerSave.h"
 #include "TheFinalTake/Career/FTEconomy.h"
+#include "TheFinalTake/Career/FTShopItems.h"
 #include "TheFinalTake/Game/FTGameState.h"
 #include "TheFinalTake/Game/FTPlayerState.h"
 #include "TheFinalTake/Characters/FTCharacter.h"
@@ -513,7 +514,6 @@ FFTFrameReport AFTSceneManager::EvaluateFrame(const AFTFilmCamera* Camera, const
 	const FTransform Lens = Camera->GetLensTransform();
 	const FVector CamLoc = Lens.GetLocation();
 	const float HalfH = FMath::Max(Camera->GetFOV() * 0.5f, 5.f);
-	const float HalfV = FMath::RadiansToDegrees(FMath::Atan(FMath::Tan(FMath::DegreesToRadians(HalfH)) * 9.f / 16.f));
 
 	// smoke in the shot
 	float Smoke = 0.f;
@@ -540,52 +540,7 @@ FFTFrameReport AFTSceneManager::EvaluateFrame(const AFTFilmCamera* Camera, const
 		{
 			return 0.f;
 		}
-		const FVector Dir = Center - CamLoc;
-		const float Dist = Dir.Size();
-		const FVector Local = Lens.InverseTransformVectorNoScale(Dir);
-		if (Local.X < 20.f)
-		{
-			return 0.f;
-		}
-		const float AngH = FMath::RadiansToDegrees(FMath::Atan2(Local.Y, Local.X));
-		const float AngV = FMath::RadiansToDegrees(FMath::Atan2(Local.Z, Local.X));
-		const float AngR = FMath::RadiansToDegrees(FMath::Atan2(Radius, Dist));
-		const float NX = FMath::Abs(AngH) / HalfH;
-		const float NY = FMath::Abs(AngV) / HalfV;
-		// allow subjects that are partly inside the frame edge
-		const float Slack = AngR / HalfV;
-		if (NX > 1.f + Slack * 0.6f || NY > 1.f + Slack * 0.6f)
-		{
-			return 0.f;
-		}
-		const float Edge = FMath::Max(NX, NY);
-		const float Centering = 1.f - FMath::Clamp((Edge - 0.55f) / 0.6f, 0.f, 1.f) * 0.55f;
-		const float SizeRatio = AngR / HalfV;
-		float SizeScore = 1.f;
-		if (SizeRatio < 0.05f)
-		{
-			SizeScore = 0.45f;
-		}
-		else if (SizeRatio < 0.1f)
-		{
-			SizeScore = 0.75f;
-		}
-		else if (SizeRatio > 1.1f)
-		{
-			SizeScore = 0.6f;
-		}
-		float Occlusion = 1.f;
-		FCollisionQueryParams Params(SCENE_QUERY_STAT(FTFrame), false, Camera);
-		if (SubjectActor)
-		{
-			Params.AddIgnoredActor(SubjectActor);
-		}
-		FHitResult Hit;
-		if (World->LineTraceSingleByChannel(Hit, CamLoc, Center, ECC_Visibility, Params) && Hit.Distance < Dist - Radius * 0.8f)
-		{
-			Occlusion = Cast<APawn>(Hit.GetActor()) ? 0.7f : 0.35f;
-		}
-		return FMath::Clamp(Centering * SizeScore * Occlusion * (1.f - Smoke), 0.f, 1.f);
+		return ScoreInFrame(Camera, Center, Radius, SubjectActor, Smoke);
 	};
 
 	float Sum = 0.f;
@@ -607,6 +562,91 @@ FFTFrameReport AFTSceneManager::EvaluateFrame(const AFTFilmCamera* Camera, const
 	Report.Quality = Scene.RequiredSubjects.Num() > 0 ? Sum / Scene.RequiredSubjects.Num() : 0.f;
 	Report.bCriticalValid = bAllValid;
 	return Report;
+}
+
+float AFTSceneManager::ScoreInFrame(const AFTFilmCamera* Camera, const FVector& Center, float Radius, const AActor* Ignore, float Smoke) const
+{
+	const UWorld* World = GetWorld();
+	if (!Camera || !World)
+	{
+		return 0.f;
+	}
+	const FTransform Lens = Camera->GetLensTransform();
+	const FVector CamLoc = Lens.GetLocation();
+	const float HalfH = FMath::Max(Camera->GetFOV() * 0.5f, 5.f);
+	const float HalfV = FMath::RadiansToDegrees(FMath::Atan(FMath::Tan(FMath::DegreesToRadians(HalfH)) * 9.f / 16.f));
+	const FVector Dir = Center - CamLoc;
+	const float Dist = Dir.Size();
+	const FVector Local = Lens.InverseTransformVectorNoScale(Dir);
+	if (Local.X < 20.f)
+	{
+		return 0.f;
+	}
+	const float AngH = FMath::RadiansToDegrees(FMath::Atan2(Local.Y, Local.X));
+	const float AngV = FMath::RadiansToDegrees(FMath::Atan2(Local.Z, Local.X));
+	const float AngR = FMath::RadiansToDegrees(FMath::Atan2(Radius, Dist));
+	const float NX = FMath::Abs(AngH) / HalfH;
+	const float NY = FMath::Abs(AngV) / HalfV;
+	// allow subjects that are partly inside the frame edge
+	const float Slack = AngR / HalfV;
+	if (NX > 1.f + Slack * 0.6f || NY > 1.f + Slack * 0.6f)
+	{
+		return 0.f;
+	}
+	const float Edge = FMath::Max(NX, NY);
+	const float Centering = 1.f - FMath::Clamp((Edge - 0.55f) / 0.6f, 0.f, 1.f) * 0.55f;
+	const float SizeRatio = AngR / HalfV;
+	float SizeScore = 1.f;
+	if (SizeRatio < 0.05f)
+	{
+		SizeScore = 0.45f;
+	}
+	else if (SizeRatio < 0.1f)
+	{
+		SizeScore = 0.75f;
+	}
+	else if (SizeRatio > 1.1f)
+	{
+		SizeScore = 0.6f;
+	}
+	float Occlusion = 1.f;
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(FTFrame), false, Camera);
+	if (Ignore)
+	{
+		Params.AddIgnoredActor(Ignore);
+	}
+	FHitResult Hit;
+	if (World->LineTraceSingleByChannel(Hit, CamLoc, Center, ECC_Visibility, Params) && Hit.Distance < Dist - Radius * 0.8f)
+	{
+		Occlusion = Cast<APawn>(Hit.GetActor()) ? 0.7f : 0.35f;
+	}
+	return FMath::Clamp(Centering * SizeScore * Occlusion * (1.f - Smoke), 0.f, 1.f);
+}
+
+void AFTSceneManager::UpdateShowcase(const AFTFilmCamera* Camera, float Smoke, float Step)
+{
+	AFTGameState* G = GS();
+	if (!G)
+	{
+		return;
+	}
+	TArray<FFTShowcaseEntry> Entries;
+	FTShop::GatherShowcase(GetWorld(), Entries);
+	TArray<FName> Live;
+	for (const FFTShowcaseEntry& E : Entries)
+	{
+		// a purchase only counts while it reads on camera: in frame, not hidden behind walls, not lost in smoke
+		if (ScoreInFrame(Camera, E.Center, E.Radius, E.Actor, Smoke) >= 0.25f)
+		{
+			ShowcaseTime.FindOrAdd(E.ItemId) += Step;
+			Live.AddUnique(E.ItemId);
+		}
+	}
+	Live.Sort(FNameLexicalLess());
+	if (Live != G->LiveShowcase)
+	{
+		G->LiveShowcase = Live;
+	}
 }
 
 // ============================================================================ objectives
@@ -920,6 +960,9 @@ void AFTSceneManager::RequestRecordToggle(AFTFilmCamera* Camera, AFTCharacter* U
 	FrameAccum = 0.f;
 	FrameSamples = 0;
 	SubjectBest.Reset();
+	ShowcaseTime.Reset();
+	ShowcaseTimer = 0.f;
+	G->LiveShowcase.Reset();
 	bKnockedDuringTake = false;
 	G->RecordingTime = 0.f;
 	G->CaptureProgress = 0.f;
@@ -950,6 +993,13 @@ void AFTSceneManager::TickRecording(float DeltaSeconds)
 	{
 		float& Best = SubjectBest.FindOrAdd(Frame.Subjects[i]);
 		Best = FMath::Max(Best, Frame.SubjectScores[i]);
+	}
+
+	ShowcaseTimer += DeltaSeconds;
+	if (ShowcaseTimer >= 0.1f)
+	{
+		UpdateShowcase(Cam, Frame.SmokeObstruction, ShowcaseTimer);
+		ShowcaseTimer = 0.f;
 	}
 
 	G->bKeyActionDone = WasEventDuringRecording(Scene->KeyActionEvent);
@@ -1071,6 +1121,30 @@ FFTTakeResult AFTSceneManager::ScoreTake() const
 	if (WasEventDuringRecording(FTTags::EvHeroThrust)) { Style += 3; R.Reasons.Add(TEXT("+3  Heroic harpoon thrust")); }
 	if (WasEventDuringRecording(FTTags::EvCostumeLunge)) { Style += 3; R.Reasons.Add(TEXT("+3  Shark-suit acting")); }
 	if (IsDeviceActive(FTTags::DevSmoke)) { Style += 2; R.Reasons.Add(TEXT("+2  Atmospheric smoke")); }
+	// purchased upgrades that were really visible (or switched on) in this take
+	{
+		const UFTEconomyConfig* Cfg = UFTEconomyConfig::Get();
+		TArray<FString> Names;
+		for (const TPair<FName, float>& P : ShowcaseTime)
+		{
+			const FFTShopItemDef* Def = Cfg->FindItem(P.Key);
+			if (Def && P.Value >= ShowcaseMinSeconds)
+			{
+				R.VisibleItems.Add(P.Key);
+			}
+		}
+		R.VisibleItems.Sort(FNameLexicalLess());
+		for (const FName Id : R.VisibleItems)
+		{
+			Names.Add(Cfg->FindItem(Id)->Name.ToString());
+		}
+		if (R.VisibleItems.Num() > 0)
+		{
+			const int32 Before = FMath::Min(Style, 10);
+			Style += 2 * R.VisibleItems.Num();
+			R.Reasons.Add(FString::Printf(TEXT("+%d  Studio upgrades in shot: %s"), FMath::Min(Style, 10) - Before, *FString::Join(Names, TEXT(", "))));
+		}
+	}
 	R.StylePoints = FMath::Clamp(Style, 0, 10);
 
 	if (G->FloodStage != EFTFloodStage::Dry) { R.DisasterFlags |= 1; }
@@ -1110,6 +1184,7 @@ void AFTSceneManager::FinishTake(bool bManualStop)
 		Cam->SetRecording(false);
 	}
 	FFTTakeResult R = ScoreTake();
+	G->LiveShowcase.Reset();
 	G->TakeResults.Add(R);
 	G->MulticastTakeResult(R);
 	if (R.bAccepted)
@@ -1551,6 +1626,8 @@ void AFTSceneManager::ResetShoot()
 	LeakWarningTime = -1.f;
 	FloodTimer = 0.f;
 	SubjectBest.Reset();
+	ShowcaseTime.Reset();
+	G->LiveShowcase.Reset();
 	G->FilmId = NAME_None;
 	G->ShootPhase = EFTShootPhase::Lobby;
 	G->SceneIndex = 0;

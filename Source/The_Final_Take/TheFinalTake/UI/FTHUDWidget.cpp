@@ -763,6 +763,18 @@ void UFTHUDWidget::UpdateCamera(float Dt)
 			SetLine(FText::Format(LOCTEXT("HoldSec", "HOLD {0} / {1} s"), FText::AsNumber(FMath::RoundToFloat(GS->CaptureProgress * Scene->CaptureDuration * 10.f) / 10.f), FText::AsNumber(Scene->CaptureDuration)), Yellow);
 		}
 	}
+	if (bRec && GS->LiveShowcase.Num() > 0)
+	{
+		TArray<FString> Names;
+		for (const FName Id : GS->LiveShowcase)
+		{
+			if (const FFTShopItemDef* Def = UFTEconomyConfig::Get()->FindItem(Id))
+			{
+				Names.Add(Def->Name.ToString());
+			}
+		}
+		SetLine(FText::FromString(FString::Printf(TEXT("* UPGRADES IN SHOT: %s"), *FString::Join(Names, TEXT(", ")))), FLinearColor(1.f, 0.55f, 0.9f));
+	}
 	for (int32 i = Used; i < SubjectLines.Num(); ++i)
 	{
 		SubjectLines[i]->SetVisibility(ESlateVisibility::Collapsed);

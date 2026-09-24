@@ -51,6 +51,8 @@ public:
 	UPROPERTY(Replicated, BlueprintReadOnly) float CaptureProgress = 0.f;
 	UPROPERTY(Replicated, BlueprintReadOnly) bool bKeyActionDone = false;
 	UPROPERTY(Replicated, BlueprintReadOnly) FFTFrameReport LiveFrame;
+	/** Purchased upgrades visible through the lens right now (while rolling). */
+	UPROPERTY(Replicated, BlueprintReadOnly) TArray<FName> LiveShowcase;
 	UPROPERTY(ReplicatedUsing = OnRep_State, BlueprintReadOnly) TArray<FFTTakeResult> TakeResults;
 
 	// ---- world

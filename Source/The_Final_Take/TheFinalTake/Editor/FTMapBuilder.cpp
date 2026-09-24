@@ -4,6 +4,7 @@
 #include "The_Final_Take.h"
 
 #if WITH_EDITOR
+#include "TheFinalTake/Career/FTShopItems.h"
 #include "TheFinalTake/Core/FTTypes.h"
 #include "TheFinalTake/Game/FTGameMode.h"
 #include "TheFinalTake/Production/FTFilmCamera.h"
@@ -199,6 +200,26 @@ bool FTBuildStudioMap()
 	Spawn<AFTSceneBoard>(W, FVector(-560.f, -700.f, 220.f), 0.f, TEXT("SceneBoard_Stage"));
 	Spawn<AFTCostumeRack>(W, FVector(-1740.f, -1300.f, 0.f), 0.f, TEXT("CostumeRack"));
 	Spawn<AFTStandIn>(W, FVector(-1250.f, -1150.f, 0.f), 0.f, TEXT("StandIn"));
+
+	// ---------------------------------------------------------------- career: shop, deliveries, accessory wall
+	Spawn<AFTShopTerminal>(W, FVector(-830.f, 860.f, 0.f), -90.f, TEXT("StudioSupply"));
+	Spawn<AFTDeliveryBay>(W, FVector(-1690.f, 670.f, 0.f), 0.f, TEXT("DeliveryBay_Lobby"), [](AFTDeliveryBay* B)
+	{
+		B->Priority = 0;
+		B->Columns = 1;
+		B->Rows = 3;
+		B->Spacing = FVector2D(200.f, 210.f);
+		B->Title = NSLOCTEXT("FinalTakeMap", "LobbyBay", "LOADING BAY");
+	});
+	Spawn<AFTDeliveryBay>(W, FVector(0.f, 1400.f, -120.f), -90.f, TEXT("DeliveryBay_Stage4"), [](AFTDeliveryBay* B)
+	{
+		B->Priority = 1;
+		B->Columns = 2;
+		B->Rows = 4;
+		B->Spacing = FVector2D(210.f, 215.f);
+		B->Title = NSLOCTEXT("FinalTakeMap", "StageBay", "PROP DEPOT");
+	});
+	Spawn<AFTAccessoryStand>(W, FVector(-1190.f, -1560.f, 0.f), 90.f, TEXT("AccessoryWall"));
 
 	// ---------------------------------------------------------------- production equipment
 	Spawn<AFTFilmCamera>(W, FVector(450.f, 0.f, -60.f), 0.f, TEXT("FilmCamera"), [](AFTFilmCamera* C) { C->TrackLength = 1400.f; });

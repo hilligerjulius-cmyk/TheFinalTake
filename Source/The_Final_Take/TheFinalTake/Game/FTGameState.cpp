@@ -33,6 +33,7 @@ void AFTGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AFTGameState, CaptureProgress);
 	DOREPLIFETIME(AFTGameState, bKeyActionDone);
 	DOREPLIFETIME(AFTGameState, LiveFrame);
+	DOREPLIFETIME(AFTGameState, LiveShowcase);
 	DOREPLIFETIME(AFTGameState, TakeResults);
 	DOREPLIFETIME(AFTGameState, FloodStage);
 	DOREPLIFETIME(AFTGameState, FloodStageTime);

@@ -1,5 +1,7 @@
 #include "TheFinalTake/Production/FTShark.h"
 
+#include "TheFinalTake/Career/FTCareerManager.h"
+#include "TheFinalTake/Career/FTEconomy.h"
 #include "TheFinalTake/Core/FTVisuals.h"
 #include "TheFinalTake/Characters/FTCharacter.h"
 #include "TheFinalTake/FX/FTChunkyParticles.h"
@@ -122,6 +124,15 @@ AFTSharkRig::AFTSharkRig()
 		I->AddHighlight(Cap);
 		Buttons.Add(I);
 	}
+	// upgrade kit switch on the side of the desk
+	FTVis::MakePart(this, Station, TEXT("KitPanel"), EFTShape::Box, FVector(0.f, 118.f, 70.f), FVector(40.f, 12.f, 60.f), Magenta);
+	KitLamp = FTVis::MakePart(this, Station, TEXT("KitLamp"), EFTShape::Box, FVector(-21.f, 118.f, 82.f), FVector(3.f, 16.f, 12.f), GreyDark, FRotator::ZeroRotator, 1.f);
+	FTVis::MakeText(this, Station, TEXT("KitLabel"), LOCTEXT("KitLabel", "KITS"), FVector(-22.f, 118.f, 62.f), FRotator(0.f, 180.f, 0.f), 9.f, FColor::White);
+	KitSwitch = CreateDefaultSubobject<UFTInteractableComponent>(TEXT("KitSwitch"));
+	KitSwitch->SetupAttachment(Station);
+	KitSwitch->Setup(TEXT("Kits"), LOCTEXT("KitSwitchLabel", "Shark upgrade kits"), LOCTEXT("KitSwitchVerb", "Install kits"), EFTInteractType::Press, FVector(24.f, 14.f, 32.f));
+	KitSwitch->SetRelativeLocation(FVector(-8.f, 118.f, 70.f));
+	KitSwitch->AddHighlight(KitLamp);
 }
 
 void AFTSharkRig::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -130,6 +141,137 @@ void AFTSharkRig::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(AFTSharkRig, State);
 	DOREPLIFETIME(AFTSharkRig, StateTime);
 	DOREPLIFETIME(AFTSharkRig, RailTarget);
+	DOREPLIFETIME(AFTSharkRig, InstalledKits);
+}
+
+void AFTSharkRig::BeginPlay()
+{
+	Super::BeginPlay();
+	if (HasAuthority())
+	{
+		if (AFTCareerManager* CM = AFTCareerManager::Get(this))
+		{
+			CM->OnPurchased.AddUObject(this, &AFTSharkRig::HandlePurchased);
+			CM->OnCareerReset.AddUObject(this, &AFTSharkRig::RefreshKits);
+		}
+		RefreshKits();
+	}
+	OnRep_Kits();
+}
+
+void AFTSharkRig::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (AFTCareerManager* CM = AFTCareerManager::Get(this))
+	{
+		CM->OnPurchased.RemoveAll(this);
+		CM->OnCareerReset.RemoveAll(this);
+	}
+	Super::EndPlay(EndPlayReason);
+}
+
+void AFTSharkRig::RefreshKits()
+{
+	const AFTCareerManager* CM = AFTCareerManager::Get(this);
+	TArray<FName> Want;
+	if (CM)
+	{
+		for (const FFTShopItemDef& D : UFTEconomyConfig::Get()->Items)
+		{
+			if (D.Category == EFTShopCategory::SharkUpgrade && CM->Owns(D.ItemId) && CM->IsRigKitActive(D.ItemId))
+			{
+				Want.Add(D.ItemId);
+			}
+		}
+	}
+	if (Want != InstalledKits)
+	{
+		InstalledKits = Want;
+		OnRep_Kits();
+		ForceNetUpdate();
+	}
+}
+
+void AFTSharkRig::HandlePurchased(FName Id)
+{
+	const FFTShopItemDef* Def = UFTEconomyConfig::Get()->FindItem(Id);
+	if (Def && Def->Category == EFTShopCategory::SharkUpgrade)
+	{
+		// a freshly bought kit is bolted on straight away
+		if (AFTCareerManager* CM = AFTCareerManager::Get(this))
+		{
+			CM->SetRigKitActive(Id, true);
+		}
+		RefreshKits();
+		MulticastSound(EFTSound::Lever, SharkRoot->GetComponentLocation(), 0.8f, 0.8f);
+	}
+}
+
+void AFTSharkRig::ToggleKits(AFTCharacter* User)
+{
+	AFTCareerManager* CM = AFTCareerManager::Get(this);
+	if (!CM)
+	{
+		return;
+	}
+	const bool bInstall = InstalledKits.Num() == 0;
+	for (const FFTShopItemDef& D : UFTEconomyConfig::Get()->Items)
+	{
+		if (D.Category == EFTShopCategory::SharkUpgrade && CM->Owns(D.ItemId))
+		{
+			CM->SetRigKitActive(D.ItemId, bInstall);
+		}
+	}
+	RefreshKits();
+	MulticastSound(bInstall ? EFTSound::PowerUp : EFTSound::PowerDown, KitSwitch->GetComponentLocation(), 0.7f, 1.2f);
+	Announce(bInstall ? LOCTEXT("KitsOn", "Shark upgrade kits installed - the rubber shark looks mean now.") : LOCTEXT("KitsOff", "Shark upgrade kits removed - back to the classic look."), EFTAnnounceStyle::Info, EFTSound::None);
+}
+
+void AFTSharkRig::OnRep_Kits()
+{
+	if (KitLamp)
+	{
+		FTVis::Paint(KitLamp, InstalledKits.Num() > 0 ? Green : GreyDark, InstalledKits.Num() > 0 ? 4.f : 1.f);
+	}
+	if (GetNetMode() == NM_DedicatedServer)
+	{
+		return;
+	}
+	for (UStaticMeshComponent* P : KitParts)
+	{
+		if (P)
+		{
+			P->DestroyComponent();
+		}
+	}
+	KitParts.Reset();
+	for (const FName Id : InstalledKits)
+	{
+		if (const FFTShopItemDef* Def = UFTEconomyConfig::Get()->FindItem(Id))
+		{
+			FTShop::BuildParts(this, SharkRoot, *Def, KitParts);
+		}
+	}
+}
+
+void AFTSharkRig::GatherShowcase(TArray<FFTShowcaseEntry>& Out) const
+{
+	if (State == EFTSharkState::Submerged || InstalledKits.Num() == 0)
+	{
+		return;
+	}
+	FVector Center;
+	float Radius = 200.f;
+	GetSubjectBounds(FTTags::SubjShark, Center, Radius);
+	for (const FName Id : InstalledKits)
+	{
+		const FFTShopItemDef* Def = UFTEconomyConfig::Get()->FindItem(Id);
+		FFTShowcaseEntry E;
+		E.ItemId = Id;
+		E.Center = Center;
+		E.Radius = Def ? Def->FrameRadius : Radius;
+		E.Actor = this;
+		Out.Add(E);
+	}
 }
 
 void AFTSharkRig::OnConstruction(const FTransform& Transform)
@@ -144,6 +286,21 @@ void AFTSharkRig::OnConstruction(const FTransform& Transform)
 
 bool AFTSharkRig::CanInteract(const UFTInteractableComponent* Comp, const AFTCharacter* User, FText& OutReason) const
 {
+	if (Comp == KitSwitch)
+	{
+		const AFTGameState* G = GetWorld() ? GetWorld()->GetGameState<AFTGameState>() : nullptr;
+		bool bAnyOwned = false;
+		for (const FFTShopItemDef& D : UFTEconomyConfig::Get()->Items)
+		{
+			bAnyOwned |= D.Category == EFTShopCategory::SharkUpgrade && G && G->IsOwned(D.ItemId);
+		}
+		if (!bAnyOwned)
+		{
+			OutReason = LOCTEXT("NoKits", "No upgrade kits yet - buy them at the Studio Supply counter in the lobby");
+			return false;
+		}
+		return true;
+	}
 	if (State == EFTSharkState::Telegraph || State == EFTSharkState::Lunging || State == EFTSharkState::Defeated)
 	{
 		OutReason = LOCTEXT("Busy", "The shark is mid-performance!");
@@ -154,6 +311,10 @@ bool AFTSharkRig::CanInteract(const UFTInteractableComponent* Comp, const AFTCha
 
 FText AFTSharkRig::GetPromptVerb(const UFTInteractableComponent* Comp, const AFTCharacter* User) const
 {
+	if (Comp == KitSwitch)
+	{
+		return InstalledKits.Num() > 0 ? LOCTEXT("KitsRemoveVerb", "Remove upgrade kits") : LOCTEXT("KitsInstallVerb", "Install upgrade kits");
+	}
 	if (Buttons.IsValidIndex(0) && Comp == Buttons[0])
 	{
 		return State == EFTSharkState::Submerged ? LOCTEXT("RaiseVerb", "Raise shark") : LOCTEXT("LowerVerb", "Lower shark");
@@ -171,6 +332,11 @@ void AFTSharkRig::SetState(EFTSharkState NewState)
 
 void AFTSharkRig::OnInteract(UFTInteractableComponent* Comp, AFTCharacter* User)
 {
+	if (Comp == KitSwitch)
+	{
+		ToggleKits(User);
+		return;
+	}
 	const int32 Index = Buttons.IndexOfByKey(Comp);
 	LastOperator = User;
 	MulticastSound(EFTSound::Lever, Comp->GetComponentLocation(), 0.6f, 1.2f);

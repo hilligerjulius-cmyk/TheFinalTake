@@ -1,5 +1,8 @@
 #include "TheFinalTake/Props/FTSetPieces.h"
 
+#include "TheFinalTake/Career/FTCareerManager.h"
+#include "TheFinalTake/Career/FTEconomy.h"
+
 #include "TheFinalTake/Core/FTVisuals.h"
 #include "TheFinalTake/Characters/FTCharacter.h"
 #include "TheFinalTake/FX/FTChunkyParticles.h"
@@ -346,10 +349,10 @@ AFTStandIn::AFTStandIn()
 	// costume overlays
 	Lifeguard.Add(Part(TEXT("LGTop"), EFTShape::Box, FVector(4.f, 0.f, 110.f), FVector(4.f, 48.f, 60.f), White));
 	Lifeguard.Add(Part(TEXT("LGShorts"), EFTShape::Box, FVector(4.f, 0.f, 58.f), FVector(4.f, 50.f, 30.f), Red));
-	Lifeguard.Add(Part(TEXT("LGHat"), EFTShape::Box, FVector(4.f, 0.f, 202.f), FVector(4.f, 70.f, 12.f), Red));
-	Lifeguard.Add(Part(TEXT("LGCrown"), EFTShape::Box, FVector(4.f, 0.f, 214.f), FVector(4.f, 40.f, 16.f), Red));
+	HatParts.Add(Lifeguard.Add_GetRef(Part(TEXT("LGHat"), EFTShape::Box, FVector(4.f, 0.f, 202.f), FVector(4.f, 70.f, 12.f), Red)));
+	HatParts.Add(Lifeguard.Add_GetRef(Part(TEXT("LGCrown"), EFTShape::Box, FVector(4.f, 0.f, 214.f), FVector(4.f, 40.f, 16.f), Red)));
 	Shark.Add(Part(TEXT("SHHood"), EFTShape::Cylinder, FVector(-3.f, 0.f, 176.f), FVector(80.f, 80.f, 4.f), Blue, FRotator(90.f, 0.f, 0.f)));
-	Shark.Add(Part(TEXT("SHFin"), EFTShape::Prism, FVector(-3.f, 0.f, 226.f), FVector(4.f, 40.f, 34.f), Blue, FRotator(0.f, 90.f, 0.f)));
+	HatParts.Add(Shark.Add_GetRef(Part(TEXT("SHFin"), EFTShape::Prism, FVector(-3.f, 0.f, 226.f), FVector(4.f, 40.f, 34.f), Blue, FRotator(0.f, 90.f, 0.f))));
 	Shark.Add(Part(TEXT("SHBody"), EFTShape::Box, FVector(4.f, 0.f, 95.f), FVector(4.f, 54.f, 112.f), Blue));
 	Shark.Add(Part(TEXT("SHBelly"), EFTShape::Box, FVector(6.f, 0.f, 95.f), FVector(3.f, 30.f, 80.f), White));
 	Shark.Add(Part(TEXT("SHJaw"), EFTShape::Torus, FVector(6.f, 0.f, 172.f), FVector(62.f, 62.f, 6.f), White, FRotator(90.f, 0.f, 0.f)));
@@ -358,7 +361,7 @@ AFTStandIn::AFTStandIn()
 	Knight.Add(Part(TEXT("FKBody"), EFTShape::Box, FVector(4.f, 0.f, 100.f), FVector(4.f, 54.f, 100.f), Grey));
 	Knight.Add(Part(TEXT("FKHelm"), EFTShape::Box, FVector(-2.f, 0.f, 180.f), FVector(4.f, 64.f, 66.f), Grey));
 	Knight.Add(Part(TEXT("FKVisor"), EFTShape::Box, FVector(4.f, 0.f, 184.f), FVector(3.f, 44.f, 8.f), Ink));
-	Knight.Add(Part(TEXT("FKPlume"), EFTShape::Prism, FVector(-2.f, 0.f, 226.f), FVector(4.f, 30.f, 26.f), Red, FRotator(0.f, 90.f, 0.f)));
+	HatParts.Add(Knight.Add_GetRef(Part(TEXT("FKPlume"), EFTShape::Prism, FVector(-2.f, 0.f, 226.f), FVector(4.f, 30.f, 26.f), Red, FRotator(0.f, 90.f, 0.f))));
 	Knight.Add(Part(TEXT("FKShield"), EFTShape::Box, FVector(8.f, -30.f, 90.f), FVector(4.f, 34.f, 44.f), Red));
 
 	HandAnchor = CreateDefaultSubobject<USceneComponent>(TEXT("HandAnchor"));
@@ -376,6 +379,18 @@ AFTStandIn::AFTStandIn()
 	HandButton->Setup(TEXT("Hand"), LOCTEXT("StandInHand", "Stand-in's hand"), LOCTEXT("HandOver", "Hand over"), EFTInteractType::Press, FVector(18.f, 18.f, 22.f));
 	HandButton->SetRelativeLocation(FVector(10.f, 50.f, 130.f));
 	CostumeLabel = FTVis::MakeText(this, Visual, TEXT("CostumeLabel"), LOCTEXT("StandInSign", "STAND-IN"), FVector(28.f, 0.f, 12.f), FRotator::ZeroRotator, 9.f, FColor(255, 230, 150));
+
+	// purchased accessories (head top, eye line, shoulders of the cardboard figure)
+	AccHead = CreateDefaultSubobject<USceneComponent>(TEXT("AccHead"));
+	AccHead->SetupAttachment(Visual);
+	AccHead->SetRelativeLocation(FVector(0.f, 0.f, 200.f));
+	AccFace = CreateDefaultSubobject<USceneComponent>(TEXT("AccFace"));
+	AccFace->SetupAttachment(Visual);
+	AccFace->SetRelativeLocation(FVector(6.f, 0.f, 178.f));
+	AccBody = CreateDefaultSubobject<USceneComponent>(TEXT("AccBody"));
+	AccBody->SetupAttachment(Visual);
+	AccBody->SetRelativeLocation(FVector(-14.f, 0.f, 128.f));
+	Accessories.Init(NAME_None, FFTWornAccessories::NumSlots);
 }
 
 void AFTStandIn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -383,12 +398,63 @@ void AFTStandIn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AFTStandIn, Costume);
 	DOREPLIFETIME(AFTStandIn, HeldItem);
+	DOREPLIFETIME(AFTStandIn, Accessories);
 }
 
 void AFTStandIn::BeginPlay()
 {
 	Super::BeginPlay();
+	if (const AFTCareerManager* CM = HasAuthority() ? AFTCareerManager::Get(this) : nullptr)
+	{
+		// the stand-in keeps the accessories the crew dressed it with last session
+		Accessories.SetNum(FFTWornAccessories::NumSlots);
+		for (int32 S = 0; S < FFTWornAccessories::NumSlots; ++S)
+		{
+			const FName Id = CM->GetAccessory(FTShop::WearerKey(FString::Printf(TEXT("StandIn.%s"), *StandInId.ToString()), (EFTAccessorySlot)S));
+			const FFTShopItemDef* Def = UFTEconomyConfig::Get()->FindItem(Id);
+			Accessories[S] = Def && (int32)Def->AccessorySlot == S && CM->Owns(Id) ? Id : NAME_None;
+		}
+	}
 	OnRep_Costume();
+}
+
+void AFTStandIn::SetAccessory(EFTAccessorySlot Slot, FName ItemId)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+	const int32 S = FMath::Clamp((int32)Slot, 0, FFTWornAccessories::NumSlots - 1);
+	Accessories.SetNum(FFTWornAccessories::NumSlots);
+	if (Accessories[S] == ItemId)
+	{
+		return;
+	}
+	Accessories[S] = ItemId;
+	OnRep_Costume();
+	ForceNetUpdate();
+	if (AFTCareerManager* CM = AFTCareerManager::Get(this))
+	{
+		CM->SetAccessory(FTShop::WearerKey(FString::Printf(TEXT("StandIn.%s"), *StandInId.ToString()), (EFTAccessorySlot)S), ItemId);
+	}
+}
+
+void AFTStandIn::GatherShowcase(TArray<FFTShowcaseEntry>& Out) const
+{
+	const USceneComponent* Anchors[] = { AccHead.Get(), AccFace.Get(), AccBody.Get() };
+	for (int32 S = 0; S < FFTWornAccessories::NumSlots && S < Accessories.Num(); ++S)
+	{
+		const FFTShopItemDef* Def = Accessories[S].IsNone() ? nullptr : UFTEconomyConfig::Get()->FindItem(Accessories[S]);
+		if (Def && Anchors[S])
+		{
+			FFTShowcaseEntry E;
+			E.ItemId = Def->ItemId;
+			E.Center = Anchors[S]->GetComponentLocation();
+			E.Radius = Def->FrameRadius;
+			E.Actor = this;
+			Out.Add(E);
+		}
+	}
 }
 
 bool AFTStandIn::CanInteract(const UFTInteractableComponent* Comp, const AFTCharacter* User, FText& OutReason) const
@@ -476,6 +542,21 @@ void AFTStandIn::OnRep_Costume()
 	Show(Knight, Costume == EFTCostume::FoamKnight);
 	static const TCHAR* Names[] = { TEXT("STAND-IN"), TEXT("STAND-IN: LIFEGUARD"), TEXT("STAND-IN: SHARK"), TEXT("STAND-IN: RAINCOAT"), TEXT("STAND-IN: KNIGHT") };
 	CostumeLabel->SetText(FText::FromString(Names[FMath::Clamp((int32)Costume, 0, 4)]));
+
+	// a purchased hat replaces the costume headwear and sits on top of hoods and helmets
+	if (!GetAccessory(EFTAccessorySlot::Head).IsNone())
+	{
+		for (UStaticMeshComponent* H : HatParts)
+		{
+			if (H)
+			{
+				H->SetVisibility(false);
+			}
+		}
+	}
+	const float HatZ = Costume == EFTCostume::Shark ? 214.f : (Costume == EFTCostume::Raincoat ? 213.f : (Costume == EFTCostume::FoamKnight ? 211.f : 200.f));
+	AccHead->SetRelativeLocation(FVector(0.f, 0.f, HatZ));
+	Worn.Apply(this, { AccHead.Get(), AccFace.Get(), AccBody.Get() }, Accessories, false);
 }
 
 void AFTStandIn::ResetForNewShoot()

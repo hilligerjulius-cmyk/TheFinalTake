@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "TheFinalTake/Interaction/FTStudioActor.h"
+#include "TheFinalTake/Career/FTShopItems.h"
 #include "FTShark.generated.h"
 
 class UStaticMeshComponent;
@@ -42,6 +43,11 @@ public:
 	AFTSharkRig();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void OnConstruction(const FTransform& Transform) override;
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	/** Installed upgrade kits that could be in a shot (only while the shark is up). */
+	void GatherShowcase(TArray<FFTShowcaseEntry>& Out) const;
+	const TArray<FName>& GetInstalledKits() const { return InstalledKits; }
 	virtual void Tick(float DeltaSeconds) override;
 	virtual bool CanInteract(const UFTInteractableComponent* Comp, const AFTCharacter* User, FText& OutReason) const override;
 	virtual FText GetPromptVerb(const UFTInteractableComponent* Comp, const AFTCharacter* User) const override;
@@ -82,6 +88,17 @@ protected:
 	UPROPERTY(VisibleAnywhere) TObjectPtr<UFTChunkyParticles> Splash;
 	UPROPERTY() TArray<TObjectPtr<UFTInteractableComponent>> Buttons;
 	UPROPERTY() TArray<TObjectPtr<UStaticMeshComponent>> ButtonCaps;
+
+	// ---- purchased upgrade kits (chrome teeth, glow eyes, scars)
+	UFUNCTION() void OnRep_Kits();
+	/** Server: installed = owned and switched on in the career. */
+	void RefreshKits();
+	void HandlePurchased(FName Id);
+	void ToggleKits(AFTCharacter* User);
+	UPROPERTY(ReplicatedUsing = OnRep_Kits) TArray<FName> InstalledKits;
+	UPROPERTY() TArray<TObjectPtr<UStaticMeshComponent>> KitParts;
+	UPROPERTY(VisibleAnywhere) TObjectPtr<UFTInteractableComponent> KitSwitch;
+	UPROPERTY(VisibleAnywhere) TObjectPtr<UStaticMeshComponent> KitLamp;
 
 	float RailPos = 0.f;
 	float VisualZ = -120.f;

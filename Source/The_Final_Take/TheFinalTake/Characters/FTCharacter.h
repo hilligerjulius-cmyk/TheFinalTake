@@ -4,6 +4,7 @@
 #include "GameFramework/Character.h"
 #include "TheFinalTake/Core/FTTypes.h"
 #include "TheFinalTake/Core/FTAudio.h"
+#include "TheFinalTake/Career/FTShopItems.h"
 #include "FTCharacter.generated.h"
 
 class UCameraComponent;
@@ -46,6 +47,8 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_Emote) uint8 EmoteSerial = 0;
 	UPROPERTY(ReplicatedUsing = OnRep_Knocked, BlueprintReadOnly) bool bKnockedDown = false;
 	UPROPERTY(Replicated) bool bSprinting = false;
+	/** Purchased accessories: head, face, body (NAME_None = empty slot). */
+	UPROPERTY(ReplicatedUsing = OnRep_Accessories, BlueprintReadOnly) TArray<FName> Accessories;
 
 	// ---------------------------------------------------------------- server API
 	void EquipCostume(EFTCostume NewCostume);
@@ -57,6 +60,11 @@ public:
 	void StopUsing();
 	void TeleportToSafety(const FText& Reason);
 	void PlayEmote(EFTEmote NewEmote);
+	/** Server: wear (or with NAME_None take off) a purchased accessory. Remembered per crew seat in the career. */
+	void SetAccessory(EFTAccessorySlot Slot, FName ItemId);
+	FName GetAccessory(EFTAccessorySlot Slot) const { return Accessories.IsValidIndex((int32)Slot) ? Accessories[(int32)Slot] : NAME_None; }
+	/** Worn accessories that could be in a shot. */
+	void GatherShowcase(TArray<FFTShowcaseEntry>& Out) const;
 
 	// ---------------------------------------------------------------- queries
 	bool IsOperatingCamera() const;
@@ -95,6 +103,7 @@ public:
 	UFUNCTION() void OnRep_HeldProp();
 	UFUNCTION() void OnRep_Emote();
 	UFUNCTION() void OnRep_Knocked();
+	UFUNCTION() void OnRep_Accessories();
 
 protected:
 	// ---------------------------------------------------------------- components
@@ -182,6 +191,11 @@ protected:
 	UPROPERTY() TObjectPtr<UStaticMeshComponent> FKPadR;
 	UPROPERTY() TObjectPtr<UStaticMeshComponent> FKShield;
 	UPROPERTY() TObjectPtr<UStaticMeshComponent> FKShieldCross;
+	// purchased accessories (anchors: head top, eye line, chest)
+	UPROPERTY(VisibleAnywhere) TObjectPtr<USceneComponent> AccHead;
+	UPROPERTY(VisibleAnywhere) TObjectPtr<USceneComponent> AccFace;
+	UPROPERTY(VisibleAnywhere) TObjectPtr<USceneComponent> AccBody;
+	FFTWornAccessories Worn;
 	// identity
 	UPROPERTY() TObjectPtr<UStaticMeshComponent> Marker;
 	UPROPERTY() TObjectPtr<UTextRenderComponent> NameTag;
@@ -198,6 +212,8 @@ private:
 	void UpdateRecovery();
 	EFTExpression ComputeExpression() const;
 	void SetCostumePartsVisible();
+	/** Server: restore the accessories this crew seat wore last time (if the studio still owns them). */
+	void LoadSavedAccessories();
 	void AttachCarryAnchorForView();
 
 	// input

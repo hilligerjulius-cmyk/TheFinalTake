@@ -80,7 +80,7 @@ protected:
 	float LostTimer = 0.f;
 	float OutOfWaterTime = 0.f;
 
-	void Land(const FVector& Location);
+	virtual void Land(const FVector& Location);
 	void SetCarriedCollision(bool bCarried);
 };
 

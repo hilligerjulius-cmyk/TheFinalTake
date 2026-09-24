@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "TheFinalTake/Interaction/FTStudioActor.h"
 #include "TheFinalTake/Props/FTProp.h"
+#include "TheFinalTake/Career/FTShopItems.h"
 #include "FTSetPieces.generated.h"
 
 class UStaticMeshComponent;
@@ -83,9 +84,24 @@ public:
 	AFTProp* GetHeldItem() const { return HeldItem; }
 	FVector GetActingPoint() const { return GetActorLocation() + FVector(0.f, 0.f, 110.f); }
 
+	/** Server: dress the stand-in with a purchased accessory (NAME_None removes it). Persisted per stand-in. */
+	void SetAccessory(EFTAccessorySlot Slot, FName ItemId);
+	FName GetAccessory(EFTAccessorySlot Slot) const { return Accessories.IsValidIndex((int32)Slot) ? Accessories[(int32)Slot] : NAME_None; }
+	void GatherShowcase(TArray<FFTShowcaseEntry>& Out) const;
+
 	UPROPERTY(ReplicatedUsing = OnRep_Costume, BlueprintReadOnly) EFTCostume Costume = EFTCostume::None;
+	/** Head, face, body accessory ids. */
+	UPROPERTY(ReplicatedUsing = OnRep_Costume, BlueprintReadOnly) TArray<FName> Accessories;
+	/** Save key of this stand-in ("StandIn.<id>"): one stand-in per soundstage. */
+	UPROPERTY(EditAnywhere, Category = "Stand-in") FName StandInId = TEXT("Stage4");
 protected:
 	UFUNCTION() void OnRep_Costume();
+	UPROPERTY(VisibleAnywhere) TObjectPtr<USceneComponent> AccHead;
+	UPROPERTY(VisibleAnywhere) TObjectPtr<USceneComponent> AccFace;
+	UPROPERTY(VisibleAnywhere) TObjectPtr<USceneComponent> AccBody;
+	/** Costume headwear hidden while a purchased hat is worn. */
+	UPROPERTY() TArray<TObjectPtr<UStaticMeshComponent>> HatParts;
+	FFTWornAccessories Worn;
 	UPROPERTY(Replicated) TObjectPtr<AFTProp> HeldItem;
 	UPROPERTY(VisibleAnywhere) TObjectPtr<USceneComponent> HandAnchor;
 	UPROPERTY(VisibleAnywhere) TObjectPtr<UFTInteractableComponent> CostumeButton;

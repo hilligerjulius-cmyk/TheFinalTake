@@ -4,6 +4,7 @@
 
 #if WITH_EDITOR
 #include "TheFinalTake/Core/FTVisuals.h"
+#include "TheFinalTake/Career/FTEconomy.h"
 #include "TheFinalTake/Data/FTFilmDefinition.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "AssetToolsModule.h"
@@ -488,6 +489,38 @@ namespace
 		Asset->MarkPackageDirty();
 		UE_LOG(LogFinalTake, Display, TEXT("[FTContent] %s saved=%d"), *Name, SavePackageFor(Asset) ? 1 : 0);
 	}
+
+	/** DA_Economy: the designer-editable copy of the balance + catalogue. Regenerated when the code's data version moves on. */
+	bool MakeEconomyAsset(bool bForce)
+	{
+		const FString PackagePath = TEXT("/Game/TheFinalTake/Data/DA_Economy");
+		const UFTEconomyConfig* Defaults = GetDefault<UFTEconomyConfig>();
+		UFTEconomyConfig* Asset = LoadObject<UFTEconomyConfig>(nullptr, TEXT("/Game/TheFinalTake/Data/DA_Economy.DA_Economy"), nullptr, LOAD_NoWarn | LOAD_Quiet);
+		if (Asset && !bForce && Asset->DataVersion == UFTEconomyConfig::AuthoredVersion)
+		{
+			UE_LOG(LogFinalTake, Display, TEXT("[FTContent] DA_Economy is current (data version %d), skipping"), Asset->DataVersion);
+			return true;
+		}
+		if (!Asset)
+		{
+			UPackage* Pkg = CreatePackage(*PackagePath);
+			Asset = NewObject<UFTEconomyConfig>(Pkg, TEXT("DA_Economy"), RF_Public | RF_Standalone);
+			FAssetRegistryModule::AssetCreated(Asset);
+		}
+		// reset every field to the authored defaults (older data version or -force)
+		for (TFieldIterator<FProperty> It(UFTEconomyConfig::StaticClass()); It; ++It)
+		{
+			if (It->GetOwnerClass() == UFTEconomyConfig::StaticClass())
+			{
+				It->CopyCompleteValue_InContainer(Asset, Defaults);
+			}
+		}
+		Asset->MarkPackageDirty();
+		const bool bSaved = SavePackageFor(Asset);
+		UE_LOG(LogFinalTake, Display, TEXT("[FTContent] DA_Economy (data version %d, %d items, %d cars, %d stages) saved=%d"),
+			Asset->DataVersion, Asset->Items.Num(), Asset->Vehicles.Num(), Asset->Stages.Num(), bSaved ? 1 : 0);
+		return bSaved;
+	}
 }
 #endif
 
@@ -528,6 +561,7 @@ int32 UFTContentCommandlet::Main(const FString& Params)
 	MakeFilmAsset<UFTFilm_JawsOfTheStudio>(FTTags::FilmJaws, bForce);
 	MakeFilmAsset<UFTFilm_MoonfallMotel>(FTTags::FilmMoonfall, bForce);
 	MakeFilmAsset<UFTFilm_CastleOnFire>(FTTags::FilmCastle, bForce);
+	Failed += MakeEconomyAsset(bForce) ? 0 : 1;
 	if (Params.Contains(TEXT("-map")))
 	{
 		extern bool FTBuildStudioMap();

@@ -9,6 +9,8 @@ class UFTTitleMenuWidget;
 class UFTScriptBookWidget;
 class UFTPauseMenuWidget;
 class UFTResultsWidget;
+class UFTShopWidget;
+class AFTShopTerminal;
 class UUserWidget;
 
 UCLASS()
@@ -40,6 +42,11 @@ public:
 	UFUNCTION(Server, Reliable) void ServerCloseScriptBook();
 	void LocalCloseScriptBook(bool bNotifyServer);
 
+	// ---- studio supply shop
+	UFUNCTION(Client, Reliable) void ClientOpenShop(AFTShopTerminal* Terminal);
+	void LocalCloseShop();
+	bool IsShopOpen() const { return bShopOpen; }
+
 	// ---- shoot control
 	UFUNCTION(Server, Reliable) void ServerRequestRestart();
 	UFUNCTION(Server, Reliable) void ServerPing(FVector_NetQuantize Location);
@@ -58,6 +65,8 @@ public:
 	DECLARE_MULTICAST_DELEGATE(FFTOnPurchaseAnswer);
 	FFTOnPurchaseAnswer OnPurchaseAnswer;
 	int32 RequestPurchase(FName Id);
+	/** Automated test only: makes this client start an action through its own server RPCs (client-initiated path). */
+	UFUNCTION(Client, Reliable) void ClientAutoTestAction(FName Action, FName Param);
 
 	// ---- title / session
 	/** Opens the studio map as a listen server with the given career slot ("world"). */
@@ -78,10 +87,12 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UFTScriptBookWidget> ScriptBook;
 	UPROPERTY(Transient) TObjectPtr<UFTPauseMenuWidget> PauseMenu;
 	UPROPERTY(Transient) TObjectPtr<UFTResultsWidget> Results;
+	UPROPERTY(Transient) TObjectPtr<UFTShopWidget> Shop;
 	UPROPERTY(Transient) TObjectPtr<class UAudioComponent> Music;
 
 	bool bTitleShown = false;
 	bool bBookOpen = false;
+	bool bShopOpen = false;
 	bool bPaused = false;
 	FDelegateHandle StateHandle;
 };
