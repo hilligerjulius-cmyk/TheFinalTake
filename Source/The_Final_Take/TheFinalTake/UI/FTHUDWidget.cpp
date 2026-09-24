@@ -1,6 +1,7 @@
 #include "TheFinalTake/UI/FTHUDWidget.h"
 
 #include "TheFinalTake/UI/FTUIStyle.h"
+#include "TheFinalTake/Career/FTEconomy.h"
 #include "TheFinalTake/Core/FTVisuals.h"
 #include "TheFinalTake/Characters/FTCharacter.h"
 #include "TheFinalTake/Data/FTFilmDefinition.h"
@@ -239,6 +240,10 @@ void UFTHUDWidget::Build()
 		AddV(V, CS, FMargin(0.f, 2.f, 0.f, 10.f), 3);
 		ScoreText = Text(T, LOCTEXT("Score0", "SCORE  0"), 24, Yellow, TEXT("Black"));
 		AddV(V, ScoreText, FMargin(0.f), 2);
+		MoneyText = Text(T, FText::GetEmpty(), 16, Cyan, TEXT("Black"));
+		AddV(V, MoneyText, FMargin(0.f, 4.f, 0.f, 0.f), 2);
+		SaveText = Text(T, FText::GetEmpty(), 11, Cream, TEXT("BoldCondensed"));
+		AddV(V, SaveText, FMargin(0.f), 2);
 		UBorder* Card = Box(T, Ink, 14.f, FMargin(18.f, 12.f), Cream, 3.f);
 		Card->SetContent(V);
 		Card->SetRenderTransformAngle(1.f);
@@ -599,6 +604,19 @@ void UFTHUDWidget::UpdateClock()
 	ConditionBar->SetFillColorAndOpacity(FLinearColor::LerpUsingHSV(Red, Teal, Cond));
 	ConditionText->SetText(FText::Format(LOCTEXT("StudioFmt", "STUDIO CONDITION  {0}%"), FText::AsNumber(FMath::RoundToInt(GS->StudioCondition))));
 	ScoreText->SetText(FText::Format(LOCTEXT("ScoreFmt", "SCORE  {0}"), FText::AsNumber(GS->TeamScore)));
+	// shared studio account + a short "saved" confirmation after every career write on the host
+	MoneyText->SetText(FText::Format(LOCTEXT("MoneyFmt", "STUDIO  {0}"), FText::FromString(FFTEconomy::MoneyString(GS->StudioMoney))));
+	const float SinceSave = GS->GetServerWorldTimeSeconds() - GS->LastSaveServerTime;
+	if (!GS->bLastSaveOk)
+	{
+		SaveText->SetText(LOCTEXT("SaveFailHud", "CAREER NOT SAVED!"));
+		SaveText->SetColorAndOpacity(FSlateColor(Red));
+	}
+	else
+	{
+		SaveText->SetText(SinceSave < 3.f ? FText::Format(LOCTEXT("SavedHud", "career saved  -  slot {0}"), FText::AsNumber(GS->CareerSlot)) : FText::GetEmpty());
+		SaveText->SetColorAndOpacity(FSlateColor(Cream));
+	}
 
 	const bool bDanger = GS->IsShootActive() && (!GS->bStagePower || GS->FloodStage != EFTFloodStage::Dry);
 	const float A = bDanger ? 0.25f + 0.2f * FMath::Sin(Time * 5.f) : 0.f;

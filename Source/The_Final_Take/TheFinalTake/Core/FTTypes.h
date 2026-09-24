@@ -218,6 +218,8 @@ struct FFTTakeResult
 	UPROPERTY(BlueprintReadOnly) TArray<FString> Reasons;
 	UPROPERTY(BlueprintReadOnly) TArray<FName> VisibleSubjects;
 	UPROPERTY(BlueprintReadOnly) TArray<FName> ActiveEffects;
+	/** Purchased production upgrades that were visibly active in this take (career production value). */
+	UPROPERTY(BlueprintReadOnly) TArray<FName> VisibleItems;
 	UPROPERTY(BlueprintReadOnly) int32 DisasterFlags = 0;
 	UPROPERTY(BlueprintReadOnly) float Timestamp = 0.f;
 	UPROPERTY(BlueprintReadOnly) bool bAccepted = false;

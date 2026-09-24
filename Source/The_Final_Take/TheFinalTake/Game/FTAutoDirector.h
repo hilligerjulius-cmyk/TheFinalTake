@@ -51,6 +51,10 @@ private:
 	/** Real (wall-clock) frame times after warm-up, for the performance summary. */
 	TArray<float> FrameTimes;
 	double LastFrameStamp = 0.0;
+	// career bookkeeping checks
+	int32 StartMoney = 0;
+	int32 StartFilms = 0;
+	int32 SpentMoney = 0;
 
 	TArray<FStep> Steps;
 	FString LastUseFailure;

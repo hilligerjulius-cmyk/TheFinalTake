@@ -45,8 +45,23 @@ public:
 	UFUNCTION(Server, Reliable) void ServerPing(FVector_NetQuantize Location);
 	UFUNCTION(Client, Reliable) void ClientToast(const FText& Text, bool bError);
 
+	// ---- career
+	/** Host only: wipe the current career slot and start a fresh studio. */
+	UFUNCTION(Server, Reliable) void ServerResetCareer();
+	/** Anyone: buy a shop item / car / stage for the team (validated on the server). */
+	UFUNCTION(Server, Reliable) void ServerPurchase(FName Id, int32 RequestId);
+	UFUNCTION(Client, Reliable) void ClientPurchaseResult(int32 RequestId, bool bOk, const FText& Message);
+	/** Last purchase request that has not been answered yet (UI disables buy buttons meanwhile). */
+	int32 PendingPurchase = 0;
+	FText LastPurchaseMessage;
+	bool bLastPurchaseOk = false;
+	DECLARE_MULTICAST_DELEGATE(FFTOnPurchaseAnswer);
+	FFTOnPurchaseAnswer OnPurchaseAnswer;
+	int32 RequestPurchase(FName Id);
+
 	// ---- title / session
-	void StartDemo(bool bHost);
+	/** Opens the studio map as a listen server with the given career slot ("world"). */
+	void StartDemo(bool bHost, int32 CareerSlot = 1);
 	void JoinStudio(const FString& Address);
 	void LeaveToTitle();
 	void QuitGame();

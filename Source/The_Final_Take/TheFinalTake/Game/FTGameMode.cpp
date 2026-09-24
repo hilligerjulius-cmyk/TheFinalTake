@@ -5,6 +5,8 @@
 #include "TheFinalTake/Game/FTPlayerController.h"
 #include "TheFinalTake/Game/FTSceneManager.h"
 #include "TheFinalTake/Game/FTAutoDirector.h"
+#include "TheFinalTake/Career/FTCareerManager.h"
+#include "TheFinalTake/Career/FTCareerSave.h"
 #include "TheFinalTake/Characters/FTCharacter.h"
 #include "EngineUtils.h"
 #include "GameFramework/PlayerStart.h"
@@ -24,6 +26,14 @@ void AFTGameMode::InitGame(const FString& MapName, const FString& Options, FStri
 	Super::InitGame(MapName, Options, ErrorMessage);
 	// Standalone start without the play flag shows the title screen.
 	bTitleMode = GetNetMode() == NM_Standalone && !UGameplayStatics::HasOption(Options, TEXT("ftplay")) && !AFTAutoDirector::IsRequested();
+	// Automated runs never touch the player's careers: they use slot 9 unless told otherwise.
+	int32 TestSlot = 9;
+	FParse::Value(FCommandLine::Get(), TEXT("FTCareerSlot="), TestSlot);
+	CareerSlot = AFTAutoDirector::IsRequested() ? TestSlot : 1;
+	if (UGameplayStatics::HasOption(Options, TEXT("career")))
+	{
+		CareerSlot = FMath::Max(1, UGameplayStatics::GetIntOption(Options, TEXT("career"), CareerSlot));
+	}
 }
 
 void AFTGameMode::InitGameState()
@@ -46,6 +56,21 @@ void AFTGameMode::StartPlay()
 	if (SceneManager)
 	{
 		SceneManager->DawnSeconds = DawnSeconds;
+	}
+	// The career lives on the host only; the title screen has no career loaded.
+	if (!bTitleMode)
+	{
+		if (AFTAutoDirector::IsRequested() && FParse::Param(FCommandLine::Get(), TEXT("FTFreshCareer")))
+		{
+			UFTCareerSave::DeleteSlot(CareerSlot);
+		}
+		FActorSpawnParameters CareerParams;
+		CareerParams.Name = TEXT("FTCareerManager");
+		CareerManager = GetWorld()->SpawnActor<AFTCareerManager>(AFTCareerManager::StaticClass(), FTransform::Identity, CareerParams);
+		if (CareerManager)
+		{
+			CareerManager->InitCareer(CareerSlot);
+		}
 	}
 	if (AFTAutoDirector::IsRequested())
 	{

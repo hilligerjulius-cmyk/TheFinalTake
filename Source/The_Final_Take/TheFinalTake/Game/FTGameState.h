@@ -4,6 +4,7 @@
 #include "GameFramework/GameStateBase.h"
 #include "TheFinalTake/Core/FTTypes.h"
 #include "TheFinalTake/Core/FTAudio.h"
+#include "TheFinalTake/Career/FTCareerTypes.h"
 #include "FTGameState.generated.h"
 
 class UFTFilmDefinition;
@@ -66,6 +67,25 @@ public:
 	/** Whoever currently has the script book open (only one at a time). */
 	UPROPERTY(ReplicatedUsing = OnRep_State, BlueprintReadOnly) TObjectPtr<APlayerState> ScriptBookUser;
 
+	// ---- career (written only by the server-side AFTCareerManager; read-only everywhere else)
+	UPROPERTY(ReplicatedUsing = OnRep_Career, BlueprintReadOnly) int32 CareerSlot = 0;
+	UPROPERTY(ReplicatedUsing = OnRep_Career, BlueprintReadOnly) FString StudioName;
+	UPROPERTY(ReplicatedUsing = OnRep_Career, BlueprintReadOnly) int32 StudioMoney = 0;
+	UPROPERTY(ReplicatedUsing = OnRep_Career, BlueprintReadOnly) TArray<FName> OwnedItems;
+	UPROPERTY(ReplicatedUsing = OnRep_Career, BlueprintReadOnly) TArray<FName> OwnedVehicles;
+	UPROPERTY(ReplicatedUsing = OnRep_Career, BlueprintReadOnly) TArray<FName> UnlockedStages;
+	/** Most recent releases (the full history stays in the host's save). */
+	UPROPERTY(ReplicatedUsing = OnRep_Career, BlueprintReadOnly) TArray<FFTReleasedFilm> ReleasedFilms;
+	UPROPERTY(ReplicatedUsing = OnRep_Career, BlueprintReadOnly) int32 CareerFilmsTotal = 0;
+	UPROPERTY(ReplicatedUsing = OnRep_Career, BlueprintReadOnly) int32 CareerBestRevenue = 0;
+	/** Box-office result of the current shoot's release (valid from the premiere on). */
+	UPROPERTY(ReplicatedUsing = OnRep_Career, BlueprintReadOnly) FFTReleaseReport LastRelease;
+	UPROPERTY(ReplicatedUsing = OnRep_Career, BlueprintReadOnly) bool bLastSaveOk = true;
+	UPROPERTY(ReplicatedUsing = OnRep_Career, BlueprintReadOnly) float LastSaveServerTime = -100.f;
+
+	bool IsOwned(FName Id) const { return OwnedItems.Contains(Id) || OwnedVehicles.Contains(Id) || UnlockedStages.Contains(Id); }
+	bool IsStageUnlocked(FName StageId) const { return StageId.IsNone() || StageId == FName(TEXT("Stage4")) || UnlockedStages.Contains(StageId); }
+
 	/** Local only: still frames grabbed from the film camera when a take is accepted (premiere montage). */
 	UPROPERTY(Transient) TMap<int32, TObjectPtr<class UTextureRenderTarget2D>> LocalStills;
 
@@ -93,8 +113,12 @@ public:
 	FFTOnTakeResult OnTakeResult;
 	FFTOnStateChanged OnStateChanged;
 	FFTOnPing OnPing;
+	FFTOnStateChanged OnCareerChanged;
 
 	UFUNCTION() void OnRep_State();
+	UFUNCTION() void OnRep_Career();
+	/** Server: after the career manager changed replicated career data. */
+	void NotifyCareerChanged();
 	UFUNCTION() void OnRep_Flood();
 	UFUNCTION() void OnRep_Power();
 

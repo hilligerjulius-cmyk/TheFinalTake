@@ -45,6 +45,29 @@ void AFTGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AFTGameState, Callout);
 	DOREPLIFETIME(AFTGameState, bTitleMode);
 	DOREPLIFETIME(AFTGameState, ScriptBookUser);
+	DOREPLIFETIME(AFTGameState, CareerSlot);
+	DOREPLIFETIME(AFTGameState, StudioName);
+	DOREPLIFETIME(AFTGameState, StudioMoney);
+	DOREPLIFETIME(AFTGameState, OwnedItems);
+	DOREPLIFETIME(AFTGameState, OwnedVehicles);
+	DOREPLIFETIME(AFTGameState, UnlockedStages);
+	DOREPLIFETIME(AFTGameState, ReleasedFilms);
+	DOREPLIFETIME(AFTGameState, CareerFilmsTotal);
+	DOREPLIFETIME(AFTGameState, CareerBestRevenue);
+	DOREPLIFETIME(AFTGameState, LastRelease);
+	DOREPLIFETIME(AFTGameState, bLastSaveOk);
+	DOREPLIFETIME(AFTGameState, LastSaveServerTime);
+}
+
+void AFTGameState::OnRep_Career()
+{
+	OnCareerChanged.Broadcast();
+}
+
+void AFTGameState::NotifyCareerChanged()
+{
+	ForceNetUpdate();
+	OnRep_Career();
 }
 
 const UFTFilmDefinition* AFTGameState::GetFilm() const

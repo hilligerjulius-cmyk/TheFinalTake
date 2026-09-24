@@ -57,6 +57,28 @@ protected:
 	void ShowSettings(bool bShow);
 	AFTPlayerController* PC() const;
 
+	// ---- career slots ("worlds")
+	void ShowCareer(bool bShow, bool bHost);
+	void RefreshSlots();
+	void PlaySlot(int32 SlotIndex);
+	void DeleteSlot(int32 SlotIndex);
+	UFUNCTION() void HandleSlot1();
+	UFUNCTION() void HandleSlot2();
+	UFUNCTION() void HandleSlot3();
+	UFUNCTION() void HandleDelete1();
+	UFUNCTION() void HandleDelete2();
+	UFUNCTION() void HandleDelete3();
+	UFUNCTION() void HandleCareerBack();
+	UPROPERTY() TObjectPtr<UWidget> CareerPanel;
+	UPROPERTY() TObjectPtr<UTextBlock> CareerHeader;
+	UPROPERTY() TArray<TObjectPtr<UTextBlock>> SlotTitles;
+	UPROPERTY() TArray<TObjectPtr<UTextBlock>> SlotDetails;
+	UPROPERTY() TArray<TObjectPtr<UTextBlock>> SlotPlayLabels;
+	UPROPERTY() TArray<TObjectPtr<UTextBlock>> SlotDeleteLabels;
+	UPROPERTY() TArray<TObjectPtr<UButton>> SlotDeleteButtons;
+	bool bCareerHost = false;
+	int32 DeleteArmed = 0;
+
 	UPROPERTY() TObjectPtr<UWidget> MainColumn;
 	UPROPERTY() TObjectPtr<UWidget> JoinRow;
 	UPROPERTY() TObjectPtr<UEditableTextBox> Address;
@@ -80,12 +102,17 @@ protected:
 	UFUNCTION() void HandleRestart();
 	UFUNCTION() void HandleLeave();
 	UFUNCTION() void HandleQuit();
+	UFUNCTION() void HandleResetCareer();
 	AFTPlayerController* PC() const;
 	UPROPERTY() TObjectPtr<UWidget> MainColumn;
 	UPROPERTY() TObjectPtr<UFTSettingsPanel> Settings;
 	UPROPERTY() TObjectPtr<UButton> RestartButton;
 	UPROPERTY() TObjectPtr<UTextBlock> RestartLabel;
 	UPROPERTY() TObjectPtr<UButton> ResumeButton;
+	UPROPERTY() TObjectPtr<UTextBlock> CareerText;
+	UPROPERTY() TObjectPtr<UButton> ResetCareerButton;
+	UPROPERTY() TObjectPtr<UTextBlock> ResetCareerLabel;
+	bool bResetArmed = false;
 };
 
 /** The giant physical script book: pick a film (only playable scripts can be greenlit). */
@@ -132,6 +159,8 @@ protected:
 	UFUNCTION() void HandleLeave();
 	AFTPlayerController* PC() const;
 	UPROPERTY() TObjectPtr<UVerticalBox> Content;
+	UPROPERTY() TObjectPtr<UVerticalBox> LeftColumn;
+	UPROPERTY() TObjectPtr<UVerticalBox> RightColumn;
 	UPROPERTY() TObjectPtr<UWidget> Card;
 	UPROPERTY() TObjectPtr<UButton> RetryButton;
 	float Age = 0.f;

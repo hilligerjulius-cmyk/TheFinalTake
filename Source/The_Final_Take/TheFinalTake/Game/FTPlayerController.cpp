@@ -1,5 +1,6 @@
 #include "TheFinalTake/Game/FTPlayerController.h"
 
+#include "TheFinalTake/Career/FTCareerManager.h"
 #include "TheFinalTake/Core/FTAudio.h"
 #include "TheFinalTake/Core/FTInput.h"
 #include "TheFinalTake/Data/FTFilmDefinition.h"
@@ -46,6 +47,7 @@ void AFTPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (AFTGameState* GS = GetWorld() ? GetWorld()->GetGameState<AFTGameState>() : nullptr)
 	{
 		GS->OnStateChanged.Remove(StateHandle);
+		GS->OnCareerChanged.RemoveAll(this);
 		GS->OnAnnounce.RemoveAll(this);
 		GS->OnTakeResult.RemoveAll(this);
 		GS->OnPing.RemoveAll(this);
@@ -101,6 +103,7 @@ void AFTPlayerController::EnsureWidgets()
 		return;
 	}
 	StateHandle = GS->OnStateChanged.AddUObject(this, &AFTPlayerController::OnStateChanged);
+	GS->OnCareerChanged.AddUObject(this, &AFTPlayerController::OnStateChanged);
 	GS->OnAnnounce.AddWeakLambda(this, [this](const FText& Text, EFTAnnounceStyle Style, EFTSound)
 	{
 		if (HUD)
@@ -407,10 +410,72 @@ void AFTPlayerController::ServerPing_Implementation(FVector_NetQuantize Location
 	}
 }
 
-void AFTPlayerController::StartDemo(bool bHost)
+void AFTPlayerController::StartDemo(bool bHost, int32 CareerSlot)
 {
 	const FString Map = UGameplayStatics::GetCurrentLevelName(this, true);
-	UGameplayStatics::OpenLevel(this, FName(*Map), true, TEXT("listen?ftplay=1"));
+	UGameplayStatics::OpenLevel(this, FName(*Map), true, FString::Printf(TEXT("listen?ftplay=1?career=%d"), FMath::Clamp(CareerSlot, 1, 99)));
+}
+
+// ============================================================================ career
+
+void AFTPlayerController::ServerResetCareer_Implementation()
+{
+	// only the host (the save owner) may wipe the career, and never in the middle of a shoot
+	AFTGameState* GS = GetWorld()->GetGameState<AFTGameState>();
+	if (!IsLocalController())
+	{
+		ClientToast(LOCTEXT("ResetHost", "Only the host can reset the career"), true);
+		return;
+	}
+	if (GS && (GS->IsShootActive() || GS->ShootPhase == EFTShootPhase::Premiere))
+	{
+		ClientToast(LOCTEXT("ResetBusy", "Finish or restart the shoot before resetting the career"), true);
+		return;
+	}
+	if (AFTCareerManager* CM = AFTCareerManager::Get(this))
+	{
+		CM->ResetCareer();
+	}
+}
+
+int32 AFTPlayerController::RequestPurchase(FName Id)
+{
+	if (PendingPurchase != 0)
+	{
+		return 0; // one purchase in flight at a time; the button stays disabled until the answer arrives
+	}
+	static int32 NextRequest = 1;
+	PendingPurchase = NextRequest++;
+	ServerPurchase(Id, PendingPurchase);
+	return PendingPurchase;
+}
+
+void AFTPlayerController::ServerPurchase_Implementation(FName Id, int32 RequestId)
+{
+	FText Message;
+	bool bOk = false;
+	if (AFTCareerManager* CM = AFTCareerManager::Get(this))
+	{
+		bOk = CM->TryPurchase(this, Id, Message);
+	}
+	else
+	{
+		Message = LOCTEXT("NoCareer", "No career is loaded");
+	}
+	ClientPurchaseResult(RequestId, bOk, Message);
+}
+
+void AFTPlayerController::ClientPurchaseResult_Implementation(int32 RequestId, bool bOk, const FText& Message)
+{
+	if (RequestId == PendingPurchase)
+	{
+		PendingPurchase = 0;
+	}
+	bLastPurchaseOk = bOk;
+	LastPurchaseMessage = Message;
+	ShowToast(Message, !bOk);
+	FTAudio::Play2D(this, bOk ? EFTSound::UIConfirm : EFTSound::UIError, 0.8f);
+	OnPurchaseAnswer.Broadcast();
 }
 
 void AFTPlayerController::JoinStudio(const FString& Address)

@@ -31,8 +31,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Shoot") float DawnSeconds = 1800.f;
 
 	bool IsTitleMode() const { return bTitleMode; }
+	int32 GetCareerSlot() const { return CareerSlot; }
 
 private:
 	bool bTitleMode = false;
+	/** "?career=N" from the title screen; automated tests default to a reserved slot. */
+	int32 CareerSlot = 1;
 	UPROPERTY() TObjectPtr<AFTSceneManager> SceneManager;
+	UPROPERTY() TObjectPtr<class AFTCareerManager> CareerManager;
 };

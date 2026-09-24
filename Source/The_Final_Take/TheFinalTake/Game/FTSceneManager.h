@@ -74,6 +74,9 @@ private:
 	void Fail(const FText& Reason);
 	void UpdateCallout();
 	void SpawnReel(int32 SceneIdx);
+	/** Computes the box-office report for the finished film and books it once in the career. */
+	void RecordRelease();
+	bool bReleaseRecorded = false;
 	AFTFilmCamera* FindCamera() const;
 	bool IsCostumeInZone(EFTCostume Costume, FName Zone) const;
 	bool IsDeviceActive(FName DeviceTag) const;

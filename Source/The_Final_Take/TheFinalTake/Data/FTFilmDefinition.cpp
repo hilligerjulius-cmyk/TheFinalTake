@@ -80,6 +80,9 @@ UFTFilm_JawsOfTheStudio::UFTFilm_JawsOfTheStudio()
 	PosterPrimary = FTColors::Blue;
 	PosterSecondary = FTColors::Coral;
 	PosterTagline = LOCTEXT("JawsTagline", "YOU'LL NEED A BIGGER TANK.");
+	StageId = TEXT("Stage4");
+	StageLabel = LOCTEXT("JawsStage", "STAGE 4");
+	AudienceMultiplier = 1.f;
 
 	{
 		FFTSceneDefinition S;
@@ -179,6 +182,9 @@ UFTFilm_MoonfallMotel::UFTFilm_MoonfallMotel()
 	PosterPrimary = FTColors::Purple;
 	PosterSecondary = FTColors::Cyan;
 	PosterTagline = LOCTEXT("MoonTagline", "NO VACANCY. NO ESCAPE.");
+	StageId = TEXT("Stage5");
+	StageLabel = LOCTEXT("MoonStage", "STAGE 5");
+	AudienceMultiplier = 1.1f;
 	{
 		FFTSceneDefinition S;
 		S.SceneId = TEXT("M1_Vacancy");
@@ -233,6 +239,9 @@ UFTFilm_CastleOnFire::UFTFilm_CastleOnFire()
 	PosterPrimary = FTColors::Coral;
 	PosterSecondary = FTColors::Yellow;
 	PosterTagline = LOCTEXT("CastleTagline", "HOLD THE WALL. MIND THE DRAGON.");
+	StageId = TEXT("Stage6");
+	StageLabel = LOCTEXT("CastleStage", "STAGE 6");
+	AudienceMultiplier = 1.2f;
 	{
 		FFTSceneDefinition S;
 		S.SceneId = TEXT("C1_Keep");

@@ -1,6 +1,7 @@
 #include "TheFinalTake/Game/FTAutoDirector.h"
 
 #include "The_Final_Take.h"
+#include "TheFinalTake/Career/FTEconomy.h"
 #include "TheFinalTake/Characters/FTCharacter.h"
 #include "TheFinalTake/Game/FTGameState.h"
 #include "TheFinalTake/Game/FTPlayerController.h"
@@ -304,6 +305,19 @@ void AFTAutoDirector::BuildSteps()
 		}
 		return false;
 	}, 90.f });
+	Steps.Add({ TEXT("Career slot loaded on the host"), [this, GS]()
+	{
+		AFTGameState* G = GS();
+		if (!G || G->CareerSlot <= 0)
+		{
+			return false;
+		}
+		StartMoney = G->StudioMoney;
+		StartFilms = G->CareerFilmsTotal;
+		Log(FString::Printf(TEXT("career slot %d '%s': %s, %d film(s) released, %d item(s), %d car(s), %d stage(s)"), G->CareerSlot, *G->StudioName,
+			*FFTEconomy::MoneyString(G->StudioMoney), G->CareerFilmsTotal, G->OwnedItems.Num(), G->OwnedVehicles.Num(), G->UnlockedStages.Num()));
+		return true;
+	} });
 	AddShot(TEXT("01_lobby"));
 	if (bShots)
 	{
@@ -486,6 +500,30 @@ void AFTAutoDirector::BuildSteps()
 			GS()->TeamScore, GS()->StyleBonus, GS()->DisasterBonus, GS()->GetCompletedTakeCount(), GS()->StudioCondition));
 		return true;
 	}, 60.f });
+	Steps.Add({ TEXT("Release booked into the career"), [this, GS]()
+	{
+		AFTGameState* G = GS();
+		const FFTReleaseReport& R = G->LastRelease;
+		if (!R.bValid)
+		{
+			return false;
+		}
+		Log(FString::Printf(TEXT("release #%d: quality %d, production %d (%d item(s)), arrival +%d%%, %d viewers, revenue %s, %d stars, %s, rank %d/%d"),
+			R.ReleaseNumber, R.Quality, R.ProductionPoints, R.VisibleItems.Num(), R.ArrivalBonusPct, R.Audience, *FFTEconomy::MoneyString(R.Revenue), R.Stars,
+			*FFTEconomy::TierName(R.Tier).ToString(), R.Rank, R.RankOf));
+		for (const FFTReleaseLine& L : R.Lines)
+		{
+			Log(FString::Printf(TEXT("   %+6d  %s"), L.Audience, *L.Label.ToString()));
+		}
+		for (int32 i = 0; i < R.Reviews.Num(); ++i)
+		{
+			Log(FString::Printf(TEXT("   review: %s"), *R.Reviews[i].ToString()));
+		}
+		const int32 Expected = StartMoney - SpentMoney + R.Revenue;
+		const bool bBooked = G->StudioMoney == Expected && G->CareerFilmsTotal == StartFilms + 1;
+		Log(FString::Printf(TEXT("studio account %s (expected %s), films %d"), *FFTEconomy::MoneyString(G->StudioMoney), *FFTEconomy::MoneyString(Expected), G->CareerFilmsTotal), !bBooked);
+		return true;
+	}, 10.f });
 	if (bShots)
 	{
 		Steps.Add({ TEXT("Results screen settles"), [this]() { return StepTime > 2.f; } });

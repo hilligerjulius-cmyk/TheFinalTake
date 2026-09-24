@@ -1,6 +1,9 @@
 #include "TheFinalTake/Game/FTSceneManager.h"
 
 #include "The_Final_Take.h"
+#include "TheFinalTake/Career/FTCareerManager.h"
+#include "TheFinalTake/Career/FTCareerSave.h"
+#include "TheFinalTake/Career/FTEconomy.h"
 #include "TheFinalTake/Game/FTGameState.h"
 #include "TheFinalTake/Game/FTPlayerState.h"
 #include "TheFinalTake/Characters/FTCharacter.h"
@@ -1292,8 +1295,71 @@ bool AFTSceneManager::RequestStartPremiere(AFTCharacter* User, FText& OutReason)
 	G->DawnServerTime = 0.f;
 	PremiereTimer = 0.f;
 	G->MulticastAnnounce(LOCTEXT("Premiere", "LIGHTS DOWN - IT'S PREMIERE TIME!"), EFTAnnounceStyle::Slate, EFTSound::Fanfare);
+	// the film is released the moment it is screened: book the box office now (safe against a host quitting mid-show)
+	RecordRelease();
 	G->NotifyStateChanged();
 	return true;
+}
+
+void AFTSceneManager::RecordRelease()
+{
+	AFTGameState* G = GS();
+	const UFTFilmDefinition* Film = G ? G->GetFilm() : nullptr;
+	if (!Film || bReleaseRecorded)
+	{
+		return;
+	}
+	bReleaseRecorded = true;
+	const UFTEconomyConfig* Cfg = UFTEconomyConfig::Get();
+	AFTCareerManager* Career = AFTCareerManager::Get(this);
+
+	FFTReleaseInput In;
+	In.FilmId = G->FilmId;
+	In.FilmTitle = Film->Title;
+	for (int32 i = 0; i < Film->Scenes.Num(); ++i)
+	{
+		const FFTTakeResult* Best = G->GetBestTake(i);
+		In.SceneScores.Add(Best ? Best->Score : 0);
+		In.SceneTitles.Add(Film->Scenes[i].Title);
+	}
+	// production value: every purchased upgrade that was visibly active in an accepted take counts once
+	TSet<FName> Seen;
+	for (const FFTTakeResult& R : G->TakeResults)
+	{
+		if (R.bAccepted)
+		{
+			Seen.Append(R.VisibleItems);
+		}
+	}
+	for (FName Id : Seen)
+	{
+		if (const FFTShopItemDef* D = Cfg->FindItem(Id))
+		{
+			In.VisibleItems.Add(Id);
+			In.ProductionPoints += D->StyleValue;
+		}
+	}
+	In.RemainingFraction = G->DawnDuration > 0.f ? FMath::Clamp(G->FrozenRemaining / G->DawnDuration, 0.f, 1.f) : 0.f;
+	In.StudioCondition = G->StudioCondition;
+	In.bSurvivedDisaster = G->DisasterBonus > 0;
+	In.TimesReleasedBefore = Career ? Career->TimesReleased(G->FilmId) : 0;
+	In.GenreMultiplier = Film->AudienceMultiplier;
+	const int32 ReleaseNo = (Career && Career->GetSave() ? Career->GetSave()->ReleaseCounter : 0) + 1;
+	In.Seed = static_cast<int32>(HashCombine(HashCombine(GetTypeHash(G->FilmId), GetTypeHash(ReleaseNo)), GetTypeHash(G->CareerSlot)));
+
+	FFTReleaseReport Report = FFTEconomy::ComputeRelease(In, *Cfg);
+	if (Career)
+	{
+		Career->RecordRelease(Report);
+	}
+	else
+	{
+		FFTEconomy::RankRelease(Report, G->ReleasedFilms);
+	}
+	G->LastRelease = Report;
+	G->NotifyCareerChanged();
+	G->MulticastAnnounce(FText::Format(LOCTEXT("BoxOffice", "{0} viewers  -  {1} for the studio"),
+		FText::FromString(FFTEconomy::NumberString(Report.Audience)), FText::FromString(FFTEconomy::MoneyString(Report.Revenue))), EFTAnnounceStyle::Success, EFTSound::None);
 }
 
 void AFTSceneManager::TickFinale(float DeltaSeconds)
@@ -1306,7 +1372,8 @@ void AFTSceneManager::TickFinale(float DeltaSeconds)
 	if (G->ShootPhase == EFTShootPhase::Premiere)
 	{
 		PremiereTimer += DeltaSeconds;
-		const float Length = 8.f + 6.f * FMath::Max(1, G->GetCompletedTakeCount()) + 8.f;
+		// title card, one card per scene, credits, then the box-office card
+		const float Length = 8.f + 6.f * FMath::Max(1, G->GetCompletedTakeCount()) + 6.f + 8.f;
 		if (PremiereTimer > Length)
 		{
 			G->ShootPhase = EFTShootPhase::Results;
@@ -1507,6 +1574,9 @@ void AFTSceneManager::ResetShoot()
 	G->PremiereStartTime = 0.f;
 	G->FailReason = FText::GetEmpty();
 	G->ScriptBookUser = nullptr;
+	G->LastRelease = FFTReleaseReport();
+	bReleaseRecorded = false;
+	G->NotifyCareerChanged();
 	G->bStagePower = true;
 	G->NotifyPowerChanged();
 	if (G->FloodStage != EFTFloodStage::Dry)

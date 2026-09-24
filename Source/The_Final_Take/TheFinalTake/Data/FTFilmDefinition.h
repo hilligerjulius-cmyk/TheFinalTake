@@ -30,6 +30,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Look") FLinearColor PosterPrimary = FLinearColor::Blue;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Look") FLinearColor PosterSecondary = FLinearColor::White;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Look") FText PosterTagline;
+	/** Soundstage the film is shot on ("Stage4", "Stage5", "Stage6"); stage-tagged actors belong to it. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Career") FName StageId = TEXT("Stage4");
+	/** Door / sign name of that stage, e.g. "STAGE 4". */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Career") FText StageLabel;
+	/** Genre appeal applied to the release audience (bigger spectacles draw more people). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Career") float AudienceMultiplier = 1.f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Scenes") TArray<FFTSceneDefinition> Scenes;
 
 	virtual FPrimaryAssetId GetPrimaryAssetId() const override { return FPrimaryAssetId(TEXT("FTFilm"), FilmId); }
