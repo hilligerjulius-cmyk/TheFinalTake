@@ -18,7 +18,9 @@ enum class EFTShape : uint8
 	Torus,		// rings, reels, life buoy
 	Capsule,	// limbs, bodies
 	Plane,		// flat 1m quad
-	WaterGrid	// subdivided plane for waves
+	WaterGrid,	// subdivided plane for waves
+	Shoreline,	// continuous sculpted sand apron (visual only)
+	CrewTorso	// tailored rounded jacket silhouette (visual only)
 };
 
 UENUM(BlueprintType)

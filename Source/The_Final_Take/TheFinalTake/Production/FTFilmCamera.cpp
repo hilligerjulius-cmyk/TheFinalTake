@@ -60,13 +60,28 @@ AFTFilmCamera::AFTFilmCamera()
 	TiltHead->SetupAttachment(PanHead);
 	TiltHead->SetRelativeLocation(FVector(0.f, 0.f, 22.f));
 
-	FTVis::MakePart(this, TiltHead, TEXT("Body"), EFTShape::Box, FVector(0.f, 0.f, 0.f), FVector(56.f, 30.f, 34.f), Teal);
+	UStaticMeshComponent* CameraBody = FTVis::MakePart(this, TiltHead, TEXT("Body"), EFTShape::Box, FVector(0.f, 0.f, 0.f), FVector(56.f, 30.f, 34.f), Teal);
+	CameraBody->SetDefaultCustomPrimitiveDataFloat(5, 0.5f);
 	FTVis::MakePart(this, TiltHead, TEXT("BodyStripe"), EFTShape::Box, FVector(0.f, 0.f, -12.f), FVector(58.f, 32.f, 6.f), TealDark);
 	FTVis::MakePart(this, TiltHead, TEXT("Badge"), EFTShape::Box, FVector(10.f, 15.5f, 4.f), FVector(12.f, 2.f, 8.f), Coral);
 	FTVis::MakePart(this, TiltHead, TEXT("LensBarrel"), EFTShape::Cylinder, FVector(40.f, 0.f, 0.f), FVector(22.f, 22.f, 28.f), Charcoal, FRotator(-90.f, 0.f, 0.f));
-	FTVis::MakePart(this, TiltHead, TEXT("LensRing"), EFTShape::Cylinder, FVector(50.f, 0.f, 0.f), FVector(25.f, 25.f, 5.f), GreyDark, FRotator(-90.f, 0.f, 0.f));
-	FTVis::MakePart(this, TiltHead, TEXT("LensGlass"), EFTShape::Cylinder, FVector(55.f, 0.f, 0.f), FVector(16.f, 16.f, 2.f), Cyan, FRotator(-90.f, 0.f, 0.f), 1.5f);
-	FTVis::MakePart(this, TiltHead, TEXT("MatteBox"), EFTShape::Box, FVector(62.f, 0.f, 0.f), FVector(8.f, 38.f, 30.f), Charcoal);
+	UStaticMeshComponent* LensRing = FTVis::MakePart(this, TiltHead, TEXT("LensRing"), EFTShape::Cylinder, FVector(50.f, 0.f, 0.f), FVector(25.f, 25.f, 5.f), GreyDark, FRotator(-90.f, 0.f, 0.f));
+	LensRing->SetDefaultCustomPrimitiveDataFloat(5, 0.8f);
+	UStaticMeshComponent* LensGlass = FTVis::MakePart(this, TiltHead, TEXT("LensGlass"), EFTShape::Cylinder, FVector(55.f, 0.f, 0.f), FVector(16.f, 16.f, 2.f), Cyan, FRotator(-90.f, 0.f, 0.f), 0.2f);
+	LensGlass->SetDefaultCustomPrimitiveDataFloat(5, 1.f);
+	// Open matte-box frame keeps the glass visible instead of covering the lens with a solid block.
+	FTVis::MakePart(this, TiltHead, TEXT("MatteBox"), EFTShape::Box, FVector(62.f, 0.f, 15.f), FVector(12.f, 38.f, 4.f), Charcoal);
+	FTVis::MakePart(this, TiltHead, TEXT("MatteBoxBottom"), EFTShape::Box, FVector(62.f, 0.f, -15.f), FVector(12.f, 38.f, 4.f), Charcoal);
+	FTVis::MakePart(this, TiltHead, TEXT("MatteBoxLeft"), EFTShape::Box, FVector(62.f, -17.f, 0.f), FVector(12.f, 4.f, 28.f), Charcoal);
+	FTVis::MakePart(this, TiltHead, TEXT("MatteBoxRight"), EFTShape::Box, FVector(62.f, 17.f, 0.f), FVector(12.f, 4.f, 28.f), Charcoal);
+	FTVis::MakePart(this, TiltHead, TEXT("FrenchFlag"), EFTShape::Box, FVector(65.f, 0.f, 19.f), FVector(24.f, 43.f, 2.f), GreyDark, FRotator(12.f, 0.f, 0.f));
+	FTVis::MakePart(this, TiltHead, TEXT("FocusWheel"), EFTShape::Cylinder, FVector(31.f, 20.f, -5.f), FVector(13.f, 13.f, 7.f), Cream, FRotator(0.f, 0.f, 90.f));
+	FTVis::MakePart(this, TiltHead, TEXT("FocusKnob"), EFTShape::Cylinder, FVector(31.f, 25.f, -5.f), FVector(6.f, 6.f, 4.f), Coral, FRotator(0.f, 0.f, 90.f));
+	for (int32 Vent = 0; Vent < 5; ++Vent)
+	{
+		FTVis::MakePart(this, TiltHead, *FString::Printf(TEXT("BodyVent%d"), Vent), EFTShape::Box,
+			FVector(-18.f + Vent * 5.f, -15.5f, 4.f), FVector(2.f, 1.5f, 12.f), TealDark);
+	}
 	ReelA = FTVis::MakePart(this, TiltHead, TEXT("ReelA"), EFTShape::Cylinder, FVector(-8.f, 0.f, 34.f), FVector(34.f, 34.f, 8.f), Charcoal, FRotator(0.f, 0.f, 90.f));
 	ReelB = FTVis::MakePart(this, TiltHead, TEXT("ReelB"), EFTShape::Cylinder, FVector(-34.f, 0.f, 30.f), FVector(30.f, 30.f, 8.f), Charcoal, FRotator(0.f, 0.f, 90.f));
 	FTVis::MakePart(this, ReelA, TEXT("ReelAHub"), EFTShape::Cylinder, FVector(0.f, 0.f, 0.f), FVector(60.f, 60.f, 140.f), Grey);
@@ -95,17 +110,17 @@ AFTFilmCamera::AFTFilmCamera()
 		PP.bOverride_DepthOfFieldSensorWidth = true;
 		PP.DepthOfFieldSensorWidth = 36.f;
 		PP.bOverride_VignetteIntensity = true;
-		PP.VignetteIntensity = 0.7f;
+		PP.VignetteIntensity = 0.32f;
 		PP.bOverride_FilmGrainIntensity = true;
-		PP.FilmGrainIntensity = 0.2f;
+		PP.FilmGrainIntensity = 0.06f;
 		PP.bOverride_SceneFringeIntensity = true;
-		PP.SceneFringeIntensity = 0.8f;
+		PP.SceneFringeIntensity = 0.15f;
 		PP.bOverride_BloomIntensity = true;
-		PP.BloomIntensity = 0.9f;
+		PP.BloomIntensity = 0.35f;
 		PP.bOverride_ColorSaturation = true;
-		PP.ColorSaturation = FVector4(1.15f, 1.15f, 1.15f, 1.f);
+		PP.ColorSaturation = FVector4(1.04f, 1.04f, 1.04f, 1.f);
 		PP.bOverride_ColorContrast = true;
-		PP.ColorContrast = FVector4(1.12f, 1.12f, 1.12f, 1.f);
+		PP.ColorContrast = FVector4(1.04f, 1.04f, 1.04f, 1.f);
 		PP.bOverride_ColorGainHighlights = true;
 		PP.ColorGainHighlights = FVector4(1.06f, 1.f, 0.9f, 1.f);
 		PP.bOverride_ColorGainShadows = true;

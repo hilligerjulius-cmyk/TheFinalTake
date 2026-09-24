@@ -56,15 +56,15 @@ AFTStudioShell::AFTStudioShell()
 	static const EFTShape Shapes[NumGroups] = {
 		EFTShape::Cube, EFTShape::Cube, EFTShape::Box, EFTShape::Box, EFTShape::Cylinder, EFTShape::Cylinder,
 		EFTShape::Sphere, EFTShape::Ball, EFTShape::Cone, EFTShape::Prism, EFTShape::Ramp, EFTShape::Torus,
-		EFTShape::Capsule, EFTShape::Cube, EFTShape::Cube };
-	static const bool Solid[NumGroups] = { true, false, true, false, true, false, false, false, false, false, true, false, false, true, true };
+		EFTShape::Capsule, EFTShape::Cube, EFTShape::Cube, EFTShape::Shoreline };
+	static const bool Solid[NumGroups] = { true, false, true, false, true, false, false, false, false, false, true, false, false, true, true, false };
 	for (int32 g = 0; g < NumGroups; ++g)
 	{
 		UInstancedStaticMeshComponent* I = CreateDefaultSubobject<UInstancedStaticMeshComponent>(*FString::Printf(TEXT("Group%02d"), g));
 		I->SetupAttachment(Root);
 		I->SetStaticMesh(FTVis::GetMesh(Shapes[g]));
 		I->SetMobility(EComponentMobility::Static);
-		I->NumCustomDataFloats = 4;
+		I->NumCustomDataFloats = 5;
 		if (Solid[g])
 		{
 			I->SetCollisionProfileName(UCollisionProfile::BlockAll_ProfileName);
@@ -135,7 +135,7 @@ void AFTStudioShell::ClearAll()
 	{
 		UInstancedStaticMeshComponent* I = Groups[g];
 		I->ClearInstances();
-		I->NumCustomDataFloats = 4;
+		I->NumCustomDataFloats = 5;
 		I->SetMaterial(0, g == GlassSolid ? FTVis::Translucent() : IsmMaterial());
 		FTVis::Paint(I, g == GlassSolid ? Glass : FLinearColor::White, 0.f, true, 0.f, g == GlassSolid ? Glass.A : 1.f);
 	}
@@ -158,11 +158,11 @@ void AFTStudioShell::ClearAll()
 	LightZone.SetNumZeroed(Points.Num() + Spots.Num());
 }
 
-int32 AFTStudioShell::Add(int32 Group, const FVector& Center, const FVector& Size, const FLinearColor& Color, float Emissive, const FRotator& Rot)
+int32 AFTStudioShell::Add(int32 Group, const FVector& Center, const FVector& Size, const FLinearColor& Color, float Emissive, const FRotator& Rot, float Gloss)
 {
 	UInstancedStaticMeshComponent* I = Groups[Group];
 	const int32 Index = I->AddInstance(FTransform(Rot, Center, Size / 100.f), false);
-	I->SetCustomData(Index, { Color.R, Color.G, Color.B, Emissive }, false);
+	I->SetCustomData(Index, { Color.R, Color.G, Color.B, Emissive, Gloss }, false);
 	return Index;
 }
 
@@ -197,6 +197,8 @@ void AFTStudioShell::Point(const FVector& Loc, const FLinearColor& Color, float 
 	P->SetLightColor(Color);
 	P->SetIntensity(Intensity);
 	P->SetAttenuationRadius(Radius);
+	P->SetSourceRadius(32.f);
+	P->SetSoftSourceRadius(48.f);
 	P->SetCastShadows(bShadows);
 	P->SetVisibility(true);
 	LightBase[Slot] = Intensity;
@@ -215,6 +217,7 @@ void AFTStudioShell::Spot(const FVector& Loc, const FRotator& Rot, const FLinear
 	S->SetLightColor(Color);
 	S->SetIntensity(Intensity);
 	S->SetAttenuationRadius(Radius);
+	S->SetSourceRadius(18.f);
 	S->SetOuterConeAngle(ConeAngle);
 	S->SetInnerConeAngle(ConeAngle * 0.7f);
 	S->SetVisibility(true);
@@ -285,9 +288,19 @@ void AFTStudioShell::Poster(const FVector& Loc, float Yaw, int32 Film, float Sca
 
 void AFTStudioShell::Plant(const FVector& Loc, float Scale)
 {
-	Add(CylDeco, Loc + FVector(0.f, 0.f, 25.f * Scale), FVector(50.f, 50.f, 50.f) * Scale, Terracotta);
-	Add(BallDeco, Loc + FVector(0.f, 0.f, 80.f * Scale), FVector(70.f, 70.f, 80.f) * Scale, Green);
-	Add(BallDeco, Loc + FVector(10.f, -12.f, 120.f * Scale), FVector(46.f, 46.f, 56.f) * Scale, GreenDark);
+	Add(CylDeco, Loc + FVector(0.f, 0.f, 25.f * Scale), FVector(50.f, 50.f, 50.f) * Scale, Terracotta, 0.f, FRotator::ZeroRotator, 0.3f);
+	Add(TorusDeco, Loc + FVector(0.f, 0.f, 48.f * Scale), FVector(55.f, 55.f, 10.f) * Scale, CreamDark);
+	Add(CylDeco, Loc + FVector(0.f, 0.f, 47.f * Scale), FVector(43.f, 43.f, 4.f) * Scale, WoodDark);
+	// Broad, individually posed leaves: a studio prop with a readable silhouette.
+	for (int32 i = 0; i < 7; ++i)
+	{
+		const float Angle = i * 137.5f;
+		const FRotator R(22.f + (i % 3) * 12.f, Angle, 0.f);
+		const FVector Offset = FRotator(0.f, Angle, 0.f).RotateVector(FVector(20.f, 0.f, 73.f + (i % 3) * 16.f));
+		Add(BallDeco, Loc + Offset * Scale, FVector(63.f, 22.f, 11.f) * Scale, i % 2 ? Green : TealDark, 0.f, R);
+		Add(CapsuleDeco, Loc + FVector(Offset.X * 0.4f, Offset.Y * 0.4f, 62.f + (i % 3) * 8.f) * Scale,
+			FVector(5.f, 5.f, 45.f) * Scale, GreenDark, 0.f, FRotator(15.f, Angle, 0.f));
+	}
 }
 
 void AFTStudioShell::Crate(const FVector& Loc, float Size, float Yaw)
@@ -295,14 +308,40 @@ void AFTStudioShell::Crate(const FVector& Loc, float Size, float Yaw)
 	const FRotator R(0.f, Yaw, 0.f);
 	Add(BoxSolid, Loc + FVector(0.f, 0.f, Size * 0.5f), FVector(Size), Wood, 0.f, R);
 	Add(CubeDeco, Loc + FVector(0.f, 0.f, Size * 0.5f), FVector(Size * 1.02f, Size * 1.02f, Size * 0.14f), WoodDark, 0.f, R);
+	for (float Side : { -1.f, 1.f })
+	{
+		for (float Edge : { -0.36f, 0.36f })
+		{
+			Add(BoxDeco, Loc + R.RotateVector(FVector(Side * Size * 0.51f, Edge * Size, Size * 0.5f)),
+				FVector(Size * 0.055f, Size * 0.12f, Size * 0.92f), CreamDark, 0.f, R);
+		}
+		Add(BoxDeco, Loc + R.RotateVector(FVector(Side * Size * 0.54f, 0.f, Size * 0.7f)),
+			FVector(2.f, Size * 0.28f, Size * 0.1f), WoodDark, 0.f, R);
+	}
 }
 
 void AFTStudioShell::FlightCase(const FVector& Loc, const FVector& Size, float Yaw)
 {
 	const FRotator R(0.f, Yaw, 0.f);
 	Add(BoxSolid, Loc + FVector(0.f, 0.f, Size.Z * 0.5f), Size, Charcoal, 0.f, R);
-	Add(CubeDeco, Loc + FVector(0.f, 0.f, Size.Z * 0.5f), FVector(Size.X * 1.03f, Size.Y * 1.03f, 6.f), Grey, 0.f, R);
-	Add(CubeDeco, Loc + FVector(0.f, 0.f, Size.Z - 2.f), FVector(Size.X * 1.03f, Size.Y * 1.03f, 4.f), Grey, 0.f, R);
+	Add(CubeDeco, Loc + FVector(0.f, 0.f, Size.Z * 0.5f), FVector(Size.X * 1.03f, Size.Y * 1.03f, 6.f), Grey, 0.f, R, 0.75f);
+	Add(CubeDeco, Loc + FVector(0.f, 0.f, Size.Z - 2.f), FVector(Size.X * 1.03f, Size.Y * 1.03f, 4.f), Grey, 0.f, R, 0.75f);
+	auto Detail = [&](FVector P, FVector Extent, FLinearColor Color)
+	{
+		Add(BoxDeco, Loc + R.RotateVector(P), Extent, Color, 0.f, R, Color == Grey || Color == CreamDark ? 0.7f : 0.12f);
+	};
+	for (float X : { -1.f, 1.f })
+	{
+		for (float Y : { -1.f, 1.f })
+		{
+			Detail(FVector(X * Size.X * 0.47f, Y * Size.Y * 0.47f, Size.Z * 0.5f), FVector(7.f, 7.f, Size.Z * 0.9f), Grey);
+			Detail(FVector(X * Size.X * 0.46f, Y * Size.Y * 0.46f, 6.f), FVector(15.f, 15.f, 12.f), GreyDark);
+		}
+		Detail(FVector(X * Size.X * 0.28f, -Size.Y * 0.515f, Size.Z * 0.58f), FVector(12.f, 4.f, 20.f), CreamDark);
+		Detail(FVector(X * Size.X * 0.28f, -Size.Y * 0.54f, Size.Z * 0.59f), FVector(5.f, 3.f, 9.f), Charcoal);
+	}
+	Detail(FVector(0.f, -Size.Y * 0.52f, Size.Z * 0.28f), FVector(Size.X * 0.32f, 3.f, Size.Z * 0.18f), Teal);
+	Detail(FVector(0.f, -Size.Y * 0.55f, Size.Z * 0.8f), FVector(28.f, 6.f, 7.f), GreyDark);
 }
 
 void AFTStudioShell::Cone(const FVector& Loc)
@@ -324,9 +363,16 @@ void AFTStudioShell::Palm(const FVector& Loc, float Height)
 	for (int32 i = 0; i < 6; ++i)
 	{
 		const float Yaw = i * 60.f;
-		Add(PrismDeco, Top + FRotator(0.f, Yaw, 0.f).RotateVector(FVector(60.f, 0.f, -8.f)), FVector(6.f, 50.f, 130.f), i % 2 ? Green : GreenDark, 0.f, FRotator(-70.f, Yaw, 0.f));
+		const FRotator Around(0.f, Yaw, 0.f);
+		const FLinearColor Leaf = i % 2 ? Green : TealDark;
+		Add(BallDeco, Top + Around.RotateVector(FVector(49.f, 0.f, 10.f)), FVector(115.f, 38.f, 12.f), Leaf, 0.f, FRotator(10.f, Yaw, 0.f));
+		Add(BallDeco, Top + Around.RotateVector(FVector(111.f, 0.f, -3.f)), FVector(65.f, 26.f, 8.f), Leaf, 0.f, FRotator(-27.f, Yaw, 0.f));
+		Add(CapsuleDeco, Top + Around.RotateVector(FVector(50.f, 0.f, 15.f)), FVector(3.f, 3.f, 96.f), GreenDark, 0.f, FRotator(-80.f, Yaw, 0.f));
 	}
-	Add(BallDeco, Top, FVector(34.f), WoodDark);
+	for (int32 Nut = 0; Nut < 3; ++Nut)
+	{
+		Add(SphereDeco, Top + FRotator(0.f, Nut * 120.f, 0.f).RotateVector(FVector(13.f, 0.f, -12.f)), FVector(25.f, 25.f, 31.f), Wood);
+	}
 }
 
 void AFTStudioShell::Truss(float Y, float Z)
@@ -556,9 +602,9 @@ void AFTStudioShell::BuildLobby()
 	Arrow(FVector(-1650.f, 320.f, 2.2f), FVector(-1230.f, 880.f, 2.2f), Coral, 4);
 	Arrow(FVector(-1450.f, 0.f, 3.f), FVector(-760.f, 0.f, 3.f), Yellow, 4);
 	// lights
-	Point(FVector(-1450.f, -450.f, 480.f), FLinearColor(1.f, 0.8f, 0.55f), 7000.f, 1300.f, ZLobby, true);
-	Point(FVector(-950.f, 450.f, 480.f), FLinearColor(1.f, 0.8f, 0.55f), 7000.f, 1300.f, ZLobby);
-	Point(FVector(-700.f, 0.f, 380.f), FLinearColor(1.f, 0.7f, 0.35f), 5000.f, 700.f, ZLobby);
+	Point(FVector(-1450.f, -450.f, 480.f), FLinearColor(1.f, 0.91f, 0.77f), 7400.f, 1300.f, ZLobby, true);
+	Point(FVector(-950.f, 450.f, 480.f), FLinearColor(0.69f, 0.88f, 1.f), 6400.f, 1300.f, ZLobby);
+	Point(FVector(-700.f, 0.f, 380.f), FLinearColor(1.f, 0.86f, 0.65f), 3600.f, 700.f, ZLobby);
 	for (const FVector& L : { FVector(-1450.f, -450.f, 540.f), FVector(-950.f, 450.f, 540.f), FVector(-1450.f, 450.f, 540.f), FVector(-950.f, -450.f, 540.f) })
 	{
 		Add(CylDeco, L + FVector(0.f, 0.f, 10.f), FVector(4.f, 4.f, 30.f), Charcoal);
@@ -619,7 +665,7 @@ void AFTStudioShell::BuildOffice()
 	Poster(FVector(-1775.f, 1200.f, 250.f), 0.f, 2, 0.9f);
 	Add(BoxDeco, FVector(-620.f, 1500.f, 225.f), FVector(30.f, 640.f, 20.f), Cream);
 	Add(BoxDeco, FVector(-620.f, 1500.f, 355.f), FVector(30.f, 640.f, 20.f), Cream);
-	Point(FVector(-1200.f, 1500.f, 400.f), FLinearColor(1.f, 0.82f, 0.6f), 6000.f, 1100.f, ZLobby, true);
+	Point(FVector(-1200.f, 1500.f, 400.f), FLinearColor(0.8f, 0.91f, 1.f), 6000.f, 1100.f, ZLobby, true);
 }
 
 void AFTStudioShell::BuildWardrobe()
@@ -633,6 +679,11 @@ void AFTStudioShell::BuildWardrobe()
 	// makeup mirror with bulbs
 	Add(BoxDeco, FVector(-1150.f, -1570.f, 100.f), FVector(260.f, 30.f, 80.f), Cream);
 	Add(CubeDeco, FVector(-1150.f, -1570.f, 200.f), FVector(200.f, 6.f, 110.f), SkyBlue, 0.3f);
+	for (float X : { -1254.f, -1046.f })
+	{
+		Add(BoxDeco, FVector(X, -1564.f, 202.f), FVector(8.f, 12.f, 124.f), Cream, 0.f, FRotator::ZeroRotator, 0.3f);
+	}
+	Add(BoxDeco, FVector(-1150.f, -1564.f, 142.f), FVector(216.f, 12.f, 8.f), Cream, 0.f, FRotator::ZeroRotator, 0.3f);
 	for (int32 i = 0; i < 6; ++i)
 	{
 		Add(SphereDeco, FVector(-1240.f + i * 36.f, -1562.f, 262.f), FVector(12.f), Cream, 10.f);
@@ -643,9 +694,14 @@ void AFTStudioShell::BuildWardrobe()
 	{
 		Add(BoxSolid, FVector(-900.f + i * 60.f, -1560.f, 100.f), FVector(56.f, 60.f, 200.f), i % 2 ? Teal : Coral);
 		Add(CubeDeco, FVector(-900.f + i * 60.f, -1529.f, 150.f), FVector(20.f, 2.f, 4.f), Charcoal);
+		Add(BoxDeco, FVector(-917.f + i * 60.f, -1527.f, 93.f), FVector(5.f, 5.f, 18.f), CreamDark, 0.f, FRotator::ZeroRotator, 0.6f);
+		for (int32 Vent = 0; Vent < 3; ++Vent)
+		{
+			Add(CubeDeco, FVector(-900.f + i * 60.f, -1529.f, 163.f + Vent * 7.f), FVector(23.f, 2.f, 2.f), TealDark);
+		}
 	}
 	Add(BoxSolid, FVector(-1400.f, -1150.f, 25.f), FVector(240.f, 60.f, 50.f), Wood);
-	Point(FVector(-1300.f, -1250.f, 400.f), FLinearColor(1.f, 0.8f, 0.6f), 6000.f, 1100.f, ZLobby, true);
+	Point(FVector(-1300.f, -1250.f, 400.f), FLinearColor(1.f, 0.92f, 0.84f), 6000.f, 1100.f, ZLobby, true);
 	Plant(FVector(-700.f, -1100.f, 0.f), 0.9f);
 }
 
@@ -812,10 +868,12 @@ void AFTStudioShell::BuildTankSet()
 	Wall(FVector(1860.f, -870.f, -120.f), FVector(2260.f, 30.f, -10.f), Sand);
 	Add(RampSolid, FVector(1800.f, -420.f, -65.f), FVector(900.f, 120.f, 110.f), Sand, 0.f, FRotator(0.f, 90.f, 0.f));
 	Add(BallDeco, FVector(1990.f, 40.f, -30.f), FVector(160.f, 120.f, 60.f), Sand);
+	// A single authored surface blends into the existing ramp; no new collision or navigation.
+	Add(ShorelineDeco, FVector(1840.f, -420.f, -9.5f), FVector(100.f, 900.f, 100.f), Sand);
 	Add(BoxSolid, FVector(2180.f, -800.f, 20.f), FVector(110.f, 90.f, 70.f), Hex(0x8E8AA3), 0.f, FRotator(0.f, 20.f, 8.f));
-	Add(BoxDeco, FVector(2230.f, -200.f, 10.f), FVector(90.f, 110.f, 90.f), Hex(0xA29B8B), 0.f, FRotator(10.f, 35.f, 0.f));
-	Add(BoxDeco, FVector(1920.f, -650.f, -2.f), FVector(60.f, 60.f, 30.f), Hex(0xA29B8B), 0.f, FRotator(0.f, 50.f, 12.f));
-	Add(BoxDeco, FVector(1560.f, 600.f, -46.f), FVector(80.f, 70.f, 40.f), Hex(0x8E8AA3), 0.f, FRotator(8.f, 20.f, 0.f));
+	Add(SphereDeco, FVector(2230.f, -200.f, 10.f), FVector(90.f, 110.f, 90.f), Hex(0xA29B8B), 0.f, FRotator(10.f, 35.f, 0.f));
+	Add(SphereDeco, FVector(1920.f, -650.f, -2.f), FVector(60.f, 60.f, 30.f), Hex(0xA29B8B), 0.f, FRotator(0.f, 50.f, 12.f));
+	Add(SphereDeco, FVector(1560.f, 600.f, -46.f), FVector(80.f, 70.f, 40.f), Hex(0x8E8AA3), 0.f, FRotator(8.f, 20.f, 0.f));
 	Palm(FVector(2200.f, -40.f, -10.f), 300.f);
 	Palm(FVector(2120.f, -560.f, -10.f), 240.f);
 	Add(CubeDeco, FVector(1960.f, -300.f, -9.3f), FVector(160.f, 90.f, 1.f), Coral);
@@ -902,6 +960,13 @@ void AFTStudioShell::BuildUpperLevel()
 			const FVector Seat(-300.f - r * 150.f, -1450.f + s * 120.f, 420.f);
 			Add(BoxSolid, Seat + FVector(0.f, 0.f, 25.f), FVector(70.f, 90.f, 50.f), Carpet);
 			Add(BoxDeco, Seat + FVector(-38.f, 0.f, 70.f), FVector(16.f, 90.f, 70.f), CoralDark);
+			Add(BoxDeco, Seat + FVector(0.f, 0.f, 52.f), FVector(65.f, 76.f, 12.f), Coral);
+			Add(BoxDeco, Seat + FVector(-27.f, 0.f, 80.f), FVector(12.f, 74.f, 42.f), Carpet);
+			for (float Side : { -1.f, 1.f })
+			{
+				Add(BoxDeco, Seat + FVector(0.f, Side * 45.f, 61.f), FVector(72.f, 10.f, 10.f), Navy);
+				Add(TorusDeco, Seat + FVector(23.f, Side * 45.f, 67.f), FVector(10.f, 10.f, 3.f), Brass, 0.f, FRotator::ZeroRotator, 0.6f);
+			}
 		}
 	}
 	Point(FVector(-200.f, -1250.f, 680.f), FLinearColor(1.f, 0.78f, 0.5f), 4000.f, 900.f, ZProjection);
@@ -921,7 +986,34 @@ void AFTStudioShell::BuildWarehouse()
 		for (int32 s = 0; s < 3; ++s)
 		{
 			Add(BoxDeco, FVector(X, 1910.f, -40.f + s * 110.f), FVector(210.f, 30.f, 8.f), Wood);
-			Add(BoxDeco, FVector(X - 50.f + s * 40.f, 1905.f, -10.f + s * 110.f), FVector(50.f, 40.f, 50.f), s == 1 ? Teal : Cream);
+			const FVector Prop(X - 50.f + s * 40.f, 1888.f, -10.f + s * 110.f);
+			switch ((u + s) % 3)
+			{
+			case 0: // compact lens case with latches
+				Add(BoxDeco, Prop, FVector(66.f, 44.f, 44.f), TealDark);
+				Add(BoxDeco, Prop + FVector(0.f, 0.f, 9.f), FVector(68.f, 46.f, 4.f), Grey, 0.f, FRotator::ZeroRotator, 0.7f);
+				for (float Side : { -1.f, 1.f })
+				{
+					Add(BoxDeco, Prop + FVector(Side * 21.f, -24.f, 9.f), FVector(8.f, 4.f, 13.f), CreamDark, 0.f, FRotator::ZeroRotator, 0.7f);
+				}
+				break;
+			case 1: // film can and reel on a small stand
+				Add(BoxDeco, Prop + FVector(0.f, 0.f, -20.f), FVector(64.f, 40.f, 7.f), Navy);
+				Add(TorusDeco, Prop + FVector(0.f, -5.f, 7.f), FVector(55.f, 55.f, 12.f), CreamDark, 0.f, FRotator(0.f, 0.f, 90.f), 0.7f);
+				Add(CylDeco, Prop + FVector(0.f, -5.f, 7.f), FVector(13.f, 13.f, 16.f), Teal, 0.f, FRotator(0.f, 0.f, 90.f), 0.4f);
+				for (int32 Spoke = 0; Spoke < 3; ++Spoke)
+				{
+					Add(BoxDeco, Prop + FVector(0.f, -5.f, 7.f), FVector(43.f, 5.f, 5.f), Grey, 0.f, FRotator(Spoke * 60.f, 0.f, 0.f), 0.65f);
+				}
+				break;
+			default: // folded sound blankets and a coiled cable
+				for (int32 Fold = 0; Fold < 3; ++Fold)
+				{
+					Add(BoxDeco, Prop + FVector(Fold * 2.f, 0.f, -17.f + Fold * 9.f), FVector(65.f, 45.f, 10.f), Fold % 2 ? Coral : NavyLight);
+				}
+				Add(TorusDeco, Prop + FVector(0.f, 0.f, 11.f), FVector(34.f, 28.f, 7.f), Charcoal);
+				break;
+			}
 		}
 	}
 	Crate(FVector(1450.f, 1500.f, -120.f), 90.f, 10.f);

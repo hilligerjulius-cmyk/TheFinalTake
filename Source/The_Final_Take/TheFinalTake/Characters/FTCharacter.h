@@ -108,6 +108,8 @@ protected:
 	UPROPERTY(VisibleAnywhere) TObjectPtr<UStaticMeshComponent> FPCuffR;
 	UPROPERTY(VisibleAnywhere) TObjectPtr<UStaticMeshComponent> FPHandL;
 	UPROPERTY(VisibleAnywhere) TObjectPtr<UStaticMeshComponent> FPHandR;
+	UPROPERTY(VisibleAnywhere) TObjectPtr<UStaticMeshComponent> FPThumbL;
+	UPROPERTY(VisibleAnywhere) TObjectPtr<UStaticMeshComponent> FPThumbR;
 	UPROPERTY(VisibleAnywhere) TObjectPtr<USceneComponent> CarryAnchor;
 
 	UPROPERTY(VisibleAnywhere) TObjectPtr<USceneComponent> BodyRoot;

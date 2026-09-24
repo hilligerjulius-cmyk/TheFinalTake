@@ -111,7 +111,7 @@ namespace
 		}
 	}
 
-	void BuildIcosphere(FShapeBuilder& B, int32 Subdiv)
+	void BuildIcosphere(FShapeBuilder& B, int32 Subdiv, bool bSmooth = false)
 	{
 		const float T = (1.f + FMath::Sqrt(5.f)) * 0.5f;
 		TArray<FVector3f> Vs = {
@@ -152,10 +152,18 @@ namespace
 		{
 			B.Tri(Vs[Fc.X] * 50.f, Vs[Fc.Y] * 50.f, Vs[Fc.Z] * 50.f, FVector3f::ZeroVector);
 		}
+		if (bSmooth)
+		{
+			// Preserve silhouette and collision geometry; give sculpted faces, rubber and padded forms soft highlights.
+			for (int32 i = 0; i < B.P.Num(); ++i)
+			{
+				B.N[i] = B.P[i].GetSafeNormal();
+			}
+		}
 	}
 
 	/** Lathe around Z from a (radius, z) profile listed bottom to top. */
-	void BuildLathe(FShapeBuilder& B, const TArray<FVector2f>& Profile, int32 Sides)
+	void BuildLathe(FShapeBuilder& B, const TArray<FVector2f>& Profile, int32 Sides, bool bSmooth = false)
 	{
 		for (int32 i = 0; i + 1 < Profile.Num(); ++i)
 		{
@@ -163,6 +171,7 @@ namespace
 			const FVector3f Inside(0.f, 0.f, (P0.Y + P1.Y) * 0.5f);
 			for (int32 s = 0; s < Sides; ++s)
 			{
+				const int32 FirstVertex = B.P.Num();
 				const float A0 = 2.f * PI * s / Sides, A1 = 2.f * PI * (s + 1) / Sides;
 				const FVector3f Q0(FMath::Cos(A0) * P0.X, FMath::Sin(A0) * P0.X, P0.Y);
 				const FVector3f Q1(FMath::Cos(A1) * P0.X, FMath::Sin(A1) * P0.X, P0.Y);
@@ -179,6 +188,17 @@ namespace
 				else if (P1.X > 0.01f)
 				{
 					B.Tri(Q0, Q2, Q3, Inside);
+				}
+				if (bSmooth)
+				{
+					for (int32 k = FirstVertex; k < B.P.Num(); ++k)
+					{
+						const FVector3f& Point = B.P[k];
+						const int32 Ring = FMath::IsNearlyEqual(Point.Z, P0.Y) ? i : i + 1;
+						const FVector2f Tangent = Profile[FMath::Min(Ring + 1, Profile.Num() - 1)] - Profile[FMath::Max(Ring - 1, 0)];
+						const float Radius = FMath::Max(FMath::Sqrt(Point.X * Point.X + Point.Y * Point.Y), 0.001f);
+						B.N[k] = FVector3f(Point.X * Tangent.Y / Radius, Point.Y * Tangent.Y / Radius, -Tangent.X).GetSafeNormal();
+					}
 				}
 			}
 		}
@@ -273,6 +293,27 @@ namespace
 	bool AssetExists(const FString& PackagePath)
 	{
 		return FPackageName::DoesPackageExist(PackagePath);
+	}
+
+	void BuildShoreline(FShapeBuilder& B)
+	{
+		// One continuous apron, matching the existing ramp slope and ending below tank water.
+		auto Point = [](float U, float Y)
+		{
+			const float Wave = 4.f * FMath::Sin(Y * 0.13f) + 2.f * FMath::Sin(Y * 0.31f);
+			const float X = -50.f + 100.f * U + Wave * (1.f - U);
+			const float Z = FMath::Min(0.f, (X - 20.f) * (110.f / 120.f) + 2.f * FMath::Sin(Y * 0.18f) * (1.f - U));
+			return V(X, Y, Z);
+		};
+		for (int32 Row = 0; Row < 20; ++Row)
+		{
+			const float Y0 = -50.f + Row * 5.f, Y1 = Y0 + 5.f;
+			for (int32 Column = 0; Column < 6; ++Column)
+			{
+				const float U0 = Column / 6.f, U1 = (Column + 1) / 6.f;
+				B.Quad(Point(U0, Y0), Point(U1, Y0), Point(U1, Y1), Point(U0, Y1), V(0.f, 0.f, -200.f));
+			}
+		}
 	}
 
 	bool MakeMesh(const FString& Name, const TFunction<void(FShapeBuilder&)>& Fill, bool bForce)
@@ -463,10 +504,11 @@ int32 UFTContentCommandlet::Main(const FString& Params)
 #if WITH_EDITOR
 	const bool bForce = Params.Contains(TEXT("-force"));
 	int32 Failed = 0;
-	auto M = [&](const TCHAR* Name, TFunction<void(FShapeBuilder&)> F) { Failed += MakeMesh(Name, F, bForce) ? 0 : 1; };
+	const bool bForceMeshes = bForce || Params.Contains(TEXT("-meshes"));
+	auto M = [&](const TCHAR* Name, TFunction<void(FShapeBuilder&)> F) { Failed += MakeMesh(Name, F, bForceMeshes) ? 0 : 1; };
 	M(TEXT("SM_FT_Box"), [](FShapeBuilder& B) { BuildBox(B, 7.f); });
 	M(TEXT("SM_FT_Sphere"), [](FShapeBuilder& B) { BuildIcosphere(B, 1); });
-	M(TEXT("SM_FT_Ball"), [](FShapeBuilder& B) { BuildIcosphere(B, 2); });
+	M(TEXT("SM_FT_Ball"), [](FShapeBuilder& B) { BuildIcosphere(B, 2, true); });
 	M(TEXT("SM_FT_Cylinder"), [](FShapeBuilder& B) { BuildCylinder(B, 10); });
 	M(TEXT("SM_FT_Cone"), [](FShapeBuilder& B) { BuildCone(B, 10); });
 	M(TEXT("SM_FT_Prism"), [](FShapeBuilder& B) { BuildPrism(B, false); });
@@ -474,6 +516,12 @@ int32 UFTContentCommandlet::Main(const FString& Params)
 	M(TEXT("SM_FT_Torus"), [](FShapeBuilder& B) { BuildTorus(B, 14, 7); });
 	M(TEXT("SM_FT_Capsule"), [](FShapeBuilder& B) { BuildCapsule(B, 10); });
 	M(TEXT("SM_FT_WaterGrid"), [](FShapeBuilder& B) { BuildGrid(B, 40); });
+	M(TEXT("SM_FT_Shoreline"), [](FShapeBuilder& B) { BuildShoreline(B); });
+	M(TEXT("SM_FT_CrewTorso"), [](FShapeBuilder& B)
+	{
+		BuildLathe(B, { FVector2f(0.f, -50.f), FVector2f(36.f, -50.f), FVector2f(43.f, -38.f),
+			FVector2f(48.f, -10.f), FVector2f(50.f, 20.f), FVector2f(43.f, 39.f), FVector2f(28.f, 50.f), FVector2f(0.f, 50.f) }, 16, true);
+	});
 	ImportAudio(bForce);
 	Failed += MakeTextMaterial(bForce) ? 0 : 1;
 	EnsureMaterialUsage();

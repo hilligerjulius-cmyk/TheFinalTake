@@ -31,13 +31,13 @@ public:
 	enum EGroup : int32
 	{
 		CubeSolid, CubeDeco, BoxSolid, BoxDeco, CylSolid, CylDeco, SphereDeco, BallDeco, ConeDeco,
-		PrismDeco, RampSolid, TorusDeco, CapsuleDeco, GlassSolid, Blocker, NumGroups
+		PrismDeco, RampSolid, TorusDeco, CapsuleDeco, GlassSolid, Blocker, ShorelineDeco, NumGroups
 	};
 
 protected:
 	void Build();
 	void ClearAll();
-	int32 Add(int32 Group, const FVector& Center, const FVector& Size, const FLinearColor& Color, float Emissive = 0.f, const FRotator& Rot = FRotator::ZeroRotator);
+	int32 Add(int32 Group, const FVector& Center, const FVector& Size, const FLinearColor& Color, float Emissive = 0.f, const FRotator& Rot = FRotator::ZeroRotator, float Gloss = 0.f);
 	void Text(const FString& S, const FVector& Loc, float Yaw, float Size, const FColor& Color, float Pitch = 0.f);
 	void Point(const FVector& Loc, const FLinearColor& Color, float Intensity, float Radius, int32 Zone, bool bShadows = false);
 	void Spot(const FVector& Loc, const FRotator& Rot, const FLinearColor& Color, float Intensity, float Radius, float Cone, int32 Zone);

@@ -140,16 +140,16 @@ bool FTBuildStudioMap()
 		S.bOverride_AutoExposureBias = true;
 		S.AutoExposureBias = 0.f;
 		S.bOverride_BloomIntensity = true;
-		S.BloomIntensity = 0.45f;
+		S.BloomIntensity = 0.25f;
 		S.bOverride_VignetteIntensity = true;
-		S.VignetteIntensity = 0.28f;
+		S.VignetteIntensity = 0.16f;
 		S.bOverride_ColorSaturation = true;
-		S.ColorSaturation = FVector4(1.12f, 1.12f, 1.12f, 1.f);
+		S.ColorSaturation = FVector4(1.04f, 1.04f, 1.04f, 1.f);
 		S.bOverride_SceneFringeIntensity = true;
 		S.SceneFringeIntensity = 0.f;
 		if (UMaterialInterface* Outline = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/TheFinalTake/Materials/PP_FT_Outline.PP_FT_Outline")))
 		{
-			S.WeightedBlendables.Array.Add(FWeightedBlendable(1.f, Outline));
+			S.WeightedBlendables.Array.Add(FWeightedBlendable(0.35f, Outline));
 		}
 	});
 

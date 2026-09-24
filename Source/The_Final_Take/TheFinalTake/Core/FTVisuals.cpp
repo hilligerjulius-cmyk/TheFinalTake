@@ -93,6 +93,8 @@ namespace
 		case EFTShape::Capsule: return { TEXT("/Game/TheFinalTake/Meshes/SM_FT_Capsule.SM_FT_Capsule"), TEXT("/Engine/BasicShapes/Sphere.Sphere") };
 		case EFTShape::Plane: return { nullptr, TEXT("/Engine/BasicShapes/Plane.Plane") };
 		case EFTShape::WaterGrid: return { TEXT("/Game/TheFinalTake/Meshes/SM_FT_WaterGrid.SM_FT_WaterGrid"), TEXT("/Engine/BasicShapes/Plane.Plane") };
+		case EFTShape::Shoreline: return { TEXT("/Game/TheFinalTake/Meshes/SM_FT_Shoreline.SM_FT_Shoreline"), TEXT("/Engine/BasicShapes/Plane.Plane") };
+		case EFTShape::CrewTorso: return { TEXT("/Game/TheFinalTake/Meshes/SM_FT_CrewTorso.SM_FT_CrewTorso"), TEXT("/Engine/BasicShapes/Cube.Cube") };
 		}
 		return { nullptr, TEXT("/Engine/BasicShapes/Cube.Cube") };
 	}

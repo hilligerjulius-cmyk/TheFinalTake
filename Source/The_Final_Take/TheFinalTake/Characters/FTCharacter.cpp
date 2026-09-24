@@ -111,12 +111,26 @@ void AFTCharacter::BuildBody()
 		P->bVisibleInReflectionCaptures = false;
 		return P;
 	};
-	FPSleeveL = FP(TEXT("FPSleeveL"), FPArmPivotL, EFTShape::Capsule, FVector(14.f, 0.f, 0.f), Sz(12.f, 12.f, 40.f), L.Sleeve, FRotator(-90.f, 0.f, 0.f));
-	FPSleeveR = FP(TEXT("FPSleeveR"), FPArmPivotR, EFTShape::Capsule, FVector(14.f, 0.f, 0.f), Sz(12.f, 12.f, 40.f), L.Sleeve, FRotator(-90.f, 0.f, 0.f));
-	FPCuffL = FP(TEXT("FPCuffL"), FPArmPivotL, EFTShape::Cylinder, FVector(31.f, 0.f, 0.f), Sz(14.f, 14.f, 5.f), Cream, FRotator(-90.f, 0.f, 0.f));
-	FPCuffR = FP(TEXT("FPCuffR"), FPArmPivotR, EFTShape::Cylinder, FVector(31.f, 0.f, 0.f), Sz(14.f, 14.f, 5.f), Cream, FRotator(-90.f, 0.f, 0.f));
-	FPHandL = FP(TEXT("FPHandL"), FPArmPivotL, EFTShape::Sphere, FVector(39.f, 0.f, 0.f), Sz(15.f, 14.f, 13.f), L.Glove, FRotator::ZeroRotator);
-	FPHandR = FP(TEXT("FPHandR"), FPArmPivotR, EFTShape::Sphere, FVector(39.f, 0.f, 0.f), Sz(15.f, 14.f, 13.f), L.Glove, FRotator::ZeroRotator);
+	FPSleeveL = FP(TEXT("FPSleeveL"), FPArmPivotL, EFTShape::Capsule, FVector(14.f, 0.f, 0.f), Sz(18.f, 18.f, 40.f), L.Sleeve, FRotator(-90.f, 0.f, 0.f));
+	FPSleeveR = FP(TEXT("FPSleeveR"), FPArmPivotR, EFTShape::Capsule, FVector(14.f, 0.f, 0.f), Sz(18.f, 18.f, 40.f), L.Sleeve, FRotator(-90.f, 0.f, 0.f));
+	FPCuffL = FP(TEXT("FPCuffL"), FPArmPivotL, EFTShape::Cylinder, FVector(31.f, 0.f, 0.f), Sz(11.f, 11.f, 4.f), Cream, FRotator(-90.f, 0.f, 0.f));
+	FPCuffR = FP(TEXT("FPCuffR"), FPArmPivotR, EFTShape::Cylinder, FVector(31.f, 0.f, 0.f), Sz(11.f, 11.f, 4.f), Cream, FRotator(-90.f, 0.f, 0.f));
+	FPHandL = FP(TEXT("FPHandL"), FPArmPivotL, EFTShape::Ball, FVector(39.f, 0.f, 0.f), Sz(17.f, 12.f, 10.f), L.Glove, FRotator::ZeroRotator);
+	FPHandR = FP(TEXT("FPHandR"), FPArmPivotR, EFTShape::Ball, FVector(39.f, 0.f, 0.f), Sz(17.f, 12.f, 10.f), L.Glove, FRotator::ZeroRotator);
+	FPThumbL = FP(TEXT("FPThumbL"), FPArmPivotL, EFTShape::Ball, FVector(36.f, 5.f, -2.f), Sz(10.f, 6.f, 6.f), L.Glove, FRotator(0.f, 32.f, 0.f));
+	FPThumbR = FP(TEXT("FPThumbR"), FPArmPivotR, EFTShape::Ball, FVector(36.f, -5.f, -2.f), Sz(10.f, 6.f, 6.f), L.Glove, FRotator(0.f, -32.f, 0.f));
+	// Sewn knuckle pads and finger breaks, kept below the centre of the first-person view.
+	for (int32 Side = 0; Side < 2; ++Side)
+	{
+		USceneComponent* Pivot = Side == 0 ? FPArmPivotL.Get() : FPArmPivotR.Get();
+		FP(*FString::Printf(TEXT("FPKnucklePad%d"), Side), Pivot, EFTShape::Box,
+			FVector(39.f, 0.f, 4.3f), Sz(8.f, 8.f, 1.2f), CreamDark, FRotator::ZeroRotator);
+		for (int32 Finger = 0; Finger < 3; ++Finger)
+		{
+			FP(*FString::Printf(TEXT("FPFingerSeam%d_%d"), Side, Finger), Pivot, EFTShape::Box,
+				FVector(44.f, -2.6f + Finger * 2.6f, 2.5f), Sz(3.5f, 0.35f, 0.5f), WoodDark, FRotator::ZeroRotator);
+		}
+	}
 
 	// ---------------------------------------------------------------- third-person body
 	BodyRoot = CreateDefaultSubobject<USceneComponent>(TEXT("BodyRoot"));
@@ -157,21 +171,40 @@ void AFTCharacter::BuildBody()
 	};
 
 	Pelvis = B(TEXT("Pelvis"), Hips, EFTShape::Box, FVector(0.f, 0.f, 2.f), Sz(28.f, 34.f, 16.f), L.Pants);
-	LegL = B(TEXT("LegL"), HipL, EFTShape::Capsule, FVector(0.f, 0.f, -21.f), Sz(15.f, 15.f, 44.f), L.Pants, FRotator::ZeroRotator, true);
-	LegR = B(TEXT("LegR"), HipR, EFTShape::Capsule, FVector(0.f, 0.f, -21.f), Sz(15.f, 15.f, 44.f), L.Pants, FRotator::ZeroRotator, true);
+	LegL = B(TEXT("LegL"), HipL, EFTShape::Capsule, FVector(0.f, 0.f, -21.f), Sz(25.f, 25.f, 44.f), L.Pants, FRotator::ZeroRotator, true);
+	LegR = B(TEXT("LegR"), HipR, EFTShape::Capsule, FVector(0.f, 0.f, -21.f), Sz(25.f, 25.f, 44.f), L.Pants, FRotator::ZeroRotator, true);
 	CuffL = B(TEXT("CuffL"), HipL, EFTShape::Cylinder, FVector(0.f, 0.f, -33.f), Sz(18.f, 18.f, 7.f), L.Pants, FRotator::ZeroRotator, true);
 	CuffR = B(TEXT("CuffR"), HipR, EFTShape::Cylinder, FVector(0.f, 0.f, -33.f), Sz(18.f, 18.f, 7.f), L.Pants, FRotator::ZeroRotator, true);
 	ShoeL = B(TEXT("ShoeL"), HipL, EFTShape::Box, FVector(4.f, 0.f, -40.f), Sz(25.f, 15.f, 11.f), L.Shoe, FRotator::ZeroRotator, true);
 	ShoeR = B(TEXT("ShoeR"), HipR, EFTShape::Box, FVector(4.f, 0.f, -40.f), Sz(25.f, 15.f, 11.f), L.Shoe, FRotator::ZeroRotator, true);
 
-	Torso = B(TEXT("Torso"), Chest, EFTShape::Box, FVector(0.f, 0.f, 22.f), Sz(30.f, 40.f, 44.f), L.Shirt);
+	Torso = B(TEXT("Torso"), Chest, EFTShape::CrewTorso, FVector(0.f, 0.f, 22.f), Sz(32.f, 46.f, 44.f), L.Shirt);
 	Belt = B(TEXT("Belt"), Chest, EFTShape::Box, FVector(0.f, 0.f, 2.f), Sz(32.f, 42.f, 6.f), Charcoal);
 	Walkie = B(TEXT("Walkie"), Chest, EFTShape::Box, FVector(4.f, 22.f, 5.f), Sz(6.f, 5.f, 12.f), Charcoal);
 	Collar = B(TEXT("Collar"), Chest, EFTShape::Box, FVector(1.f, 0.f, 43.f), Sz(26.f, 30.f, 5.f), Cream);
 	Bib = B(TEXT("Bib"), Chest, EFTShape::Box, FVector(15.5f, 0.f, 18.f), Sz(3.f, 26.f, 26.f), L.Bib);
+	B(TEXT("CrewBeltBuckle"), Chest, EFTShape::Box, FVector(17.f, 0.f, 2.f), Sz(3.f, 9.f, 6.f), CreamDark);
+	B(TEXT("CrewRadioAntenna"), Chest, EFTShape::Capsule, FVector(3.f, 22.f, 16.f), Sz(2.f, 2.f, 14.f), Charcoal);
+	B(TEXT("CrewRadioScreen"), Chest, EFTShape::Box, FVector(7.2f, 22.f, 7.f), Sz(1.f, 3.5f, 4.f), TealLight);
+	B(TEXT("CrewPocket"), Chest, EFTShape::Box, FVector(16.f, -11.f, 27.f), Sz(4.f, 12.f, 14.f), TealDark);
+	B(TEXT("CrewPocketFlap"), Chest, EFTShape::Box, FVector(18.f, -11.f, 32.f), Sz(2.f, 13.f, 4.f), CreamDark);
+	B(TEXT("CrewPencil"), Chest, EFTShape::Cylinder, FVector(18.f, -14.f, 37.f), Sz(2.f, 2.f, 11.f), Yellow);
+	B(TEXT("CrewBadge"), Chest, EFTShape::Box, FVector(16.f, 10.f, 34.f), Sz(2.f, 11.f, 7.f), Cream);
+	B(TEXT("CrewBadgeStripe"), Chest, EFTShape::Box, FVector(17.2f, 10.f, 35.f), Sz(0.8f, 8.f, 2.f), Coral);
+	for (int32 Side = 0; Side < 2; ++Side)
+	{
+		USceneComponent* Hip = Side == 0 ? HipL.Get() : HipR.Get();
+		B(*FString::Printf(TEXT("CrewSole%d"), Side), Hip, EFTShape::Box,
+			FVector(4.f, 0.f, -44.f), Sz(26.f, 16.f, 3.f), CreamDark, FRotator::ZeroRotator, true);
+		for (int32 Lace = 0; Lace < 3; ++Lace)
+		{
+			B(*FString::Printf(TEXT("CrewLace%d_%d"), Side, Lace), Hip, EFTShape::Box,
+				FVector(2.f + Lace * 4.f, 0.f, -34.5f), Sz(2.f, 11.f, 1.5f), Cream, FRotator::ZeroRotator, true);
+		}
+	}
 
-	ArmL = B(TEXT("ArmL"), ShoulderL, EFTShape::Capsule, FVector(0.f, 0.f, -17.f), Sz(13.f, 13.f, 40.f), L.Sleeve);
-	ArmR = B(TEXT("ArmR"), ShoulderR, EFTShape::Capsule, FVector(0.f, 0.f, -17.f), Sz(13.f, 13.f, 40.f), L.Sleeve);
+	ArmL = B(TEXT("ArmL"), ShoulderL, EFTShape::Capsule, FVector(0.f, 0.f, -17.f), Sz(23.f, 23.f, 40.f), L.Sleeve);
+	ArmR = B(TEXT("ArmR"), ShoulderR, EFTShape::Capsule, FVector(0.f, 0.f, -17.f), Sz(23.f, 23.f, 40.f), L.Sleeve);
 	HandL = B(TEXT("HandL"), ShoulderL, EFTShape::Sphere, FVector(0.f, 0.f, -39.f), Sz(16.f, 15.f, 16.f), L.Glove);
 	HandR = B(TEXT("HandR"), ShoulderR, EFTShape::Sphere, FVector(0.f, 0.f, -39.f), Sz(16.f, 15.f, 16.f), L.Glove);
 
@@ -401,6 +434,8 @@ void AFTCharacter::ApplyLook()
 	FTVis::Paint(FPCuffR, Cuff);
 	FTVis::Paint(FPHandL, Glove);
 	FTVis::Paint(FPHandR, Glove);
+	FTVis::Paint(FPThumbL, Glove);
+	FTVis::Paint(FPThumbR, Glove);
 
 	FTVis::Paint(Marker, GetCrewColor(), 2.5f);
 	SetCostumePartsVisible();
