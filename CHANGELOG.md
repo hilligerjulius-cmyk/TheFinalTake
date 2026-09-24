@@ -1,5 +1,17 @@
 # Änderungsprotokoll
 
+## 2026-09-24 – Blender-Asset-Bibliothek (PEAK-Stil)
+- **Neue Ersatz-Meshes:** 296 handmodellierte Meshes für Studio, Stadt, Grand Cinema, Dream Cars, Fahrzeuge, Shop-Artikel und Schriftzüge.
+  - Pro Asset eine FBX unter `Content/TheFinalTake/Meshes/…`.
+  - Quellen, Previews und `.blend` liegen unter `SourceArt/Blender/`, die Pipeline unter `Tools/blender/`.
+- **Maßprüfung gegen den Code:**
+  - Die Shell-Geometrie wird aus den Original-`Build*()`-Funktionen gelesen.
+  - Die Actor-Konstruktoren werden per `Tools/blender/layout/cppactor.py` nachgespielt.
+  - Ergebnis: 219 von 233 geprüften Meshes „ok“, 13 „close“, 1 „check“; 63 ohne Code-Gegenstück (Fahrzeuge, Schriftzüge, neue Dealership-Teile). Details in `SourceArt/Blender/fit_report.md`.
+- **Noch nicht eingebaut:** kein C++ geändert, keine Gameplay-Änderung. Einbau-Rezept und Zuordnung stehen in `BLENDER_ASSETS.md` und `SourceArt/Blender/ASSET_MAPPING.md`. Der Unreal-Import-Helfer `Tools/unreal/ft_blender_import.py` ist ungetestet.
+- **Code-Befund:** Vier Schildtafeln sind um 90° gegen ihren Schriftzug verdreht angelegt (`FTCity.cpp:302, 328`, `FTStudioShell.cpp:585, 977`). Sie sind nicht geändert, nur dokumentiert.
+- **Übersicht:** `SourceArt/Blender/Previews/Overview/` zeigt Code-Layout und neue Meshes nebeneinander.
+
 ## 2026-09-24 – Fixes nach dem ersten Spieltest
 - **Absturz behoben:** Wurde das Drehbuch nach einer Garbage Collection erneut geöffnet, las es freigegebene Filmdaten. Das Widget hält die Filme jetzt fest, und der Testlauf prüft genau diesen Fall.
 - **Ruckler behoben:**

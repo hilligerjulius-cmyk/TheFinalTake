@@ -1,0 +1,187 @@
+# Blender-Asset-Bibliothek (PEAK-Stil)
+
+Stand 24.09.2026 · Branch `claude/happy-mendel-cyq16k`
+
+## Kurzfassung
+
+- **296 handmodellierte Meshes** ersetzen die bisher im C++ aus Grundkörpern gebauten Objekte:
+  - das Studio mit Fassade, Straße, Lobby, Büro, Garderobe, Stage 4 (Tank, Insel, Steg, Kulisse), Projektionsraum und Lager, samt Möbeln, Stationen, Props und Bodenmarkierungen der Lieferzonen;
+  - die Stadt mit Boulevard, Blocks, Gebäuden und dem Grand Cinema (Foyer, Saal mit Tribüne und 240 Sitzen, Leinwand, Marquee);
+  - die Dream-Cars-Dealership mit Verkaufskiosk und Ausstellungsfläche;
+  - die vier Fahrzeuge aus `FTEconomy.cpp`;
+  - die 21 Shop-Artikel sowie optionale 3D-Schriftzüge.
+- **Stil:** chunky low-poly mit kleinen Fasen, gesättigter FT-Palette und vielen kleinen Details (Nieten, Nähte, Beschläge, Kabel, Fugen) statt nackter Primitive.
+- **Export:** jedes Asset einzeln als FBX unter `Content/TheFinalTake/Meshes/<Bereich>/…`, im Unreal-Maßstab (1 Einheit = 1 cm), mit Pivot am Einbaupunkt.
+- **Maßstab und Silhouette** werden automatisch gegen die Code-Geometrie geprüft (219 von 233 geprüften Meshes „ok“, 13 „close“, 1 „check“; 63 ohne Code-Gegenstück (Fahrzeuge, Schriftzüge, neue Dealership-Teile)). Details stehen in [`SourceArt/Blender/fit_report.md`](SourceArt/Blender/fit_report.md).
+- **Zuordnung:** Welches Modell welches Code-Objekt ersetzt, steht in [`SourceArt/Blender/ASSET_MAPPING.md`](SourceArt/Blender/ASSET_MAPPING.md). Die Tabelle wird aus dem Manifest erzeugt.
+- **Keine Gameplay- oder C++-Änderung.** Die Meshes liegen bereit, sind aber noch **nicht in die Actors eingebaut**. Siehe [Einbau](#einbau-empfehlung-nicht-umgesetzt).
+
+## Wie die Assets entstanden sind
+
+- **Blender-MCP (`blender-mcp`)** war in dieser Cloud-Sitzung nicht verfügbar. Auch `unreal-mcp` war nicht erreichbar (Verbindung abgelehnt).
+- Stattdessen lief Blender 4.2 als Python-Modul (`bpy`) per Skript. Jede Form ist Code in `Tools/blender/assets/*.py` und damit reproduzierbar und versionierbar.
+- Dieselben Skripte laufen auch in einer Blender-Instanz mit blender-mcp oder im GUI (`blender --python Tools/blender/build_all.py`). Die fertigen Szenen liegen zusätzlich als `.blend` pro Bereich unter `SourceArt/Blender/`.
+- **Geprüft wurde:**
+  - FBX-Reimport jedes Assets in Blender (Bounds, Dreiecke, Material-Slots);
+  - Cycles-Vorschaubilder;
+  - automatischer Maßvergleich mit dem C++.
+- **Nicht geprüft:** Import, Materialwirkung, Beleuchtung und Performance in Unreal. Es gab keine Unreal-Sitzung.
+
+## Aufruf
+
+```bash
+pip install bpy==4.2.0                                   # Python 3.11; alternativ: blender -b --python ... -- <args>
+python3 Tools/blender/build_all.py                       # alles: FBX, Previews, Kontaktbögen, .blend, Manifest, Fit-Report
+python3 Tools/blender/build_all.py --only Vehicles       # Teilmenge (Name/Ordner, Wildcards erlaubt), Manifest wird ergänzt
+python3 Tools/blender/build_all.py --fit-only            # nur Maßprüfung + Platzierungen neu rechnen (ohne Rendern/Export)
+python3 Tools/blender/build_all.py --blend-only          # nur die .blend-Dateien pro Bereich neu schreiben
+python3 Tools/blender/render_overview.py                 # Übersichtsbilder: Code-Blockout neben den Blender-Assets
+python3 Tools/blender/write_mapping.py                   # SourceArt/Blender/ASSET_MAPPING.md aus dem Manifest
+python3 Tools/blender/layout/extract_layout.py           # Shell-Layout neu aus dem C++ lesen (braucht g++)
+python3 Tools/blender/layout/cppactor.py AFTStageLight   # Komponentenbaum eines Actors aus dem C++ anzeigen
+python3 Tools/blender/layout/cppactor.py --spawns        # alle Actor-Instanzen aus FTMapBuilder.cpp
+```
+
+Ein kompletter Build dauert auf 4 Kernen rund 10 Minuten, der Großteil davon sind die Cycles-Previews. Die Übersichtsbilder brauchen weitere rund 7 Minuten.
+
+## Ordnerstruktur
+
+| Pfad | Inhalt |
+|---|---|
+| `Content/TheFinalTake/Meshes/Shared/{Props,Posters,Street,Nature,Decals}` | Mehrfach genutzte Props (Pflanze, Kiste, Flightcases, Kegel, Poster, Laterne, Palme, Felsen, Bodenpfeile) |
+| `Content/TheFinalTake/Meshes/Studio/{Exterior,Lobby,Office,Wardrobe,Stage4,TankSet,Projection,Warehouse}` | Studio-Gebäude: Hüllen, Decken, Möbel, Einbauten |
+| `Content/TheFinalTake/Meshes/Studio/{Stations,Props,Doors,Decals}` | Actor-Meshes (Stationen, Requisiten, Türen) inkl. beweglicher Unterteile, Bodenmarkierungen der Delivery-Bays |
+| `Content/TheFinalTake/Meshes/Studio/ShopItems/{Accessories,Props,Effects,SharkKits,SetPieces}` | die 21 Studio-Supply-Artikel |
+| `Content/TheFinalTake/Meshes/City/{Boulevard,Buildings,GrandCinema}` | Stadt, Gebäude, Grand Cinema |
+| `Content/TheFinalTake/Meshes/{Studio,City}/Signs` | optionale 3D-Schriftzüge für die statischen TextRender-Schilder |
+| `Content/TheFinalTake/Meshes/Dealership`, `…/Vehicles` | Dream Cars, Fahrzeuge (Karosserie + Räder getrennt) |
+| `SourceArt/Blender/asset_manifest.json` | maschinenlesbar: Pfade, Ersetzt, Pivot, Platzierungen, Sockets, Bounds, Tris, Fit, Einbau |
+| `SourceArt/Blender/ASSET_MAPPING.md`, `fit_report.md` | Zuordnungstabelle, Maßprüfung |
+| `SourceArt/Blender/Previews/` | ein Bild pro Asset, Kontaktbögen `Sheet_*.png`, Übersichten `Overview/*.png` (Code-Blockout links, Blender-Assets rechts) |
+| `SourceArt/Blender/*.blend` | Blender-Szenen pro Bereich |
+| `SourceArt/Blender/layout/shell_layout.json` | alle Primitive der Studio-/Stadt-Hülle mit Datei:Zeile |
+| `Tools/blender/` | Pipeline: `build_all.py`, `ftb/` (Kern, Palette, Export, Render, Layout), `assets/` (Modelle), `layout/` (C++-Auswertung), `fonts/` (OFL-Schriften) |
+| `Tools/unreal/ft_blender_import.py` | Import-Helfer für den Unreal-Editor (**ungetestet**) |
+
+## Konventionen
+
+- **Einheiten und Achsen:**
+  - Modelliert wird direkt im Unreal-Raum: cm, X vorne, Y rechts, Z oben.
+  - Der FBX-Export konvertiert nach Blender/FBX. Beim Import in Unreal gelten: Uniform Scale 1, *Convert Scene* an, *Force Front X Axis* aus.
+- **Pivots:**
+  - **Architektur** ist weltausgerichtet um einen festen Pivot modelliert und wird ohne Rotation platziert.
+  - **Möbel und Props** haben den Pivot in der Bodenmitte.
+  - **Actor-Meshes** haben den Pivot im Ursprung der ersetzten Komponente, mit denselben Achsen.
+  - **Mehrfach-Props** (Pflanze, Kiste, Palme, Felsen …) sind in einer Referenzgröße modelliert. Die Skalierung entspricht dem Code-Aufruf, z. B. `Crate(Size)` → `Size/100`.
+  - Jede Platzierung steht im Manifest.
+- **Polycount:** Median 1223 Dreiecke pro Mesh, 90 % unter 4404, Maximum 17164 (`SM_City_Bld_HotelContinental`), zusammen 629 496. Kleine Props bleiben meist unter 1 500 Dreiecken und eignen sich damit für Instancing und ISM.
+- **Shading:**
+  - Weiche Fasen statt Texturen. Kanten über 50° sind hart, dazu kommen Weighted Normals.
+  - Leichte Handarbeits-Unregelmäßigkeit und etwas Ambient Occlusion in den Vertex-Farben.
+  - Keine Texturen, keine UV-Kanäle; Lightmap-UVs beim Import erzeugen lassen.
+
+### Materialien und Vertex-Farben
+
+Alle Farben sind Vertex-Farben (`Col`, sRGB). Die Material-Slots tragen feste Namen:
+
+| Slot | Verwendung | Vertex-Farbe |
+|---|---|---|
+| `M_FT_Vertex` | alles Opake | RGB = Farbe, **A = Rauheit** |
+| `M_FT_VertexGlow` | Leuchtteile (Birnen, Neon, Displays, Linsen) | RGB = Farbe, **A = √(Emissive/20)** → Emissive = RGB·20·A² (gleiche Skala wie der Emissive-Wert im Code) |
+| `M_FT_VertexGlass` | Glas | RGB = Tönung, Opazität 0,35 im Material |
+| `M_FT_CarBody` / `M_FT_CarTrim` | Fahrzeuglack / Zierfarbe | Standardfarben aus `FTEconomy.cpp` (Body/Trim). Das Material hat einen Farbparameter zum Umlackieren. |
+
+- Diese Materialien existieren in Unreal noch nicht. `Tools/unreal/ft_blender_import.py` legt sie per `create_materials()` an (**ungetestet**).
+- Das Skript linearisiert die sRGB-Vertex-Farben mit dem Parameter `VertexColourGamma` = 2,2. Wirken die Farben zu dunkel, den Wert auf 1,0 setzen.
+- Vom Code eingefärbte oder zur Laufzeit leuchtende Teile bleiben Code-Teile, weil der Code sie per Custom Primitive Data umschaltet. Beispiele: Kippschalter- und Farbkappen am Lichtpult, Statuslampen, Pegelanzeigen, der Schalter-Leuchtpunkt an den Effektgeräten, Linsenglühen am Projektor.
+- Im Manifest steht bei jedem Asset unter `integration` bzw. `hookup`, welche Teile beim Code bleiben.
+
+## Maßstab- und Silhouettentreue
+
+Die Modelle wurden nicht nach Augenmaß, sondern gegen die tatsächliche Code-Geometrie gebaut und geprüft:
+
+1. **Studio- und Stadt-Hülle** (`FTStudioShell.cpp`, `FTCity.cpp`):
+   - `extract_layout.py` kompiliert die Original-`Build*()`-Funktionen mit kleinen Stubs (`layout/ue_stubs.h`).
+   - Dabei wird jedes `Add()`/`Text()`/`Light` mit Datei, Zeile und Helfer-Kontext (`Plant`, `Crate`, `Building` …) protokolliert.
+   - Ergebnis: `shell_layout.json` mit rund 2 800 Einträgen. Daraus kommen Platzierungen, Pivots und die Liste der ersetzten Primitive.
+2. **Actors** (Stationen, Props, Türen, Kino-Actors):
+   - `layout/cppactor.py` ist ein kleiner Interpreter für das C++-Subset der Konstruktoren.
+   - Er spielt Konstruktor und `OnConstruction` (wo nötig auch `BeginPlay`) mit den Instanz-Einstellungen aus `FTMapBuilder.cpp` nach, etwa `StandHeight`, `AimPitch`, `RailHalfLength`, `TrackLength` oder `Effect`.
+   - Daraus entstehen der Komponentenbaum, die Bounds pro Mesh und die **Weltplatzierungen auch der beweglichen Unterteile** in ihrer Ruhepose: Scheinwerferköpfe, Hebel, Rollen, Hai, 36 Marquee-Birnen, 240 Kinositze.
+3. **Shop-Artikel:** Die Teilelisten kommen direkt aus `UFTEconomyConfig` (`FTEconomy.cpp`).
+4. **Vollständigkeit:**
+   - Jedes der 2 686 sichtbaren Primitive der Studio- und Stadt-Hülle ist genau einem Mesh zugeordnet. Keins fehlt, keins ist doppelt; das ist per Skript geprüft.
+   - Bei den Actors bleiben nur die Teile beim Code, die der Code zur Laufzeit einfärbt, leuchten lässt oder ersetzt:
+     - Tür-Keylamps, Pinnwand-Pins, das Kassen-Display im Supply-Shop;
+     - Linsenglas, Aufnahmelampe und Monitorbild der Filmkamera;
+     - Power-Lampe und Farbkappen am Lichtpult, Status-Lampen, Lampen und Pegel am Tonpult;
+     - die Rig-Knöpfe 0/1/2/4 und die Kit-Lampe am Hai-Rig;
+     - die Leinwand selbst (`Sheet`), Linsenglühen und Power-Lampe am Projektor, die Suchscheinwerfer-Kegel.
+
+**Übersichtsbilder** (`SourceArt/Blender/Previews/Overview/`): Studio-Grundriss, Stage 4, Studio-Straße, Stadt-Grundriss, Boulevard, Dealership und Kinosaal. Links steht jeweils das heutige Code-Layout (Hülle plus nachgespielte Actor-Bauteile, grau), rechts die neuen Meshes an ihren Manifest-Platzierungen.
+
+- **Prüfmaß:** Bounding-Box-Abweichung zu den ersetzten Code-Teilen. Runde Formen werden analytisch gemessen (Ellipsoid, Zylinder, Kapsel, Torus), die Assets exakt über ihre Vertices.
+- **Status:**
+  - ok: ≤ 10 cm oder ≤ 8 % der Ausdehnung;
+  - close: ≤ 20 %;
+  - check: mehr als 20 %.
+- **Ergebnis:** 219 von 233 geprüften Meshes „ok“, 13 „close“, 1 „check“; 63 ohne Code-Gegenstück (Fahrzeuge, Schriftzüge, neue Dealership-Teile). Jede nicht-„ok“-Zeile trägt im Fit-Report eine Begründung, zum Beispiel:
+  - Kinositz mit Standfuß bis zur Stufe (im Code schweben die Sitzboxen 36 cm darüber);
+  - Stützbeine der Hai-Schiene bis zum Tankboden;
+  - Palmen und Felsen organisch statt Kugelstapel;
+  - Schwanenhalslampe am Lichtpult.
+- **Fahrzeuge:** Es gibt keine Code-Geometrie. Maße, Sitzzahl, Stil und Farben folgen `FTEconomy.cpp`:
+
+| Fahrzeug (`FTEconomy.cpp`) | Karosserie-Mesh | Außenmaß L×B×H (cm, inkl. Spiegel) | Sitze (Sockets) | Räder |
+|---|---|---|---|---|
+| Studio Van (`Car.StudioVan`, Van, Cream/Teal) | `SM_Veh_StudioVan_Body` | 532×258×273 | 4 (Seat_0, Seat_1, Seat_2, Seat_3) | `SM_Veh_StudioVan_Wheel` |
+| Checker Cab (`Car.CheckerTaxi`, Taxi, Yellow/Charcoal) | `SM_Veh_CheckerTaxi_Body` | 524×234×160 | 4 (Seat_0, Seat_1, Seat_2, Seat_3) | `SM_Veh_CheckerTaxi_Wheel` |
+| Coral Muscle Car (`Car.MuscleCar`, Muscle, Coral/Cream) | `SM_Veh_MuscleCar_Body` | 502×234×113 | 2 (Seat_0, Seat_1) | `SM_Veh_MuscleCar_WheelFront`, `SM_Veh_MuscleCar_WheelRear` |
+| Premiere Limousine (`Car.StarLimo`, Limo, Navy/Magenta) | `SM_Veh_StarLimo_Body` | 750×242×120 | 4 (Seat_0, Seat_1, Seat_2, Seat_3) | `SM_Veh_StarLimo_Wheel` |
+
+Die Karosserien haben Sockets `Wheel_FL/FR/RL/RR`, `Seat_n` und `Exhaust*`. Die Räder sind eigene Meshes mit Pivot in der Nabe, damit sie drehen können.
+
+## Befunde im bestehenden Code (nicht geändert)
+
+- **Vier Schildtafeln sind um 90° gegen ihren eigenen Schriftzug verdreht.** Der TextRender steht jeweils vor der Tafel auf der Achse, in die er zeigt, die Tafel ist aber auf der anderen Achse dünn. Der Text steht dadurch quer zur Tafel:
+
+  | Stelle | Tafel im Code | Schriftzug |
+  |---|---|---|
+  | `FTCity.cpp:302` | `FVector(20, 1200, 240)`, ragt durch die Rückwand | „DREAM CARS“, Yaw −90; Birnenreihe und Pfosten entlang X |
+  | `FTStudioShell.cpp:585` | `FVector(4, 400, 90)` | „RECEPTION“, Yaw 90 |
+  | `FTStudioShell.cpp:977` | `FVector(10, 200, 70)` | „PROJECTION ^“, Yaw 90 |
+  | `FTCity.cpp:328` | `FVector(12, 90, 90)` | „P“ (Parkplatz), Yaw 90 |
+
+  - Die Meshes folgen der erkennbar beabsichtigten Ausrichtung (`BOARD_FIXES` in `Tools/blender/ftb/layout.py`). Beim Einbau die Code-Tafel ausblenden.
+  - Die Übersichtsbilder zeigen links die Tafeln so, wie der Code sie heute baut.
+- **Hai-Schiene:** Die Länge kommt aus `RailHalfLength` (Level: 180 → 460 cm, in `OnConstruction` skaliert). Das Mesh ist für diesen Wert gebaut; bei anderen Werten Y skalieren.
+- **Hai in Ruhepose:** `OnConstruction` setzt `SharkRoot` auf `WaterHeight − 150`, also unter den Tankboden, bis der Hai auftaucht. Hai, Kiefer und Arm sind deshalb in dieser Ruhepose platziert und fahren mit `SharkRoot` mit.
+
+## Einbau (Empfehlung, nicht umgesetzt)
+
+Gameplay bleibt unverändert, wenn die neuen Meshes **nur die Optik** übernehmen und die Code-Primitive mit Kollision unsichtbar, aber vorhanden bleiben.
+
+1. **Materialien und Import:** `ftb.create_materials()` und `ftb.import_all()` aus `Tools/unreal/ft_blender_import.py` ausführen (ungetestet).
+2. **Vergleich:** `ftb.build_preview_level()` baut ein separates Level `L_BlenderAssetPreview` mit allen Meshes an ihren Platzierungen. Die Spielkarte bleibt unberührt.
+3. **Hüllen (Studio/Stadt):**
+   - Die Meshes an ihre Manifest-Platzierungen setzen, z. B. als Komponenten in `AFTStudioShell`/`AFTCityShell` oder als Actors im Map-Builder.
+   - Die ersetzten Deko-Instanzen weglassen und die Solid-/Blocker-Instanzen als unsichtbare Kollision behalten.
+   - Das braucht eine kleine C++-Änderung, die hier bewusst **nicht** gemacht wurde.
+4. **Actors:** Für jedes Mesh nennt das Manifest (`hookup`) die Zielkomponente, zum Beispiel:
+   - „auf Komponente `Lever` setzen, Skalierung 1, Rotation behalten“;
+   - „als StaticMeshComponent an `Head` hängen, Code-Teile Yoke/Body/… ausblenden“.
+   Bewegliche Teile (Hebel, Köpfe, Rollen, Hai, Kiefer, Boot, Kamera-Dolly …) sind eigene Meshes, damit die bestehende Animationslogik unverändert greift.
+5. **Mehrfach-Props und Instanzen:**
+   - Kinositze und Publikum sind als ISM-Meshes gedacht; sie ersetzen die Box-, Kapsel- und Kugel-Meshes der vorhandenen ISMs.
+   - Pflanzen, Kisten, Laternen usw. passen per Platzierung und Skalierung.
+6. **Fahrzeuge:** Karosserie plus vier Räder an den Sockets. Das Lackmaterial kann Body/Trim aus `FFTVehicleDef` übernehmen.
+7. **Schriftzüge:** Die `SM_Sign_*`-Meshes sind optional. Sie stehen genau an den TextRender-Positionen; beim Einsatz den TextRender ausblenden.
+
+## Nicht enthalten / offen
+
+- **Nicht Teil des Auftrags:** Figuren und Crew (`FTCharacter.cpp`).
+- **Bleiben Code-Effekte:** Wasserflächen, Partikel, Licht- und Projektorkegel, Zonenmarkierungen, Interaktionsvolumen.
+- **Bleiben TextRender:** Nummern und Titel der Delivery-Bays sowie die Schilder, sofern die optionalen `SM_Sign_*`-Meshes nicht genutzt werden.
+- **Dealership (Arbeitspaket 4) ist geplant, nicht final:** Drehscheiben, Kiosk, Preisaufsteller, Wimpel, Flutlicht und Tube-Man sind neue Meshes ohne Code-Gegenstück. Die Platzierungen sind Vorschläge auf den vorhandenen Stellplätzen.
+- **Fehlt noch:** LODs (Unreal-Auto-LOD oder Nanite nutzen) und Kollisions-Meshes (Kollision bleibt beim Code).
+- **Unreal-seitig ungetestet:** Import-Einstellungen, Vertex-Farb-Gamma und Materialwirkung beim ersten Import prüfen.

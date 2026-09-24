@@ -7,7 +7,7 @@ Koop-Komödie in der Ego-Perspektive für 1–4 Spieler (Unreal Engine 5.8, C++)
 2. Die Map `L_FinalTake_Studio` öffnet automatisch → **Play**.
 3. Im Titelmenü **PLAY DEMO**.
 
-Ablauf und Prüfschritte: `TEST_CHECKLIST.md`. Stand, Grenzen und Risiken: `IMPLEMENTATION_STATUS.md`.
+Ablauf und Prüfschritte: `TEST_CHECKLIST.md`. Stand, Grenzen und Risiken: `IMPLEMENTATION_STATUS.md`. Handmodellierte Ersatz-Meshes aus Blender (noch nicht eingebaut): `BLENDER_ASSETS.md`.
 
 ## Steuerung
 | Taste | Aktion |
