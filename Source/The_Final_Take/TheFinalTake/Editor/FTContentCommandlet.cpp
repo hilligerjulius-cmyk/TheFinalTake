@@ -432,7 +432,12 @@ int32 UFTContentCommandlet::Main(const FString& Params)
 	MakeFilmAsset<UFTFilm_JawsOfTheStudio>(FTTags::FilmJaws, bForce);
 	MakeFilmAsset<UFTFilm_MoonfallMotel>(FTTags::FilmMoonfall, bForce);
 	MakeFilmAsset<UFTFilm_CastleOnFire>(FTTags::FilmCastle, bForce);
-	UE_LOG(LogFinalTake, Display, TEXT("[FTContent] done, %d mesh failure(s)"), Failed);
+	if (Params.Contains(TEXT("-map")))
+	{
+		extern bool FTBuildStudioMap();
+		Failed += FTBuildStudioMap() ? 0 : 1;
+	}
+	UE_LOG(LogFinalTake, Display, TEXT("[FTContent] done, %d failure(s)"), Failed);
 	return Failed;
 #else
 	return 1;

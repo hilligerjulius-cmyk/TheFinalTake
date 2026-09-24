@@ -40,8 +40,14 @@ private:
 	AActor* FindByClassName(const FString& ClassName) const;
 	bool Teleport(const FVector& Where, float Yaw = 0.f);
 	bool Carry(const FString& ClassName, int32 ReelIndex = -1);
+	FString DescribeHands() const;
+	/** Switches a toggle-style device on (never off again): uses it only while nothing tagged DeviceTag is active. */
+	bool EnsureActive(const FString& ClassName, FName ActionId, FName DeviceTag, FName RequiredTag = NAME_None);
+	FString DescribeObjectives() const;
+	float LastToggleTime = -100.f;
 
 	TArray<FStep> Steps;
+	FString LastUseFailure;
 	int32 Current = 0;
 	float StepTime = 0.f;
 	float Delay = 3.f;

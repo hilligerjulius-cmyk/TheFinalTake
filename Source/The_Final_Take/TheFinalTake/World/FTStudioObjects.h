@@ -123,7 +123,7 @@ protected:
 	bool bAimed = false;
 };
 
-/** The studio's big cinema screen with the premiere montage (UMG in world space). */
+/** The studio's roll-up cinema screen: a slim roller during the shoot, unrolls for the premiere montage (UMG in world space). */
 UCLASS()
 class THE_FINAL_TAKE_API AFTCinemaScreen : public AFTStudioActor
 {
@@ -135,9 +135,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Screen") FVector2D ScreenSize = FVector2D(1600.f, 900.f);
 protected:
 	UPROPERTY(VisibleAnywhere) TObjectPtr<UWidgetComponent> Screen;
-	UPROPERTY(VisibleAnywhere) TObjectPtr<UStaticMeshComponent> CurtainL;
-	UPROPERTY(VisibleAnywhere) TObjectPtr<UStaticMeshComponent> CurtainR;
+	UPROPERTY(VisibleAnywhere) TObjectPtr<UStaticMeshComponent> Sheet;
+	UPROPERTY(VisibleAnywhere) TObjectPtr<UStaticMeshComponent> BottomBar;
 	UPROPERTY(VisibleAnywhere) TObjectPtr<URectLightComponent> Spill;
+	void ApplyOpen();
 	float Open = 0.f;
 };
 

@@ -55,6 +55,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Shark") float RailHalfLength = 500.f;
 	/** Water surface height relative to the actor. */
 	UPROPERTY(EditAnywhere, Category = "Shark") float WaterHeight = 70.f;
+	/** How long the defeated shark floats belly-up before it sinks back into its pit. */
+	UPROPERTY(EditAnywhere, Category = "Shark") float DefeatedDuration = 6.f;
 	/** Station placement (relative). */
 	UPROPERTY(EditAnywhere, Category = "Shark", meta = (MakeEditWidget = true)) FVector StationOffset = FVector(-300.f, -900.f, 0.f);
 	UPROPERTY(EditAnywhere, Category = "Shark") float StationYaw = 90.f;

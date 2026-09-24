@@ -5,6 +5,8 @@ public class The_Final_Take : ModuleRules
 	public The_Final_Take(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+		// Each .cpp keeps its own palette "using" directives; unity blobs would leak them into the UI files.
+		bUseUnity = false;
 
 		PublicIncludePaths.Add(ModuleDirectory);
 

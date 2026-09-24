@@ -102,8 +102,64 @@ bool AFTAutoDirector::Use(const FString& ClassName, FName ActionId, FName Requir
 			return true;
 		}
 	}
-	Log(FString::Printf(TEXT("could not use %s.%s (%s)"), *ClassName, *ActionId.ToString(), *LastReason), false);
+	const FString Failure = FString::Printf(TEXT("could not use %s.%s (%s) [%s]"), *ClassName, *ActionId.ToString(), *LastReason, *DescribeHands());
+	if (Failure != LastUseFailure)
+	{
+		LastUseFailure = Failure;
+		Log(Failure, false);
+	}
 	return false;
+}
+
+bool AFTAutoDirector::EnsureActive(const FString& ClassName, FName ActionId, FName DeviceTag, FName RequiredTag)
+{
+	for (TActorIterator<AFTStudioActor> It(GetWorld()); It; ++It)
+	{
+		if (It->ActorHasTag(DeviceTag) && It->IsDeviceActive())
+		{
+			return true;
+		}
+	}
+	// give the device a moment to report its new state before toggling again
+	const float Now = GetWorld()->GetTimeSeconds();
+	if (Now - LastToggleTime > 0.75f)
+	{
+		LastToggleTime = Now;
+		Use(ClassName, ActionId, RequiredTag);
+	}
+	return false;
+}
+
+FString AFTAutoDirector::DescribeObjectives() const
+{
+	const AFTGameState* G = GetWorld()->GetGameState<AFTGameState>();
+	const FFTSceneDefinition* Scene = G ? G->GetCurrentScene() : nullptr;
+	if (!Scene)
+	{
+		return TEXT("no scene");
+	}
+	FString Out = FString::Printf(TEXT("scene %d state %d:"), G->SceneIndex + 1, (int32)G->SceneState);
+	for (int32 i = 0; i < Scene->Objectives.Num() && i < G->Objectives.Num(); ++i)
+	{
+		Out += FString::Printf(TEXT(" %s=%d"), *Scene->Objectives[i].ObjectiveId.ToString(), (int32)G->Objectives[i].State);
+	}
+	return Out;
+}
+
+FString AFTAutoDirector::DescribeHands() const
+{
+	const AFTCharacter* C = Crew.Get();
+	if (!C)
+	{
+		return TEXT("no crew");
+	}
+	if (!C->HeldProp)
+	{
+		return FString::Printf(TEXT("hands empty, using %s"), C->UsingActor ? *C->UsingActor->GetName() : TEXT("nothing"));
+	}
+	const AActor* Parent = C->HeldProp->GetAttachParentActor();
+	return FString::Printf(TEXT("holding %s (carrier %s, attached to %s)"), *C->HeldProp->GetName(),
+		C->HeldProp->GetCarrier() ? *C->HeldProp->GetCarrier()->GetName() : TEXT("none"), Parent ? *Parent->GetName() : TEXT("none"));
 }
 
 bool AFTAutoDirector::Carry(const FString& ClassName, int32 ReelIndex)
@@ -161,6 +217,22 @@ void AFTAutoDirector::BuildSteps()
 		{
 			return false;
 		}
+		// frame the scene's required subjects like an operator would before locking off the shot
+		TArray<FVector> Points;
+		if (const FFTSceneDefinition* Scene = G->GetCurrentScene())
+		{
+			for (FName Tag : Scene->RequiredSubjects)
+			{
+				FVector Center;
+				float Radius = 0.f;
+				AActor* SubjectActor = nullptr;
+				if (AFTSceneManager::FindSubject(GetWorld(), Tag, Center, Radius, SubjectActor))
+				{
+					Points.Add(Center);
+				}
+			}
+		}
+		F->FrameTargets(Points);
 		SM()->RequestRecordToggle(F, Crew.Get());
 		const bool bRec = F->IsRecording();
 		Crew->StopUsing();
@@ -207,11 +279,17 @@ void AFTAutoDirector::BuildSteps()
 		if (Crew->HeldProp)
 		{
 			Teleport(FVector(1990.f, -420.f, 90.f), 0.f);
+			const FString Before = DescribeHands();
 			Crew->ReleaseProp(false);
+			Log(FString::Printf(TEXT("dropped stand-in: before [%s] after [%s]"), *Before, *DescribeHands()));
 		}
 		return ObjectiveDone(0);
 	}, 8.f });
-	Steps.Add({ TEXT("Switch on the lighthouse"), [this, ObjectiveDone]() { Teleport(FVector(2020.f, -560.f, 90.f)); Use(TEXT("FTLighthouse"), TEXT("Toggle")); return ObjectiveDone(1); } });
+	Steps.Add({ TEXT("Switch on the lighthouse"), [this, ObjectiveDone]()
+	{
+		Teleport(FVector(2020.f, -560.f, 90.f));
+		return EnsureActive(TEXT("FTLighthouse"), TEXT("Toggle"), FTTags::DevLighthouse) && ObjectiveDone(1);
+	} });
 	Steps.Add({ TEXT("Man the camera and roll (scene 1)"), RollCamera, 15.f });
 	Steps.Add({ TEXT("Hit the warning siren"), [this]() { Teleport(FVector(60.f, -1300.f, -30.f)); return Use(TEXT("FTSoundConsole"), TEXT("Cue0")); } });
 	Steps.Add({ TEXT("Take 1 accepted"), [TakeAccepted]() { return TakeAccepted(0); }, 25.f });
@@ -245,9 +323,9 @@ void AFTAutoDirector::BuildSteps()
 	}, 30.f });
 	Steps.Add({ TEXT("Start wind and rain"), [this, ObjectiveDone]()
 	{
-		if (!ObjectiveDone(1)) { Use(TEXT("FTEffectMachine"), TEXT("Toggle"), FTTags::DevWind); }
-		if (!ObjectiveDone(2)) { Use(TEXT("FTEffectMachine"), TEXT("Toggle"), FTTags::DevRain); }
-		return ObjectiveDone(1) && ObjectiveDone(2);
+		const bool bWind = EnsureActive(TEXT("FTEffectMachine"), TEXT("Toggle"), FTTags::DevWind, FTTags::DevWind);
+		const bool bRain = bWind && EnsureActive(TEXT("FTEffectMachine"), TEXT("Toggle"), FTTags::DevRain, FTTags::DevRain);
+		return bWind && bRain && ObjectiveDone(1) && ObjectiveDone(2);
 	}, 5.f });
 	Steps.Add({ TEXT("Man the camera and roll (scene 2)"), RollCamera, 15.f });
 	Steps.Add({ TEXT("Shark rig lunge at the boat"), [this]() { Teleport(FVector(1400.f, -1150.f, -30.f)); return Use(TEXT("FTSharkRig"), TEXT("Rig3")); } });
@@ -256,7 +334,11 @@ void AFTAutoDirector::BuildSteps()
 	Steps.Add({ TEXT("Flood: stage fully flooded"), [GS]() { return GS()->FloodStage == EFTFloodStage::Flooded; }, 40.f });
 	Steps.Add({ TEXT("Scene 3 begins"), [GS]() { return GS()->SceneIndex == 2; }, 20.f });
 	Steps.Add({ TEXT("Restore stage power at the breaker"), [this, GS]() { Teleport(FVector(-460.f, 650.f, 100.f), 180.f); Use(TEXT("FTBreaker"), TEXT("Restore")); return GS()->bStagePower; } });
-	Steps.Add({ TEXT("Hero spotlight on"), [this, ObjectiveDone]() { Teleport(FVector(330.f, 620.f, 30.f)); Use(TEXT("FTLightingBoard"), TEXT("T3")); return ObjectiveDone(2); } });
+	Steps.Add({ TEXT("Hero spotlight on"), [this, ObjectiveDone]()
+	{
+		Teleport(FVector(330.f, 620.f, 30.f));
+		return EnsureActive(TEXT("FTLightingBoard"), TEXT("T3"), FTTags::DevHeroLight) && ObjectiveDone(2);
+	} });
 	Steps.Add({ TEXT("Fetch the hero harpoon from the warehouse"), [this]() { return Crew->HeldProp || Carry(TEXT("FTProp_Harpoon")); } });
 	Steps.Add({ TEXT("Hand the harpoon to the stand-in"), [this]()
 	{
@@ -279,7 +361,11 @@ void AFTAutoDirector::BuildSteps()
 		return true;
 	} });
 	Steps.Add({ TEXT("Hero objective satisfied"), [ObjectiveDone]() { return ObjectiveDone(1); }, 8.f });
-	Steps.Add({ TEXT("Raise the shark on the rig"), [this, ObjectiveDone]() { Use(TEXT("FTSharkRig"), TEXT("Rig0")); return ObjectiveDone(3); } });
+	Steps.Add({ TEXT("Raise the shark on the rig"), [this, ObjectiveDone]()
+	{
+		Teleport(FVector(1400.f, -1150.f, -30.f));
+		return EnsureActive(TEXT("FTSharkRig"), TEXT("Rig0"), TEXT("Device.SharkRig")) && ObjectiveDone(3);
+	} });
 	Steps.Add({ TEXT("Man the camera and roll (scene 3)"), RollCamera, 15.f });
 	Steps.Add({ TEXT("Lunge for the staged defeat"), [this]() { return Use(TEXT("FTSharkRig"), TEXT("Rig3")); } });
 	Steps.Add({ TEXT("Take 3 accepted"), [TakeAccepted]() { return TakeAccepted(2); }, 25.f });
@@ -352,14 +438,16 @@ void AFTAutoDirector::Tick(float DeltaSeconds)
 	const bool bOk = S.Run ? S.Run() : true;
 	if (bOk)
 	{
-		Log(FString::Printf(TEXT("PASS %s"), *S.Name));
+		Log(FString::Printf(TEXT("PASS %s   [%s]"), *S.Name, *DescribeHands()));
+		LastUseFailure.Reset();
 		++Current;
 		StepTime = 0.f;
 		Delay = 1.2f;
 	}
 	else if (StepTime > S.Timeout)
 	{
-		Log(FString::Printf(TEXT("%s (timeout %.0fs)"), *S.Name, S.Timeout), true);
+		Log(FString::Printf(TEXT("%s (timeout %.0fs)   [%s] [%s]"), *S.Name, S.Timeout, *DescribeHands(), *DescribeObjectives()), true);
+		LastUseFailure.Reset();
 		++Current;
 		StepTime = 0.f;
 		Delay = 0.5f;
@@ -371,4 +459,8 @@ void AFTAutoDirector::Finish()
 	bDone = true;
 	Log(FString::Printf(TEXT("AutoTest finished: %d step(s), %d failure(s)"), Steps.Num(), Failures));
 	FFileHelper::SaveStringArrayToFile(Report, *(FPaths::ProjectSavedDir() / TEXT("FTAutoTestResult.txt")));
+	if (FParse::Param(FCommandLine::Get(), TEXT("FTAutoQuit")))
+	{
+		FPlatformMisc::RequestExit(false, TEXT("FTAutoTest finished"));
+	}
 }

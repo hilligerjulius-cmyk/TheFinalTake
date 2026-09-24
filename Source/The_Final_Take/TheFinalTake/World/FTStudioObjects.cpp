@@ -531,17 +531,18 @@ AFTCinemaScreen::AFTCinemaScreen()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = false;
-	FTVis::MakePart(this, Root, TEXT("FrameTop"), EFTShape::Box, FVector(-10.f, 0.f, 480.f), FVector(40.f, 1720.f, 60.f), Charcoal);
-	FTVis::MakePart(this, Root, TEXT("FrameBottom"), EFTShape::Box, FVector(-10.f, 0.f, -480.f), FVector(40.f, 1720.f, 60.f), Charcoal);
-	FTVis::MakePart(this, Root, TEXT("FrameL"), EFTShape::Box, FVector(-10.f, -830.f, 0.f), FVector(40.f, 60.f, 1000.f), Charcoal);
-	FTVis::MakePart(this, Root, TEXT("FrameR"), EFTShape::Box, FVector(-10.f, 830.f, 0.f), FVector(40.f, 60.f, 1000.f), Charcoal);
-	FTVis::MakePart(this, Root, TEXT("Backing"), EFTShape::Cube, FVector(-24.f, 0.f, 0.f), FVector(10.f, 1640.f, 940.f), Hex(0x151A33));
-	FTVis::MakePart(this, Root, TEXT("Valance"), EFTShape::Box, FVector(10.f, 0.f, 540.f), FVector(40.f, 1900.f, 90.f), Hex(0xB02A3A));
-	CurtainL = FTVis::MakePart(this, Root, TEXT("CurtainL"), EFTShape::Box, FVector(20.f, -420.f, 0.f), FVector(20.f, 860.f, 1000.f), Hex(0xC9304A));
-	CurtainR = FTVis::MakePart(this, Root, TEXT("CurtainR"), EFTShape::Box, FVector(20.f, 420.f, 0.f), FVector(20.f, 860.f, 1000.f), Hex(0xC9304A));
+	// Roller housing along the top edge; the sheet hangs from its underside (Z 468) when unrolled.
+	FTVis::MakePart(this, Root, TEXT("Housing"), EFTShape::Box, FVector(0.f, 0.f, 500.f), FVector(56.f, 1760.f, 64.f), Charcoal);
+	FTVis::MakePart(this, Root, TEXT("HousingTrim"), EFTShape::Box, FVector(29.f, 0.f, 500.f), FVector(3.f, 1720.f, 12.f), Teal, FRotator::ZeroRotator, 0.6f);
+	FTVis::MakePart(this, Root, TEXT("CapL"), EFTShape::Box, FVector(0.f, -895.f, 500.f), FVector(64.f, 34.f, 76.f), Coral);
+	FTVis::MakePart(this, Root, TEXT("CapR"), EFTShape::Box, FVector(0.f, 895.f, 500.f), FVector(64.f, 34.f, 76.f), Coral);
+	FTVis::MakeText(this, Root, TEXT("HousingLabel"), LOCTEXT("ScreenLabel", "PREMIERE SCREEN"), FVector(31.f, 0.f, 520.f), FRotator::ZeroRotator, 22.f, FColor(255, 240, 210));
+	Sheet = FTVis::MakePart(this, Root, TEXT("Sheet"), EFTShape::Box, FVector(-2.f, 0.f, 468.f), FVector(4.f, 1640.f, 1.f), Cream, FRotator::ZeroRotator, 0.15f);
+	BottomBar = FTVis::MakePart(this, Root, TEXT("BottomBar"), EFTShape::Box, FVector(0.f, 0.f, 460.f), FVector(14.f, 1660.f, 14.f), Charcoal);
 	Screen = CreateDefaultSubobject<UWidgetComponent>(TEXT("Screen"));
 	Screen->SetupAttachment(Root);
-	Screen->SetRelativeLocation(FVector(-8.f, 0.f, 0.f));
+	Screen->SetRelativeLocation(FVector(3.f, 0.f, 0.f));
+	Screen->SetVisibility(false);
 	Screen->SetWidgetSpace(EWidgetSpace::World);
 	Screen->SetDrawSize(FVector2D(1920.f, 1080.f));
 	Screen->SetWidgetClass(UFTPremiereWidget::StaticClass());
@@ -563,6 +564,22 @@ void AFTCinemaScreen::BeginPlay()
 {
 	Super::BeginPlay();
 	Screen->SetRelativeScale3D(FVector(1.f, ScreenSize.X / 1920.f, ScreenSize.Y / 1080.f));
+	ApplyOpen();
+}
+
+void AFTCinemaScreen::ApplyOpen()
+{
+	const float Height = FMath::Max(1.f, 936.f * Open);
+	Sheet->SetRelativeScale3D(FVector(0.04f, 16.4f, Height / 100.f));
+	Sheet->SetRelativeLocation(FVector(-2.f, 0.f, 468.f - Height * 0.5f));
+	Sheet->SetVisibility(Open > 0.01f);
+	BottomBar->SetRelativeLocation(FVector(0.f, 0.f, 468.f - Height - 7.f));
+	const bool bFeed = Open > 0.97f;
+	if (Screen->IsVisible() != bFeed)
+	{
+		Screen->SetVisibility(bFeed);
+	}
+	Spill->SetIntensity(bFeed ? 20.f : 0.f);
 }
 
 void AFTCinemaScreen::Tick(float DeltaSeconds)
@@ -570,10 +587,13 @@ void AFTCinemaScreen::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 	const AFTGameState* GS = GSOf(this);
 	const bool bShow = GS && (GS->ShootPhase == EFTShootPhase::Premiere || GS->ShootPhase == EFTShootPhase::Results);
-	Open = FMath::FInterpTo(Open, bShow ? 1.f : 0.f, DeltaSeconds, 1.2f);
-	CurtainL->SetRelativeLocation(FVector(20.f, -420.f - Open * 520.f, 0.f));
-	CurtainR->SetRelativeLocation(FVector(20.f, 420.f + Open * 520.f, 0.f));
-	Spill->SetIntensity(Open * 20.f);
+	const float Target = bShow ? 1.f : 0.f;
+	if (!FMath::IsNearlyEqual(Open, Target, 0.001f))
+	{
+		// constant-speed unroll (about 2.5 s) reads more like a motorised screen than an ease
+		Open = FMath::FInterpConstantTo(Open, Target, DeltaSeconds, 0.4f);
+		ApplyOpen();
+	}
 }
 
 // ============================================================================ ambient rain

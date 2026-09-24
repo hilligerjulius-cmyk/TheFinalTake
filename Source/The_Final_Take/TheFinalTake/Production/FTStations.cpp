@@ -68,8 +68,11 @@ AFTLighthouse::AFTLighthouse()
 	Beam = CreateDefaultSubobject<USceneComponent>(TEXT("Beam"));
 	Beam->SetupAttachment(Root);
 	Beam->SetRelativeLocation(FVector(0.f, 0.f, 378.f));
-	BeamCone = GlowCone(this, Beam, TEXT("BeamCone"), 1400.f, 220.f, Hex(0xFFE08A), 0.35f);
+	// Off by default: the switch is part of scene 1, so the beam only appears once someone throws it.
+	BeamCone = GlowCone(this, Beam, TEXT("BeamCone"), 900.f, 150.f, Hex(0xFFE08A), 0.08f);
+	BeamCone->SetVisibility(false);
 	BeamLight = CreateDefaultSubobject<USpotLightComponent>(TEXT("BeamLight"));
+	BeamLight->SetVisibility(false);
 	BeamLight->SetupAttachment(Beam);
 	BeamLight->SetIntensity(40000.f);
 	BeamLight->SetInnerConeAngle(6.f);
@@ -83,6 +86,7 @@ AFTLighthouse::AFTLighthouse()
 	Glow->SetAttenuationRadius(500.f);
 	Glow->SetLightColor(FLinearColor(1.f, 0.8f, 0.45f));
 	Glow->SetCastShadows(false);
+	Glow->SetVisibility(false);
 
 	FTVis::MakePart(this, Root, TEXT("SwitchBox"), EFTShape::Box, FVector(70.f, 70.f, 50.f), FVector(28.f, 28.f, 40.f), Charcoal);
 	FTVis::MakePart(this, Root, TEXT("SwitchPlate"), EFTShape::Box, FVector(85.f, 70.f, 50.f), FVector(3.f, 22.f, 30.f), Yellow);
@@ -99,6 +103,12 @@ void AFTLighthouse::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AFTLighthouse, bOn);
+}
+
+void AFTLighthouse::BeginPlay()
+{
+	Super::BeginPlay();
+	OnRep_On();
 }
 
 FText AFTLighthouse::GetPromptVerb(const UFTInteractableComponent* Comp, const AFTCharacter* User) const
@@ -199,6 +209,7 @@ void AFTStageLight::OnConstruction(const FTransform& Transform)
 	FTVis::ApplyShape(Pole, EFTShape::Cylinder, FVector(6.f, 6.f, StandHeight));
 	Pole->SetRelativeLocation(FVector(0.f, 0.f, 20.f + StandHeight * 0.5f));
 	Head->SetRelativeLocation(FVector(0.f, 0.f, StandHeight + 40.f));
+	Head->SetRelativeRotation(FRotator(AimPitch, 0.f, 0.f));
 	ColorIndex = StartColor;
 	bOn = bStartOn;
 	ApplyLight();

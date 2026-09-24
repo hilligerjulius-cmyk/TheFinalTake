@@ -15,7 +15,7 @@ using namespace FTColors;
 namespace
 {
 	// studio-specific shades (on the shared palette)
-	const FLinearColor Asphalt = Hex(0x2A2F45);
+	const FLinearColor Asphalt = Hex(0x3C4262);
 	const FLinearColor Sidewalk = Hex(0x6E7391);
 	const FLinearColor StageFloor = Hex(0x646B8C);
 	const FLinearColor StageWall = Hex(0x232A4F);
@@ -47,6 +47,7 @@ AFTStudioShell::AFTStudioShell()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = false;
+	Root->SetMobility(EComponentMobility::Static);
 	static const EFTShape Shapes[NumGroups] = {
 		EFTShape::Cube, EFTShape::Cube, EFTShape::Box, EFTShape::Box, EFTShape::Cylinder, EFTShape::Cylinder,
 		EFTShape::Sphere, EFTShape::Ball, EFTShape::Cone, EFTShape::Prism, EFTShape::Ramp, EFTShape::Torus,
@@ -432,7 +433,8 @@ void AFTStudioShell::BuildExterior()
 	Add(BoxSolid, FVector(-2080.f, -820.f, 230.f), FVector(20.f, 300.f, 140.f), Navy);
 	Text(TEXT("STAGE 4"), FVector(-2092.f, -820.f, 256.f), 180.f, 58.f, FColor(255, 240, 220));
 	Add(CubeDeco, FVector(-2092.f, -850.f, 196.f), FVector(2.f, 130.f, 18.f), Yellow, 0.8f);
-	Add(PrismDeco, FVector(-2092.f, -760.f, 196.f), FVector(2.f, 44.f, 40.f), Yellow, 0.8f, FRotator(0.f, 0.f, -90.f));
+	// head at the +Y end of the shaft, pointing towards the entrance (roll +90 turns the prism apex to +Y)
+	Add(PrismDeco, FVector(-2092.f, -760.f, 196.f), FVector(2.f, 44.f, 40.f), Yellow, 0.8f, FRotator(0.f, 0.f, 90.f));
 	Spot(FVector(-2250.f, -820.f, 380.f), FRotator(-35.f, 0.f, 0.f), FLinearColor(1.f, 0.8f, 0.55f), 12000.f, 800.f, 30.f, ZExterior);
 	// equipment clutter outside
 	FlightCase(FVector(-2120.f, -1200.f, 4.f), FVector(90.f, 70.f, 70.f), 10.f);
@@ -551,7 +553,7 @@ void AFTStudioShell::BuildLobby()
 	for (const FVector& L : { FVector(-1450.f, -450.f, 540.f), FVector(-950.f, 450.f, 540.f), FVector(-1450.f, 450.f, 540.f), FVector(-950.f, -450.f, 540.f) })
 	{
 		Add(CylDeco, L + FVector(0.f, 0.f, 10.f), FVector(4.f, 4.f, 30.f), Charcoal);
-		Add(ConeDeco, L - FVector(0.f, 0.f, 16.f), FVector(70.f, 70.f, 36.f), Teal);
+		Add(ConeDeco, L - FVector(0.f, 0.f, 16.f), FVector(70.f, 70.f, 36.f), Teal, 0.35f);
 		Add(SphereDeco, L - FVector(0.f, 0.f, 36.f), FVector(26.f), Cream, 14.f);
 	}
 }
@@ -664,6 +666,31 @@ void AFTStudioShell::BuildStage()
 	Wall(FVector(WX0, 1200.f, 350.f), FVector(WX1, 1800.f, 1320.f), StageWall);
 	Wall(FVector(WX0, 1800.f, -120.f), FVector(WX1, 2000.f, 1320.f), StageWall);
 	Add(GlassSolid, FVector(-600.f, 1500.f, 225.f), FVector(16.f, 600.f, 250.f), Glass);
+	// front-of-house cladding: the navy stage wall must not show from the lobby, office or wardrobe
+	auto Clad = [this](float Y0, float Y1, float Z0, float Z1, const FLinearColor& C)
+	{
+		Add(CubeDeco, FVector(-621.5f, (Y0 + Y1) * 0.5f, (Z0 + Z1) * 0.5f), FVector(3.f, Y1 - Y0, Z1 - Z0), C);
+	};
+	const FLinearColor WardrobeWall = Hex(0xF2C6DD);
+	// lobby (Stage 4 door opening Y -300..300, Z 0..400)
+	Clad(-980.f, -300.f, 0.f, 560.f, LobbyWall);
+	Clad(300.f, 980.f, 0.f, 560.f, LobbyWall);
+	Clad(-300.f, 300.f, 400.f, 560.f, LobbyWall);
+	for (float Y : { -640.f, 640.f })
+	{
+		Add(CubeDeco, FVector(-624.f, Y, 60.f), FVector(4.f, 680.f, 120.f), Teal);
+	}
+	// office (window Y 1200..1800, Z 100..350)
+	Clad(1020.f, 1980.f, 0.f, 100.f, TealDark);
+	Clad(1020.f, 1980.f, 350.f, 460.f, LobbyWall);
+	Clad(1020.f, 1200.f, 100.f, 350.f, LobbyWall);
+	Clad(1800.f, 1980.f, 100.f, 350.f, LobbyWall);
+	// wardrobe (door opening Y -1450..-1200, Z 0..300)
+	Clad(-1580.f, -1450.f, 0.f, 460.f, WardrobeWall);
+	Clad(-1200.f, -1020.f, 0.f, 460.f, WardrobeWall);
+	Clad(-1450.f, -1200.f, 300.f, 460.f, WardrobeWall);
+	Add(CubeDeco, FVector(-624.f, -1515.f, 60.f), FVector(4.f, 130.f, 120.f), Magenta);
+	Add(CubeDeco, FVector(-624.f, -1110.f, 60.f), FVector(4.f, 180.f, 120.f), Magenta);
 	// stage-4 landing + stairs down, wardrobe landing + stairs
 	Wall(FVector(-580.f, -400.f, -120.f), FVector(-300.f, 800.f, 0.f), TealDark);
 	Add(CubeDeco, FVector(-302.f, 200.f, 0.5f), FVector(6.f, 1200.f, 1.f), Tape, 0.3f);

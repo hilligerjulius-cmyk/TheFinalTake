@@ -42,6 +42,8 @@ public:
 	void Release(const FText& Reason = FText::GetEmpty());
 	void ApplyOperatorInput(float PanDelta, float TiltDelta, float ZoomDelta, float DollyAxis);
 	void Recenter();
+	/** Server: pans, tilts and zooms so that all points fit in the lens (used by the auto director). */
+	void FrameTargets(const TArray<FVector>& Targets);
 	void SetRecording(bool bNewRecording);
 
 	// all machines

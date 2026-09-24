@@ -21,6 +21,7 @@ class THE_FINAL_TAKE_API AFTLighthouse : public AFTStudioActor
 public:
 	AFTLighthouse();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 	virtual FText GetPromptVerb(const UFTInteractableComponent* Comp, const AFTCharacter* User) const override;
 	virtual void OnInteract(UFTInteractableComponent* Comp, AFTCharacter* User) override;
@@ -66,6 +67,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Light") float Intensity = 60000.f;
 	UPROPERTY(EditAnywhere, Category = "Light") bool bStartOn = false;
 	UPROPERTY(EditAnywhere, Category = "Light") float StandHeight = 220.f;
+	/** Downward tilt of the fixture head. */
+	UPROPERTY(EditAnywhere, Category = "Light") float AimPitch = -12.f;
 protected:
 	UFUNCTION() void OnRep_Light();
 	void ApplyLight();

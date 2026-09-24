@@ -14,12 +14,12 @@ AFTFloodController::AFTFloodController()
 
 	FloodArea = CreateDefaultSubobject<UBoxComponent>(TEXT("FloodArea"));
 	FloodArea->SetupAttachment(Root);
-	FloodArea->SetBoxExtent(FVector(1500.f, 1500.f, 150.f));
+	FloodArea->SetBoxExtent(FVector(1500.f, 1800.f, 150.f));
 	FloodArea->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	FloodArea->SetHiddenInGame(true);
 	FloodArea->ShapeColor = FColor(40, 140, 255);
 
-	WaterPlane = FTVis::MakePart(this, Root, TEXT("WaterPlane"), EFTShape::WaterGrid, FVector::ZeroVector, FVector(3000.f, 3000.f, 100.f), FTColors::Hex(0x1E8FE0));
+	WaterPlane = FTVis::MakePart(this, Root, TEXT("WaterPlane"), EFTShape::WaterGrid, FVector::ZeroVector, FVector(3000.f, 3600.f, 100.f), FTColors::Hex(0x1E8FE0));
 	WaterPlane->SetCastShadow(false);
 	WaterPlane->SetBoundsScale(3.f);
 	WaterPlane->SetVisibility(false);

@@ -295,7 +295,7 @@ void AFTSharkRig::Tick(float DeltaSeconds)
 				}
 			}
 		}
-		else if (State == EFTSharkState::Defeated && T > 4.f)
+		else if (State == EFTSharkState::Defeated && T > DefeatedDuration)
 		{
 			SetState(EFTSharkState::Submerged);
 		}
@@ -333,7 +333,8 @@ void AFTSharkRig::Tick(float DeltaSeconds)
 		break;
 	}
 	case EFTSharkState::Defeated:
-		TargetZ = FMath::Lerp(WaterHeight + 40.f, WaterHeight - 150.f, FMath::Clamp(T / 4.f, 0.f, 1.f));
+		// slow, dramatic sink that stays in frame long enough for the 3 s hold after the killing blow
+		TargetZ = FMath::Lerp(WaterHeight + 40.f, WaterHeight - 150.f, FMath::Clamp(FMath::Square(T / DefeatedDuration), 0.f, 1.f));
 		Roll = FMath::Min(T / 0.8f, 1.f) * 165.f;
 		JawOpen = 30.f;
 		break;
