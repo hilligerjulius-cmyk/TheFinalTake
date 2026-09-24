@@ -10,6 +10,7 @@
 #include "AutomatedAssetImportData.h"
 #include "Engine/StaticMesh.h"
 #include "HAL/FileManager.h"
+#include "Materials/Material.h"
 #include "IAssetTools.h"
 #include "MeshDescription.h"
 #include "Misc/PackageName.h"
@@ -385,6 +386,51 @@ namespace
 		return Count;
 	}
 
+	/** One-sided copy of the engine text material: labels must not read mirrored from behind. */
+	bool MakeTextMaterial(bool bForce)
+	{
+		const FString PackagePath = TEXT("/Game/TheFinalTake/Materials/M_FT_Text");
+		if (!bForce && AssetExists(PackagePath))
+		{
+			return true;
+		}
+		UMaterial* Src = LoadObject<UMaterial>(nullptr, TEXT("/Engine/EngineMaterials/DefaultTextMaterialOpaque.DefaultTextMaterialOpaque"));
+		if (!Src)
+		{
+			UE_LOG(LogFinalTake, Error, TEXT("[FTContent] engine text material not found"));
+			return false;
+		}
+		UPackage* Pkg = CreatePackage(*PackagePath);
+		UMaterial* M = DuplicateObject<UMaterial>(Src, Pkg, TEXT("M_FT_Text"));
+		M->SetFlags(RF_Public | RF_Standalone);
+		M->TwoSided = false;
+		M->PostEditChange();
+		FAssetRegistryModule::AssetCreated(M);
+		M->MarkPackageDirty();
+		const bool bSaved = SavePackageFor(M);
+		UE_LOG(LogFinalTake, Display, TEXT("[FTContent] M_FT_Text (one-sided) saved=%d"), bSaved ? 1 : 0);
+		return bSaved;
+	}
+
+	/** Every FT material may end up on instanced meshes (studio shell, particles) - flag them once and resave. */
+	void EnsureMaterialUsage()
+	{
+		const TCHAR* Names[] = { TEXT("M_FT_Matte"), TEXT("M_FT_Glow"), TEXT("M_FT_Translucent"), TEXT("M_FT_Water"), TEXT("M_FT_Highlight"), TEXT("M_FT_Screen"), TEXT("M_FT_MatteISM") };
+		for (const TCHAR* Name : Names)
+		{
+			const FString Path = FString::Printf(TEXT("/Game/TheFinalTake/Materials/%s.%s"), Name, Name);
+			UMaterial* M = LoadObject<UMaterial>(nullptr, *Path, nullptr, LOAD_NoWarn | LOAD_Quiet);
+			if (!M || M->bUsedWithInstancedStaticMeshes)
+			{
+				continue;
+			}
+			M->bUsedWithInstancedStaticMeshes = true;
+			M->PostEditChange();
+			M->MarkPackageDirty();
+			UE_LOG(LogFinalTake, Display, TEXT("[FTContent] %s: instanced-mesh usage enabled, saved=%d"), Name, SavePackageFor(M) ? 1 : 0);
+		}
+	}
+
 	template <typename T>
 	void MakeFilmAsset(FName FilmId, bool bForce)
 	{
@@ -429,6 +475,8 @@ int32 UFTContentCommandlet::Main(const FString& Params)
 	M(TEXT("SM_FT_Capsule"), [](FShapeBuilder& B) { BuildCapsule(B, 10); });
 	M(TEXT("SM_FT_WaterGrid"), [](FShapeBuilder& B) { BuildGrid(B, 40); });
 	ImportAudio(bForce);
+	Failed += MakeTextMaterial(bForce) ? 0 : 1;
+	EnsureMaterialUsage();
 	MakeFilmAsset<UFTFilm_JawsOfTheStudio>(FTTags::FilmJaws, bForce);
 	MakeFilmAsset<UFTFilm_MoonfallMotel>(FTTags::FilmMoonfall, bForce);
 	MakeFilmAsset<UFTFilm_CastleOnFire>(FTTags::FilmCastle, bForce);

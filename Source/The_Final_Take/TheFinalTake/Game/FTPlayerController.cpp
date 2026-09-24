@@ -2,6 +2,7 @@
 
 #include "TheFinalTake/Core/FTAudio.h"
 #include "TheFinalTake/Core/FTInput.h"
+#include "TheFinalTake/Data/FTFilmDefinition.h"
 #include "TheFinalTake/Game/FTGameState.h"
 #include "TheFinalTake/Game/FTPlayerState.h"
 #include "TheFinalTake/Game/FTSceneManager.h"
@@ -31,6 +32,9 @@ void AFTPlayerController::BeginPlay()
 	Super::BeginPlay();
 	if (IsLocalController())
 	{
+		// load all cues and film data now instead of on first use mid-shoot
+		FTAudio::PreloadAll();
+		UFTFilmDefinition::All();
 		SetupInputContext();
 		EnsureWidgets();
 		ApplyInputMode();

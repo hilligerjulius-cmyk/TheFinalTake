@@ -334,6 +334,17 @@ void AFTAutoDirector::BuildSteps()
 		Log(FString::Printf(TEXT("locked film rejected with: %s"), *Why.ToString()), !bRejected);
 		return true;
 	} });
+	// regression: reopening the book after a GC pass used to read freed film data and crash
+	Steps.Add({ TEXT("Script book reopens after garbage collection"), [this, SM, PC]()
+	{
+		Teleport(FVector(-1250.f, 1480.f, 100.f), 0.f);
+		const bool bFirst = Use(TEXT("FTScriptBook"), TEXT("Open"));
+		SM()->CloseScriptBook(PC());
+		CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS, true);
+		const bool bSecond = Use(TEXT("FTScriptBook"), TEXT("Open"));
+		SM()->CloseScriptBook(PC());
+		return bFirst && bSecond;
+	} });
 	Steps.Add({ TEXT("Swipe keycard at Stage 4"), [this]() { Teleport(FVector(-800.f, -300.f, 100.f)); return Use(TEXT("FTDoor"), TEXT("Keycard")); } });
 	Steps.Add({ TEXT("Pick up the cardboard stand-in"), [this]() { return Carry(TEXT("FTStandIn")); } });
 	Steps.Add({ TEXT("Dress the stand-in as lifeguard"), [this]() { Teleport(FVector(-1550.f, -1300.f, 100.f), 180.f); return Use(TEXT("FTCostumeRack"), TEXT("H0")); } });
@@ -507,6 +518,12 @@ void AFTAutoDirector::Tick(float DeltaSeconds)
 	{
 		return;
 	}
+	const double Stamp = FPlatformTime::Seconds();
+	if (LastFrameStamp > 0.0 && GetWorld()->GetTimeSeconds() > 5.f)
+	{
+		FrameTimes.Add(static_cast<float>(Stamp - LastFrameStamp));
+	}
+	LastFrameStamp = Stamp;
 	if (Delay > 0.f)
 	{
 		Delay -= DeltaSeconds;
@@ -541,6 +558,22 @@ void AFTAutoDirector::Tick(float DeltaSeconds)
 void AFTAutoDirector::Finish()
 {
 	bDone = true;
+	if (FrameTimes.Num() > 10)
+	{
+		TArray<float> Sorted = FrameTimes;
+		Sorted.Sort();
+		double Sum = 0.0;
+		int32 Hitches = 0;
+		for (const float F : FrameTimes)
+		{
+			Sum += F;
+			Hitches += F > 0.1f ? 1 : 0;
+		}
+		const float Avg = static_cast<float>(Sum / FrameTimes.Num());
+		const float P99 = Sorted[FMath::Min(Sorted.Num() - 1, FMath::FloorToInt(Sorted.Num() * 0.99f))];
+		Log(FString::Printf(TEXT("performance: avg %.1f fps (%.1f ms), 1%% low %.1f fps, worst frame %.0f ms, %d hitch(es) > 100 ms over %d frames"),
+			1.f / Avg, Avg * 1000.f, 1.f / P99, Sorted.Last() * 1000.f, Hitches, FrameTimes.Num()));
+	}
 	Log(FString::Printf(TEXT("AutoTest finished: %d step(s), %d failure(s)"), Steps.Num(), Failures));
 	FFileHelper::SaveStringArrayToFile(Report, *(FPaths::ProjectSavedDir() / TEXT("FTAutoTestResult.txt")));
 	if (FParse::Param(FCommandLine::Get(), TEXT("FTAutoQuit")))

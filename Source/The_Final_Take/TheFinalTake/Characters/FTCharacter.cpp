@@ -1372,8 +1372,9 @@ void AFTCharacter::InputLook(const FInputActionValue& Value)
 	const FVector2D V = Value.Get<FVector2D>() * UFTSettings::Get()->MouseSensitivity;
 	if (AFTFilmCamera* Cam = GetOperatedCamera())
 	{
-		PendingPan += V.X * 0.35f;
-		PendingTilt += V.Y * 0.35f;
+		// the look axis is pre-negated for AddControllerPitchInput; the camera head wants mouse-up = tilt up
+		PendingPan += V.X * 0.3f;
+		PendingTilt -= V.Y * 0.3f;
 		return;
 	}
 	AddControllerYawInput(V.X);

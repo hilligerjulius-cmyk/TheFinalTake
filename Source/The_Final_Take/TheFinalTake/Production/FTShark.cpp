@@ -79,7 +79,7 @@ AFTSharkRig::AFTSharkRig()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	Tags = { TEXT("Device.SharkRig"), FTTags::SubjShark };
-	FTVis::MakePart(this, Root, TEXT("Rail"), EFTShape::Box, FVector(-140.f, 0.f, 70.f), FVector(20.f, 1100.f, 16.f), Grey);
+	RailMesh = FTVis::MakePart(this, Root, TEXT("Rail"), EFTShape::Box, FVector(-140.f, 0.f, 70.f), FVector(20.f, 1100.f, 16.f), Grey);
 	Carriage = CreateDefaultSubobject<USceneComponent>(TEXT("Carriage"));
 	Carriage->SetupAttachment(Root);
 	FTVis::MakePart(this, Carriage, TEXT("Trolley"), EFTShape::Box, FVector(-140.f, 0.f, 84.f), FVector(50.f, 60.f, 24.f), Yellow);
@@ -138,6 +138,8 @@ void AFTSharkRig::OnConstruction(const FTransform& Transform)
 	Station->SetRelativeLocation(StationOffset);
 	Station->SetRelativeRotation(FRotator(0.f, StationYaw, 0.f));
 	SharkRoot->SetRelativeLocation(FVector(0.f, 0.f, WaterHeight - 150.f));
+	// the rail is only as long as the carriage travel, so it never pokes into the island or the dock
+	RailMesh->SetRelativeScale3D(FVector(0.2f, (RailHalfLength * 2.f + 100.f) / 100.f, 0.16f));
 }
 
 bool AFTSharkRig::CanInteract(const UFTInteractableComponent* Comp, const AFTCharacter* User, FText& OutReason) const
@@ -327,7 +329,7 @@ void AFTSharkRig::Tick(float DeltaSeconds)
 		const float Back = FMath::Clamp((T - 0.75f) / 0.85f, 0.f, 1.f);
 		const float K = FMath::Sin(A * PI * 0.5f) * (1.f - Back);
 		TargetZ = WaterHeight + 8.f + 95.f * K;
-		Forward = 240.f * K;
+		Forward = LungeReach * K;
 		JawOpen = 40.f * (T < 0.5f ? 1.f : 1.f - Back);
 		Pitch = -22.f * K;
 		break;
@@ -400,6 +402,27 @@ void AFTSharkHazard::BeginPlay()
 	Wake->Configure(EFTShape::Sphere, Hex(0xCFF3FF), 0.3f, false);
 }
 
+bool AFTSharkHazard::IsSwimmable(const FVector& From, const FVector& To, float WaterZ) const
+{
+	const UWorld* World = GetWorld();
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(FTSharkSwim), false, this);
+	const FCollisionObjectQueryParams Statics(ECC_WorldStatic);
+	const FVector A(From.X, From.Y, WaterZ - 25.f);
+	const FVector B(To.X, To.Y, WaterZ - 25.f);
+	FHitResult Hit;
+	// the fin must not pass through walls, desks, stairs or other set pieces
+	if (!A.Equals(B, 1.f) && World->SweepSingleByObjectType(Hit, A, B, FQuat::Identity, Statics, FCollisionShape::MakeSphere(40.f), Params))
+	{
+		return false;
+	}
+	// ...and there must be real depth under it (no gliding over the island or the stage landing)
+	if (World->LineTraceSingleByObjectType(Hit, B + FVector(0.f, 0.f, 60.f), B - FVector(0.f, 0.f, 400.f), Statics, Params) && Hit.ImpactPoint.Z > WaterZ - 45.f)
+	{
+		return false;
+	}
+	return true;
+}
+
 void AFTSharkHazard::ResetForNewShoot()
 {
 	SetActorTransform(StartTransform);
@@ -445,7 +468,16 @@ void AFTSharkHazard::Tick(float DeltaSeconds)
 				PatrolIndex = (PatrolIndex + 1) % FMath::Max(1, Patrol.Num());
 			}
 			const FVector Dir = To.GetSafeNormal();
-			Loc += Dir * Speed * DeltaSeconds;
+			const FVector Next = Loc + Dir * Speed * DeltaSeconds;
+			if (IsSwimmable(Loc, Next, WaterZ))
+			{
+				Loc = Next;
+			}
+			else
+			{
+				// blocked by a set piece or shallow ground: head for the next waypoint instead of pushing through
+				PatrolIndex = (PatrolIndex + 1) % FMath::Max(1, Patrol.Num());
+			}
 			SetActorLocation(Loc);
 			if (!Dir.IsNearlyZero())
 			{
@@ -459,7 +491,8 @@ void AFTSharkHazard::Tick(float DeltaSeconds)
 				for (TActorIterator<AFTCharacter> It(GetWorld()); It; ++It)
 				{
 					const float D = FVector::Dist2D(It->GetActorLocation(), Loc);
-					if (It->IsInWater() && !It->bKnockedDown && D < BestDist && !AFTZone::IsInZone(this, FTTags::ZoneSafe, It->GetActorLocation()))
+					if (It->IsInWater() && !It->bKnockedDown && D < BestDist && !AFTZone::IsInZone(this, FTTags::ZoneSafe, It->GetActorLocation())
+						&& IsSwimmable(Loc, It->GetActorLocation(), WaterZ))
 					{
 						Best = *It;
 						BestDist = D;
@@ -507,6 +540,13 @@ void AFTSharkHazard::Tick(float DeltaSeconds)
 			const float A = FMath::Clamp(T / 0.7f, 0.f, 1.f);
 			FVector P = FMath::Lerp(LungeFrom, LungeTo, FMath::SmoothStep(0.f, 1.f, A));
 			P.Z = WaterZ - 48.f;
+			if (!IsSwimmable(Loc, P, WaterZ))
+			{
+				// the target moved behind something solid: stop at the obstacle instead of clipping through it
+				LungeFrom = Loc;
+				LungeTo = Loc;
+				P = Loc;
+			}
 			SetActorLocation(P);
 			if (!bHit)
 			{

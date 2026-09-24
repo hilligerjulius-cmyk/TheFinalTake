@@ -562,7 +562,9 @@ AFTSoundConsole::AFTSoundConsole()
 	FTVis::MakePart(this, Root, TEXT("Desk"), EFTShape::Box, FVector(0.f, 0.f, 45.f), FVector(80.f, 200.f, 90.f), Charcoal, FRotator::ZeroRotator, 0.f, true);
 	FTVis::MakePart(this, Root, TEXT("Top"), EFTShape::Box, FVector(-4.f, 0.f, 96.f), FVector(76.f, 190.f, 10.f), GreyDark, FRotator(-16.f, 0.f, 0.f));
 	FTVis::MakePart(this, Root, TEXT("Trim"), EFTShape::Box, FVector(0.f, 0.f, 88.f), FVector(84.f, 204.f, 5.f), Magenta);
-	FTVis::MakeText(this, Root, TEXT("Title"), LOCTEXT("SoundTitle", "SOUND"), FVector(-20.f, 0.f, 128.f), FRotator(0.f, 180.f, 0.f), 16.f, FColor(255, 150, 210));
+	// text renders are two-sided: every label sits in front of a solid plate or face so it never reads mirrored from behind
+	FTVis::MakePart(this, Root, TEXT("TitlePlate"), EFTShape::Box, FVector(-12.f, 0.f, 132.f), FVector(4.f, 92.f, 28.f), Charcoal);
+	FTVis::MakeText(this, Root, TEXT("Title"), LOCTEXT("SoundTitle", "SOUND"), FVector(-15.f, 0.f, 132.f), FRotator(0.f, 180.f, 0.f), 16.f, FColor(255, 150, 210));
 	const FLinearColor Cols[3] = { Red, Blue, Purple };
 	const FText Names[3] = { LOCTEXT("Siren", "SIREN"), LOCTEXT("Storm", "STORM"), LOCTEXT("Sting", "STING") };
 	for (int32 i = 0; i < 3; ++i)
@@ -571,7 +573,7 @@ AFTSoundConsole::AFTSoundConsole()
 		UStaticMeshComponent* Btn = FTVis::MakePart(this, Root, *FString::Printf(TEXT("Button%d"), i), EFTShape::Cylinder, FVector(-6.f, Y, 107.f), FVector(34.f, 34.f, 14.f), Cols[i], FRotator(-16.f, 0.f, 0.f), 0.6f);
 		UStaticMeshComponent* L = FTVis::MakePart(this, Root, *FString::Printf(TEXT("Lamp%d"), i), EFTShape::Sphere, FVector(-30.f, Y, 124.f), FVector(10.f), Cols[i], FRotator::ZeroRotator, 0.3f);
 		Lamps.Add(L);
-		FTVis::MakeText(this, Root, *FString::Printf(TEXT("Name%d"), i), Names[i], FVector(-38.f, Y, 110.f), FRotator(0.f, 180.f, 0.f), 9.f, FColor::White);
+		FTVis::MakeText(this, Root, *FString::Printf(TEXT("Name%d"), i), Names[i], FVector(-41.f, Y, 72.f), FRotator(0.f, 180.f, 0.f), 9.f, FColor::White);
 		UFTInteractableComponent* I = CreateDefaultSubobject<UFTInteractableComponent>(*FString::Printf(TEXT("Cue%d"), i));
 		I->SetupAttachment(Root);
 		I->Setup(*FString::Printf(TEXT("Cue%d"), i), FText::Format(LOCTEXT("CueLabel", "{0} cue"), Names[i]), LOCTEXT("Play", "Play"), EFTInteractType::Press, FVector(22.f, 24.f, 16.f));

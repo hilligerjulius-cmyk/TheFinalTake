@@ -35,10 +35,11 @@ AFTRescueBoat::AFTRescueBoat()
 	BoatRoot->SetupAttachment(Root);
 	BoatRoot->SetRelativeLocation(FVector(0.f, 0.f, 24.f));
 	const FLinearColor Hull = Hex(0xFF7A2E);
-	FTVis::MakePart(this, BoatRoot, TEXT("TubeL"), EFTShape::Capsule, FVector(0.f, -58.f, 28.f), FVector(52.f, 52.f, 290.f), Hull, FRotator(-90.f, 0.f, 0.f));
-	FTVis::MakePart(this, BoatRoot, TEXT("TubeR"), EFTShape::Capsule, FVector(0.f, 58.f, 28.f), FVector(52.f, 52.f, 290.f), Hull, FRotator(-90.f, 0.f, 0.f));
-	FTVis::MakePart(this, BoatRoot, TEXT("Bow"), EFTShape::Ball, FVector(135.f, 0.f, 28.f), FVector(70.f, 150.f, 52.f), Hull);
-	FTVis::MakePart(this, BoatRoot, TEXT("Floor"), EFTShape::Box, FVector(0.f, 0.f, 10.f), FVector(250.f, 100.f, 12.f), GreyDark);
+	// hull and deck are solid so the crew can climb in and ride along (the boat is a movable base)
+	FTVis::MakePart(this, BoatRoot, TEXT("TubeL"), EFTShape::Capsule, FVector(0.f, -58.f, 28.f), FVector(52.f, 52.f, 290.f), Hull, FRotator(-90.f, 0.f, 0.f), 0.f, true);
+	FTVis::MakePart(this, BoatRoot, TEXT("TubeR"), EFTShape::Capsule, FVector(0.f, 58.f, 28.f), FVector(52.f, 52.f, 290.f), Hull, FRotator(-90.f, 0.f, 0.f), 0.f, true);
+	FTVis::MakePart(this, BoatRoot, TEXT("Bow"), EFTShape::Ball, FVector(135.f, 0.f, 28.f), FVector(70.f, 150.f, 52.f), Hull, FRotator::ZeroRotator, 0.f, true);
+	FTVis::MakePart(this, BoatRoot, TEXT("Floor"), EFTShape::Box, FVector(0.f, 0.f, 10.f), FVector(250.f, 100.f, 12.f), GreyDark, FRotator::ZeroRotator, 0.f, true);
 	FTVis::MakePart(this, BoatRoot, TEXT("Seat"), EFTShape::Box, FVector(10.f, 0.f, 36.f), FVector(34.f, 110.f, 8.f), WoodDark);
 	FTVis::MakePart(this, BoatRoot, TEXT("Transom"), EFTShape::Box, FVector(-138.f, 0.f, 30.f), FVector(10.f, 110.f, 40.f), GreyDark);
 	FTVis::MakePart(this, BoatRoot, TEXT("Motor"), EFTShape::Box, FVector(-160.f, 0.f, 60.f), FVector(36.f, 30.f, 44.f), Charcoal);

@@ -85,6 +85,33 @@ AFTFilmCamera::AFTFilmCamera()
 	Lens->SetRelativeLocation(FVector(66.f, 0.f, 0.f));
 	Lens->SetFieldOfView(50.f);
 	Lens->bConstrainAspectRatio = false;
+	// "film look" for everything seen through the lens: shallow focus, grain, vignette, warm/teal grade
+	{
+		FPostProcessSettings& PP = Lens->PostProcessSettings;
+		PP.bOverride_DepthOfFieldFocalDistance = true;
+		PP.DepthOfFieldFocalDistance = 900.f;
+		PP.bOverride_DepthOfFieldFstop = true;
+		PP.DepthOfFieldFstop = 2.8f;
+		PP.bOverride_DepthOfFieldSensorWidth = true;
+		PP.DepthOfFieldSensorWidth = 36.f;
+		PP.bOverride_VignetteIntensity = true;
+		PP.VignetteIntensity = 0.7f;
+		PP.bOverride_FilmGrainIntensity = true;
+		PP.FilmGrainIntensity = 0.2f;
+		PP.bOverride_SceneFringeIntensity = true;
+		PP.SceneFringeIntensity = 0.8f;
+		PP.bOverride_BloomIntensity = true;
+		PP.BloomIntensity = 0.9f;
+		PP.bOverride_ColorSaturation = true;
+		PP.ColorSaturation = FVector4(1.15f, 1.15f, 1.15f, 1.f);
+		PP.bOverride_ColorContrast = true;
+		PP.ColorContrast = FVector4(1.12f, 1.12f, 1.12f, 1.f);
+		PP.bOverride_ColorGainHighlights = true;
+		PP.ColorGainHighlights = FVector4(1.06f, 1.f, 0.9f, 1.f);
+		PP.bOverride_ColorGainShadows = true;
+		PP.ColorGainShadows = FVector4(0.9f, 1.f, 1.08f, 1.f);
+		Lens->PostProcessBlendWeight = 1.f;
+	}
 
 	Capture = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("Capture"));
 	Capture->SetupAttachment(Lens);
@@ -92,6 +119,14 @@ AFTFilmCamera::AFTFilmCamera()
 	Capture->bCaptureOnMovement = false;
 	Capture->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
 	Capture->FOVAngle = 50.f;
+	Capture->PostProcessSettings = Lens->PostProcessSettings;
+	Capture->PostProcessBlendWeight = 1.f;
+	// the monitor is a small, infrequent render without history: skip the expensive features that need history anyway
+	Capture->ShowFlags.SetLumenGlobalIllumination(false);
+	Capture->ShowFlags.SetLumenReflections(false);
+	Capture->ShowFlags.SetDistanceFieldAO(false);
+	Capture->ShowFlags.SetVolumetricFog(false);
+	Capture->ShowFlags.SetMotionBlur(false);
 
 	OperateHandle = CreateDefaultSubobject<UFTInteractableComponent>(TEXT("OperateHandle"));
 	OperateHandle->SetupAttachment(Dolly);
@@ -437,25 +472,37 @@ void AFTFilmCamera::Tick(float DeltaSeconds)
 		TTilt = LocalTilt;
 		TZoom = LocalZoom;
 		TDolly = LocalDolly;
-		VisualPan = TPan;
-		VisualTilt = TTilt;
-		VisualZoom = TZoom;
-		VisualDolly = FMath::FInterpTo(VisualDolly, TDolly, DeltaSeconds, 12.f);
 	}
-	else
-	{
-		const float Speed = IsLocallyOperated() ? 30.f : 8.f;
-		VisualPan = FMath::FInterpTo(VisualPan, TPan, DeltaSeconds, Speed);
-		VisualTilt = FMath::FInterpTo(VisualTilt, TTilt, DeltaSeconds, Speed);
-		VisualZoom = FMath::FInterpTo(VisualZoom, TZoom, DeltaSeconds, Speed);
-		VisualDolly = FMath::FInterpTo(VisualDolly, TDolly, DeltaSeconds, Speed);
-	}
+	// fluid-head damping: the lens eases after the operator's aim, which reads as smooth, filmic moves
+	const float HeadSpeed = IsLocallyOperated() ? 7.f : 6.f;
+	VisualPan = FMath::FInterpTo(VisualPan, TPan, DeltaSeconds, HeadSpeed);
+	VisualTilt = FMath::FInterpTo(VisualTilt, TTilt, DeltaSeconds, HeadSpeed);
+	VisualZoom = FMath::FInterpTo(VisualZoom, TZoom, DeltaSeconds, 4.f);
+	VisualDolly = FMath::FInterpTo(VisualDolly, TDolly, DeltaSeconds, 3.f);
 
 	Dolly->SetRelativeLocation(FVector(0.f, FMath::Lerp(-TrackLength * 0.5f, TrackLength * 0.5f, VisualDolly), 0.f));
 	PanHead->SetRelativeRotation(FRotator(0.f, VisualPan, 0.f));
 	TiltHead->SetRelativeRotation(FRotator(VisualTilt, 0.f, 0.f));
 	const float FOV = FMath::Lerp(FOVRange.Y, FOVRange.X, VisualZoom);
 	Lens->SetFieldOfView(FOV);
+
+	// autofocus pulls focus to whatever sits in the centre of frame (local view and monitor only)
+	if (GetNetMode() != NM_DedicatedServer && (Operator || bRecording))
+	{
+		FocusTimer -= DeltaSeconds;
+		if (FocusTimer <= 0.f)
+		{
+			FocusTimer = 0.1f;
+			const FVector From = Lens->GetComponentLocation();
+			FHitResult Hit;
+			FCollisionQueryParams Params(SCENE_QUERY_STAT(FTCameraFocus), false, this);
+			FocusTarget = GetWorld()->LineTraceSingleByChannel(Hit, From, From + Lens->GetForwardVector() * 6000.f, ECC_Visibility, Params)
+				? FMath::Clamp(Hit.Distance, 150.f, 6000.f) : 3000.f;
+		}
+		FocusDistance = FMath::FInterpTo(FocusDistance, FocusTarget, DeltaSeconds, 3.f);
+		Lens->PostProcessSettings.DepthOfFieldFocalDistance = FocusDistance;
+		Capture->PostProcessSettings.DepthOfFieldFocalDistance = FocusDistance;
+	}
 
 	if (bRecording)
 	{

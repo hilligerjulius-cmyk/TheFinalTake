@@ -62,9 +62,23 @@ USoundBase* FTAudio::Get(EFTSound Sound)
 	{
 		const TCHAR* Name = SoundName(Sound);
 		const FString Path = FString::Printf(TEXT("/Game/TheFinalTake/Audio/%s.%s"), Name, Name);
-		Cache[Index] = LoadObject<USoundBase>(nullptr, *Path, nullptr, LOAD_NoWarn | LOAD_Quiet);
+		USoundBase* S = LoadObject<USoundBase>(nullptr, *Path, nullptr, LOAD_NoWarn | LOAD_Quiet);
+		// keep sounds resident: a sound collected between plays is reloaded synchronously (audible + visible hitch)
+		if (S && !IsRunningCommandlet() && !S->IsRooted())
+		{
+			S->AddToRoot();
+		}
+		Cache[Index] = S;
 	}
 	return Cache[Index].Get();
+}
+
+void FTAudio::PreloadAll()
+{
+	for (int32 i = 1; i < static_cast<int32>(EFTSound::Count); ++i)
+	{
+		Get(static_cast<EFTSound>(i));
+	}
 }
 
 USoundAttenuation* FTAudio::Attenuation()

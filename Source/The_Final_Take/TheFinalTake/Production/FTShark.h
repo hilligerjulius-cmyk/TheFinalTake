@@ -57,6 +57,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Shark") float WaterHeight = 70.f;
 	/** How long the defeated shark floats belly-up before it sinks back into its pit. */
 	UPROPERTY(EditAnywhere, Category = "Shark") float DefeatedDuration = 6.f;
+	/** How far the lunge throws the shark forward; keep it inside the tank rim. */
+	UPROPERTY(EditAnywhere, Category = "Shark") float LungeReach = 200.f;
 	/** Station placement (relative). */
 	UPROPERTY(EditAnywhere, Category = "Shark", meta = (MakeEditWidget = true)) FVector StationOffset = FVector(-300.f, -900.f, 0.f);
 	UPROPERTY(EditAnywhere, Category = "Shark") float StationYaw = 90.f;
@@ -71,6 +73,7 @@ protected:
 	UPROPERTY() TObjectPtr<AFTCharacter> LastOperator;
 
 	UPROPERTY(VisibleAnywhere) TObjectPtr<USceneComponent> Carriage;
+	UPROPERTY(VisibleAnywhere) TObjectPtr<UStaticMeshComponent> RailMesh;
 	UPROPERTY(VisibleAnywhere) TObjectPtr<USceneComponent> SharkRoot;
 	UPROPERTY(VisibleAnywhere) TObjectPtr<USceneComponent> Jaw;
 	UPROPERTY(VisibleAnywhere) TObjectPtr<UStaticMeshComponent> EyeL;
@@ -113,6 +116,8 @@ protected:
 	UPROPERTY(VisibleAnywhere) TObjectPtr<UTextRenderComponent> Warning;
 	UPROPERTY(VisibleAnywhere) TObjectPtr<UFTChunkyParticles> Wake;
 	TWeakObjectPtr<AFTCharacter> Target;
+	/** True if the fin can travel From->To at water level without clipping statics and with real depth below To. */
+	bool IsSwimmable(const FVector& From, const FVector& To, float WaterZ) const;
 	FVector LungeFrom = FVector::ZeroVector;
 	FVector LungeTo = FVector::ZeroVector;
 	int32 PatrolIndex = 0;

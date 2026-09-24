@@ -184,7 +184,7 @@ bool FTBuildStudioMap()
 	Spawn<AFTDoor>(W, FVector(-600.f, -1325.f, 0.f), 180.f, TEXT("Door_Wardrobe"), [](AFTDoor* D)
 	{
 		D->Size = FVector2D(250.f, 300.f);
-		D->Sign = FText::FromString(TEXT("WARDROBE"));
+		D->Sign = FText::FromString(TEXT("WARDROBE & MAKEUP"));
 		D->DoorColor = FLinearColor(0.45f, 0.08f, 0.3f);
 	});
 	Spawn<AFTDoor>(W, FVector(250.f, -1460.f, 420.f), 180.f, TEXT("Door_Projection"), [](AFTDoor* D)
@@ -227,14 +227,17 @@ bool FTBuildStudioMap()
 	// ---------------------------------------------------------------- beach set, tank, shark
 	Spawn<AFTLighthouse>(W, FVector(2150.f, -700.f, -10.f), 180.f, TEXT("Lighthouse"));
 	Spawn<AFTFinGlider>(W, FVector(1700.f, -750.f, -50.f), 0.f, TEXT("FinGlider"), [](AFTFinGlider* G) { G->PathEnd = FVector(0.f, 1500.f, 0.f); });
-	Spawn<AFTSharkRig>(W, FVector(1850.f, 150.f, -120.f), 180.f, TEXT("SharkRig"), [](AFTSharkRig* R)
+	// Rig sits in open water between island (Y < 30) and dock (Y > 720): the tail (+290 behind the root) and the
+	// rail stay clear of both, and the boat parks south of the rail. Station stays on the stage floor at (1480, -1180).
+	Spawn<AFTSharkRig>(W, FVector(1700.f, 460.f, -120.f), 180.f, TEXT("SharkRig"), [](AFTSharkRig* R)
 	{
 		R->WaterHeight = 70.f;
-		R->RailHalfLength = 500.f;
-		R->StationOffset = FVector(370.f, 1330.f, 0.f);
+		R->RailHalfLength = 180.f;
+		R->LungeReach = 200.f;
+		R->StationOffset = FVector(220.f, 1640.f, 0.f);
 		R->StationYaw = 180.f;
 	});
-	Spawn<AFTRescueBoat>(W, FVector(850.f, 250.f, -120.f), 0.f, TEXT("RescueBoat"), [](AFTRescueBoat* B) { B->PathEnd = FVector(700.f, 0.f, 70.f); });
+	Spawn<AFTRescueBoat>(W, FVector(850.f, 250.f, -120.f), 0.f, TEXT("RescueBoat"), [](AFTRescueBoat* B) { B->PathEnd = FVector(650.f, -150.f, 70.f); });
 	Spawn<AFTFloodController>(W, FVector(900.f, 200.f, -120.f), 0.f, TEXT("FloodController"), [](AFTFloodController* F)
 	{
 		F->FloorZ = -120.f;

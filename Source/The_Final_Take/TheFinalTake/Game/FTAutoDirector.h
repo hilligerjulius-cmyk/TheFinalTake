@@ -48,6 +48,9 @@ private:
 	void AddShot(const FString& Name);
 	float LastToggleTime = -100.f;
 	bool bShots = false;
+	/** Real (wall-clock) frame times after warm-up, for the performance summary. */
+	TArray<float> FrameTimes;
+	double LastFrameStamp = 0.0;
 
 	TArray<FStep> Steps;
 	FString LastUseFailure;

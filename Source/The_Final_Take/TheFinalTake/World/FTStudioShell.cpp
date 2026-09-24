@@ -35,7 +35,12 @@ namespace
 		static TWeakObjectPtr<UMaterialInterface> Cache;
 		if (!Cache.IsValid())
 		{
-			Cache = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/TheFinalTake/Materials/M_FT_MatteISM.M_FT_MatteISM"), nullptr, LOAD_NoWarn | LOAD_Quiet);
+			UMaterialInterface* M = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/TheFinalTake/Materials/M_FT_MatteISM.M_FT_MatteISM"), nullptr, LOAD_NoWarn | LOAD_Quiet);
+			if (M && !IsRunningCommandlet() && !M->IsRooted())
+			{
+				M->AddToRoot();
+			}
+			Cache = M;
 		}
 		return Cache.IsValid() ? Cache.Get() : FTVis::Matte();
 	}
@@ -85,6 +90,10 @@ AFTStudioShell::AFTStudioShell()
 		T->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		T->SetCastShadow(false);
 		T->SetMobility(EComponentMobility::Static);
+		if (UMaterialInterface* TM = FTVis::TextMaterial())
+		{
+			T->SetTextMaterial(TM);
+		}
 		Texts.Add(T);
 	}
 	for (int32 i = 0; i < 36; ++i)
@@ -697,8 +706,6 @@ void AFTStudioShell::BuildStage()
 	Stairs(FVector(-300.f, 0.f, 0.f), 60.f, 600.f, -20.f, 5, true, TealDark, Tape);
 	Wall(FVector(-580.f, -1450.f, -120.f), FVector(-450.f, -1200.f, 0.f), Hex(0x6B3F7A));
 	Stairs(FVector(-450.f, -1325.f, 0.f), 60.f, 250.f, -20.f, 5, true, Hex(0x6B3F7A), Tape);
-	Add(BoxDeco, FVector(-560.f, -1325.f, 340.f), FVector(20.f, 320.f, 60.f), Magenta);
-	Text(TEXT("WARDROBE & MAKEUP"), FVector(-548.f, -1325.f, 340.f), 0.f, 26.f, FColor::White);
 	// landing railings
 	for (const FVector& P : { FVector(-300.f, -380.f, 50.f), FVector(-300.f, -320.f, 50.f), FVector(-300.f, 320.f, 50.f), FVector(-300.f, 780.f, 50.f) })
 	{
@@ -734,9 +741,14 @@ void AFTStudioShell::BuildStage()
 	Add(CubeDeco, FVector(150.f, -1325.f, -119.3f), FVector(480.f, 480.f, 1.f), Purple);
 	Wall(FVector(390.f, -1560.f, -120.f), FVector(410.f, -1150.f, -10.f), Hex(0x5B3F8C));
 	Wall(FVector(-100.f, -1060.f, -120.f), FVector(260.f, -1040.f, -10.f), Hex(0x5B3F8C));
-	Add(BoxDeco, FVector(400.f, -1355.f, 90.f), FVector(16.f, 410.f, 12.f), Magenta, 0.8f);
-	Add(BoxDeco, FVector(398.f, -1355.f, 160.f), FVector(12.f, 220.f, 70.f), Navy);
-	Text(TEXT("SOUND"), FVector(408.f, -1355.f, 160.f), 0.f, 50.f, FColor(255, 120, 200));
+	// booth front frame: posts up to the balcony slab, header beam with neon strip and the sign mounted on it
+	const FLinearColor BoothFrame = Hex(0x5B3F8C);
+	Add(BoxSolid, FVector(400.f, -1552.f, 135.f), FVector(26.f, 26.f, 510.f), BoothFrame);
+	Add(BoxSolid, FVector(400.f, -1158.f, 135.f), FVector(26.f, 26.f, 510.f), BoothFrame);
+	Add(BoxDeco, FVector(400.f, -1355.f, 355.f), FVector(30.f, 420.f, 70.f), BoothFrame);
+	Add(BoxDeco, FVector(416.f, -1355.f, 326.f), FVector(4.f, 400.f, 8.f), Magenta, 0.8f);
+	Add(BoxDeco, FVector(418.f, -1355.f, 360.f), FVector(6.f, 200.f, 46.f), Navy);
+	Text(TEXT("SOUND"), FVector(422.f, -1355.f, 360.f), 0.f, 38.f, FColor(255, 120, 200));
 	Point(FVector(150.f, -1300.f, 250.f), FLinearColor(0.9f, 0.5f, 1.f), 4000.f, 700.f, ZStage);
 	// effects corner signage
 	Add(CubeDeco, FVector(900.f, 1994.f, 260.f), FVector(500.f, 4.f, 90.f), Coral);
@@ -882,8 +894,6 @@ void AFTStudioShell::BuildUpperLevel()
 	// balcony railing towards the screen
 	Wall(FVector(245.f, -1330.f, 420.f), FVector(255.f, -900.f, 520.f), Hex(0x3B2E5E));
 	Add(BoxDeco, FVector(250.f, -1115.f, 525.f), FVector(20.f, 430.f, 10.f), Brass);
-	Add(BoxDeco, FVector(330.f, -1480.f, 700.f), FVector(10.f, 220.f, 60.f), Navy);
-	Text(TEXT("PROJECTION"), FVector(336.f, -1480.f, 700.f), 0.f, 34.f, FColor(255, 214, 90));
 	// cinema seats
 	for (int32 r = 0; r < 2; ++r)
 	{

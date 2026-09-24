@@ -103,6 +103,9 @@ protected:
 	float VisualZoom = 0.35f;
 	float VisualDolly = 0.5f;
 	float FeedTimer = 0.f;
+	float FocusTimer = 0.f;
+	float FocusTarget = 900.f;
+	float FocusDistance = 900.f;
 	float ReelSpin = 0.f;
 	bool bLocalViewActive = false;
 	bool IsLocallyOperated() const;

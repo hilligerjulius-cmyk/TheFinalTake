@@ -2,6 +2,7 @@
 
 #include "TheFinalTake/Interaction/FTStudioActor.h"
 #include "TheFinalTake/Core/FTVisuals.h"
+#include "Components/InstancedStaticMeshComponent.h"
 #include "Components/MeshComponent.h"
 
 UFTInteractableComponent::UFTInteractableComponent()
@@ -54,7 +55,8 @@ void UFTInteractableComponent::SetHighlighted(bool bOn)
 	}
 	for (UMeshComponent* M : Targets)
 	{
-		if (M && M->IsVisible())
+		// particle/instanced meshes are effects, not the object itself - outlining them only costs draw calls
+		if (M && M->IsVisible() && !M->IsA<UInstancedStaticMeshComponent>())
 		{
 			M->SetOverlayMaterial(Mat);
 		}

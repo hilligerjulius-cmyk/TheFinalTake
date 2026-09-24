@@ -112,7 +112,8 @@ protected:
 	UPROPERTY() TObjectPtr<UTextBlock> GreenlightLabel;
 	UPROPERTY() TObjectPtr<UTextBlock> StatusText;
 	UPROPERTY() TObjectPtr<UWidget> BookRoot;
-	TArray<const UFTFilmDefinition*> Films;
+	/** Strong references: the book outlives GC passes while it sits in the viewport. */
+	UPROPERTY() TArray<TObjectPtr<UFTFilmDefinition>> Films;
 	int32 Selected = 0;
 	float Age = 0.f;
 };

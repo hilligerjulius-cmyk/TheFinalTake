@@ -1,5 +1,25 @@
 # Änderungsprotokoll
 
+## 2026-09-24 – Fixes nach dem ersten Spieltest
+- **Absturz behoben:** Wurde das Drehbuch nach einer Garbage Collection erneut geöffnet, las es freigegebene Filmdaten. Das Widget hält die Filme jetzt fest, und der Testlauf prüft genau diesen Fall.
+- **Ruckler behoben:**
+  - Materialien, Meshes, Sounds und Filmdaten bleiben nach dem ersten Laden im Speicher. Vorher wurden sie nach jeder GC synchron nachgeladen.
+  - Alle Sounds und Filme werden beim Start vorgeladen.
+  - Das Highlight wird nicht mehr auf Partikel-ISMs gelegt. Die ISM-Nutzung ist an allen FT-Materialien gesetzt, vorher wurden sie bei jedem Start neu kompiliert.
+  - Der Kamera-Monitor rendert ohne Lumen, Distance-Field-AO und Volumetric Fog.
+  - Gemessen (1600×900, gerendert): 121 FPS im Schnitt, 1 %-Low 93 FPS, 0 Ruckler über 100 ms.
+- **Filmkamera:**
+  - Die Neigung ist umgedreht (Maus hoch = Kamera hoch), die Bewegungen sind gedämpft wie bei einem Fluid-Head.
+  - Cinematic-Look: Schärfentiefe mit Autofokus, Vignette, Filmkorn, leichte Farbsäume, warm/teal Grading und 2.39:1-Letterbox im Sucher.
+- **Physik:**
+  - Das Rettungsboot ist begehbar (Rumpf und Boden haben Kollision).
+  - Das Hai-Rig steht jetzt im freien Wasser zwischen Insel und Steg; Schiene, Heck und Sprung bleiben außerhalb der Insel.
+  - Der Flut-Hai prüft, ob Wasser tief genug ist und kein Hindernis im Weg liegt, und schwimmt nicht mehr durch Kulissen.
+- **Optik:**
+  - Die Tonkabine hat einen echten Rahmen (Pfosten, Querbalken, Neonleiste, Schild) statt frei schwebender Teile.
+  - Schilder an Garderobe und Projektionsraum gibt es nicht mehr doppelt.
+  - Beschriftungen nutzen ein einseitiges Textmaterial (`M_FT_Text`) und sind von hinten nicht mehr gespiegelt sichtbar.
+
 ## 2026-09-24 – `8fd8a14` Politur nach gerendertem Spieltest
 - HUD (`UI/FTHUDWidget.*`): feste Umbruchbreiten statt Auto-Wrap (Hinweisbanner, Ansagen, Aufgaben), Sucher-Motivliste als fester Zeilenpool (Zeilen lagen übereinander), Hinweis und Steuerungskarte im Sucher und in Menüs ausgeblendet, Uhr im 12-Stunden-Format.
 - Menüs (`UI/FTMenus.cpp`): Drehbuch-Details scrollen innerhalb der Seite, Einstellungen mit gestyltem Regler und Checkbox, Premieren-Untertitel unten verankert.

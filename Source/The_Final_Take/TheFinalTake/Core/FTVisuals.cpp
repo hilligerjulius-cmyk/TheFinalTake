@@ -59,7 +59,14 @@ namespace
 	{
 		if (!Cache.IsValid())
 		{
-			Cache = LoadObject<T>(nullptr, Path, nullptr, LOAD_NoWarn | LOAD_Quiet);
+			T* Obj = LoadObject<T>(nullptr, Path, nullptr, LOAD_NoWarn | LOAD_Quiet);
+			// Shared runtime assets stay resident: if GC dropped them between uses, the next use would
+			// reload them synchronously and freeze the game for a moment.
+			if (Obj && !IsRunningCommandlet() && !Obj->IsRooted())
+			{
+				Obj->AddToRoot();
+			}
+			Cache = Obj;
 		}
 		return Cache.Get();
 	}
@@ -151,6 +158,20 @@ UMaterialInterface* FTVis::Screen()
 	return LoadCached(Cache, TEXT("/Game/TheFinalTake/Materials/M_FT_Screen.M_FT_Screen"));
 }
 
+UMaterialInterface* FTVis::TextMaterial()
+{
+	static TWeakObjectPtr<UMaterialInterface> Cache;
+	static bool bMissing = false;
+	if (bMissing)
+	{
+		return nullptr;
+	}
+	UMaterialInterface* M = LoadCached(Cache, TEXT("/Game/TheFinalTake/Materials/M_FT_Text.M_FT_Text"));
+	// the commandlet creates the asset mid-run, so only remember a miss in the game
+	bMissing = M == nullptr && !IsRunningCommandlet();
+	return M;
+}
+
 void FTVis::NoCollision(UPrimitiveComponent* Comp)
 {
 	if (!Comp)
@@ -218,6 +239,8 @@ static void ConfigurePart(UStaticMeshComponent* Part, EFTShape Shape, const FVec
 	{
 		Part->SetCollisionProfileName(UCollisionProfile::BlockAll_ProfileName);
 		Part->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		// solid set pieces must not swallow the interaction sweep (walls are handled by the visibility LOS check)
+		Part->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECR_Ignore);
 	}
 	else
 	{
@@ -271,5 +294,9 @@ UTextRenderComponent* FTVis::MakeText(AActor* Owner, USceneComponent* Parent, FN
 	T->SetVerticalAlignment(EVRTA_TextCenter);
 	T->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	T->SetCastShadow(false);
+	if (UMaterialInterface* TM = TextMaterial())
+	{
+		T->SetTextMaterial(TM);
+	}
 	return T;
 }

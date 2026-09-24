@@ -27,9 +27,24 @@ const UFTFilmDefinition* UFTFilmDefinition::Find(FName FilmId)
 	{
 		return nullptr;
 	}
-	const FString AssetPath = FString::Printf(TEXT("/Game/TheFinalTake/Data/DA_Film_%s.DA_Film_%s"), *FilmId.ToString(), *FilmId.ToString());
-	if (const UFTFilmDefinition* Asset = LoadObject<UFTFilmDefinition>(nullptr, *AssetPath, nullptr, LOAD_NoWarn | LOAD_Quiet))
+	// Film assets are looked up every frame by the HUD and held by widgets: load once and keep them resident
+	// (a GC'd asset left widgets with dangling pointers and caused synchronous reload hitches).
+	static TMap<FName, TWeakObjectPtr<UFTFilmDefinition>> Cache;
+	if (const TWeakObjectPtr<UFTFilmDefinition>* Hit = Cache.Find(FilmId))
 	{
+		if (Hit->IsValid())
+		{
+			return Hit->Get();
+		}
+	}
+	const FString AssetPath = FString::Printf(TEXT("/Game/TheFinalTake/Data/DA_Film_%s.DA_Film_%s"), *FilmId.ToString(), *FilmId.ToString());
+	if (UFTFilmDefinition* Asset = LoadObject<UFTFilmDefinition>(nullptr, *AssetPath, nullptr, LOAD_NoWarn | LOAD_Quiet))
+	{
+		if (!IsRunningCommandlet() && !Asset->IsRooted())
+		{
+			Asset->AddToRoot();
+		}
+		Cache.Add(FilmId, Asset);
 		return Asset;
 	}
 	if (FilmId == FTTags::FilmJaws) return GetDefault<UFTFilm_JawsOfTheStudio>();

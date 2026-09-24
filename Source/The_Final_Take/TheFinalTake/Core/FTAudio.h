@@ -24,6 +24,8 @@ class THE_FINAL_TAKE_API FTAudio
 {
 public:
 	static USoundBase* Get(EFTSound Sound);
+	/** Loads every sound up front so the first play of a cue never stalls the game thread. */
+	static void PreloadAll();
 	static USoundAttenuation* Attenuation();
 	static float Master();
 

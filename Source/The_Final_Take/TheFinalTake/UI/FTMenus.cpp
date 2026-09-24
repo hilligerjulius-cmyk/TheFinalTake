@@ -451,7 +451,11 @@ void UFTScriptBookWidget::NativeOnInitialized()
 	UWidgetTree* T = WidgetTree;
 	UCanvasPanel* Root = MakeRoot(T);
 	Fullscreen(Root, Swatch(T, FLinearColor(0.01f, 0.01f, 0.03f, 0.6f), FVector2D(10.f)));
-	Films = UFTFilmDefinition::All();
+	Films.Reset();
+	for (const UFTFilmDefinition* F : UFTFilmDefinition::All())
+	{
+		Films.Add(const_cast<UFTFilmDefinition*>(F));
+	}
 
 	// book cover behind the pages
 	UBorder* Cover = Box(T, Teal, 22.f, FMargin(20.f, 18.f), Ink, 4.f);

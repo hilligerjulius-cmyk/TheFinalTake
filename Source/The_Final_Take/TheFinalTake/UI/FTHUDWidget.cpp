@@ -104,6 +104,13 @@ void UFTHUDWidget::Build()
 		UCanvasPanelSlot* S = Root->AddChildToCanvas(CameraLayer);
 		S->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
 		S->SetOffsets(FMargin(0.f));
+		// 2.39:1 letterbox on a 16:9 screen; the REC line and hints sit on the bars like on a real monitor
+		for (int32 i = 0; i < 2; ++i)
+		{
+			UCanvasPanelSlot* BarSlot = CameraLayer->AddChildToCanvas(Swatch(T, FLinearColor(0.f, 0.f, 0.f, 1.f), FVector2D(10.f)));
+			BarSlot->SetAnchors(i == 0 ? FAnchors(0.f, 0.f, 1.f, 0.128f) : FAnchors(0.f, 0.872f, 1.f, 1.f));
+			BarSlot->SetOffsets(FMargin(0.f));
+		}
 		const float L = 70.f, W = 6.f, M = 60.f;
 		struct FCorner { FAnchors A; FVector2D Al; FVector2D P; };
 		const FCorner Corners[4] = {
