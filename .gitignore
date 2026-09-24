@@ -9,3 +9,7 @@ DerivedDataCache/
 *.sdf
 *.suo
 .vsconfig
+
+# Python caches (Tools/blender pipeline)
+__pycache__/
+*.pyc
