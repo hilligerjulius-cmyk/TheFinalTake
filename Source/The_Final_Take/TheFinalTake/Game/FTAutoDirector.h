@@ -44,7 +44,10 @@ private:
 	/** Switches a toggle-style device on (never off again): uses it only while nothing tagged DeviceTag is active. */
 	bool EnsureActive(const FString& ClassName, FName ActionId, FName DeviceTag, FName RequiredTag = NAME_None);
 	FString DescribeObjectives() const;
+	/** -FTAutoShots: adds a step that saves a screenshot (with UI) to Saved/AutoShots/<Name>.png */
+	void AddShot(const FString& Name);
 	float LastToggleTime = -100.f;
+	bool bShots = false;
 
 	TArray<FStep> Steps;
 	FString LastUseFailure;

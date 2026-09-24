@@ -5,6 +5,7 @@
 #include "TheFinalTake/Characters/FTCharacter.h"
 #include "TheFinalTake/Data/FTFilmDefinition.h"
 #include "TheFinalTake/Game/FTGameState.h"
+#include "TheFinalTake/Game/FTPlayerController.h"
 #include "TheFinalTake/Game/FTPlayerState.h"
 #include "TheFinalTake/Interaction/FTInteractableComponent.h"
 #include "TheFinalTake/Production/FTFilmCamera.h"
@@ -147,6 +148,13 @@ void UFTHUDWidget::Build()
 		AddH(FrameRow, FrameSize);
 		AddV(Panel, FrameRow);
 		SubjectList = T->ConstructWidget<UVerticalBox>();
+		for (int32 i = 0; i < 6; ++i)
+		{
+			UTextBlock* Line = Text(T, FText::GetEmpty(), 16, White, TEXT("Black"), true);
+			AddV(SubjectList, Line, FMargin(0.f, 1.f));
+			Line->SetVisibility(ESlateVisibility::Collapsed);
+			SubjectLines.Add(Line);
+		}
 		AddV(Panel, SubjectList, FMargin(0.f, 6.f));
 		CameraHint = Text(T, LOCTEXT("CamHint", "LMB record/cut   Mouse pan/tilt   Wheel zoom   A/D dolly   R recenter   Q step off (keeps rolling)"), 14, Cream, TEXT("Bold"), true);
 		AddV(Panel, CameraHint, FMargin(0.f, 8.f));
@@ -193,7 +201,8 @@ void UFTHUDWidget::Build()
 	{
 		CalloutBanner = Box(T, Amber, 18.f, FMargin(22.f, 8.f), Ink, 3.f);
 		CalloutText = Text(T, FText::GetEmpty(), 18, Ink, TEXT("Bold"));
-		CalloutText->SetAutoWrapText(true);
+		// fixed wrap width: auto-wrap inside an auto-sized canvas slot collapses to one word per line
+		CalloutText->SetAutoWrapText(false);
 		CalloutText->SetWrapTextAt(760.f);
 		CalloutText->SetJustification(ETextJustify::Center);
 		CalloutBanner->SetContent(CalloutText);
@@ -284,7 +293,7 @@ void UFTHUDWidget::Build()
 		AnnounceBox = Box(T, Ink, 10.f, FMargin(28.f, 12.f), Cream, 3.f);
 		AnnounceText = Text(T, FText::GetEmpty(), 34, Cream, TEXT("Black"));
 		AnnounceText->SetJustification(ETextJustify::Center);
-		AnnounceText->SetAutoWrapText(true);
+		AnnounceText->SetAutoWrapText(false);
 		AnnounceText->SetWrapTextAt(900.f);
 		AnnounceBox->SetContent(AnnounceText);
 		AddV(V, AnnounceBox, FMargin(0.f), 1);
@@ -457,7 +466,6 @@ void UFTHUDWidget::UpdateCallSheet()
 	const FFTSceneDefinition* Scene = GS->GetCurrentScene();
 
 	CalloutText->SetText(GS->Callout);
-	CalloutBanner->SetVisibility(GS->Callout.IsEmpty() || GS->ShootPhase == EFTShootPhase::Title ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible);
 
 	FString Sig = FString::Printf(TEXT("%d|%d|%d|%s|%d|"), (int32)GS->ShootPhase, GS->SceneIndex, (int32)GS->SceneState, *GS->FilmId.ToString(), GS->ReelsLoaded);
 	for (const FFTObjectiveStatus& S : GS->Objectives)
@@ -507,8 +515,8 @@ void UFTHUDWidget::UpdateCallSheet()
 		CS->AddChild(Check);
 		AddH(Row, CS, FMargin(0.f, 0.f, 8.f, 0.f));
 		UTextBlock* L = Text(WidgetTree, bCritical ? Label : FText::Format(LOCTEXT("Opt", "{0}"), Label), bCritical ? 16 : 14, TextC, bCritical ? TEXT("Bold") : TEXT("Italic"));
-		L->SetAutoWrapText(true);
-		L->SetWrapTextAt(320.f);
+		L->SetAutoWrapText(false);
+		L->SetWrapTextAt(310.f);
 		if (State == EFTObjectiveState::Complete)
 		{
 			L->SetStrikeBrush(Round(FLinearColor(0.1f, 0.12f, 0.25f, 0.8f), 1.f));
@@ -634,6 +642,12 @@ void UFTHUDWidget::UpdatePrompt()
 	const FText Prompt = C ? C->GetPromptText(bAvailable, Reason) : FText::GetEmpty();
 	const bool bOperating = C && C->IsOperatingCamera();
 	Crosshair->SetVisibility(C && !bOperating ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	// keep the viewfinder clean: the lens layer has its own status line and key hints
+	const AFTPlayerController* FTPC = Cast<AFTPlayerController>(PC);
+	const bool bModalUI = FTPC && FTPC->IsUIBlockingGameplay();
+	HelpCard->SetVisibility(bHelpVisible && !bOperating && !bModalUI ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	const AFTGameState* GS = GetWorld() ? GetWorld()->GetGameState<AFTGameState>() : nullptr;
+	CalloutBanner->SetVisibility(!GS || bOperating || GS->Callout.IsEmpty() || GS->ShootPhase == EFTShootPhase::Title ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible);
 	if (!Prompt.IsEmpty() && !bOperating)
 	{
 		PromptBox->SetVisibility(ESlateVisibility::HitTestInvisible);
@@ -698,7 +712,18 @@ void UFTHUDWidget::UpdateCamera(float Dt)
 	FrameBar->SetFillColorAndOpacity(F.bCriticalValid ? Teal : Coral);
 	FrameText->SetText(bRec ? FText::Format(LOCTEXT("FrameFmt", "FRAME {0}%"), FText::AsNumber(FMath::RoundToInt(F.Quality * 100.f))) : LOCTEXT("FramePre", "FRAME --"));
 
-	SubjectList->ClearChildren();
+	int32 Used = 0;
+	auto SetLine = [this, &Used](const FText& InText, const FLinearColor& Color)
+	{
+		if (SubjectLines.IsValidIndex(Used))
+		{
+			UTextBlock* L = SubjectLines[Used];
+			L->SetText(InText);
+			L->SetColorAndOpacity(FSlateColor(Color));
+			L->SetVisibility(ESlateVisibility::HitTestInvisible);
+		}
+		++Used;
+	};
 	if (const FFTSceneDefinition* Scene = GS->GetCurrentScene())
 	{
 		for (int32 i = 0; i < Scene->RequiredSubjects.Num(); ++i)
@@ -706,12 +731,16 @@ void UFTHUDWidget::UpdateCamera(float Dt)
 			const float S = bRec && F.SubjectScores.IsValidIndex(i) ? F.SubjectScores[i] : -1.f;
 			const FString Name = Scene->RequiredSubjects[i].ToString().RightChop(8);
 			const FString Line = S < 0.f ? FString::Printf(TEXT("[ ] %s"), *Name) : FString::Printf(TEXT("%s %s  %d%%"), S >= 0.3f ? TEXT("[x]") : TEXT("[ ]"), *Name, FMath::RoundToInt(S * 100.f));
-			AddV(SubjectList, Text(WidgetTree, FText::FromString(Line), 16, S >= 0.3f ? Cyan : White, TEXT("Black"), true), FMargin(0.f, 1.f));
+			SetLine(FText::FromString(Line), S >= 0.3f ? Cyan : White);
 		}
 		if (bRec)
 		{
-			AddV(SubjectList, Text(WidgetTree, FText::Format(LOCTEXT("HoldSec", "HOLD {0} / {1} s"), FText::AsNumber(FMath::RoundToFloat(GS->CaptureProgress * Scene->CaptureDuration * 10.f) / 10.f), FText::AsNumber(Scene->CaptureDuration)), 16, Yellow, TEXT("Black"), true), FMargin(0.f, 4.f));
+			SetLine(FText::Format(LOCTEXT("HoldSec", "HOLD {0} / {1} s"), FText::AsNumber(FMath::RoundToFloat(GS->CaptureProgress * Scene->CaptureDuration * 10.f) / 10.f), FText::AsNumber(Scene->CaptureDuration)), Yellow);
 		}
+	}
+	for (int32 i = Used; i < SubjectLines.Num(); ++i)
+	{
+		SubjectLines[i]->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
 

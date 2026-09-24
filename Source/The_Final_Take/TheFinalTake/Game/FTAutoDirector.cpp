@@ -12,6 +12,7 @@
 #include "TheFinalTake/Props/FTSetPieces.h"
 
 #include "EngineUtils.h"
+#include "UnrealClient.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 
@@ -30,7 +31,22 @@ void AFTAutoDirector::BeginPlay()
 {
 	Super::BeginPlay();
 	Log(TEXT("AutoTest started"));
+	bShots = FParse::Param(FCommandLine::Get(), TEXT("FTAutoShots"));
 	BuildSteps();
+}
+
+void AFTAutoDirector::AddShot(const FString& Name)
+{
+	if (!bShots)
+	{
+		return;
+	}
+	Steps.Add({ FString::Printf(TEXT("Screenshot %s"), *Name), [Name]()
+	{
+		const FString File = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir() / TEXT("AutoShots") / Name + TEXT(".png"));
+		FScreenshotRequest::RequestScreenshot(File, true, false);
+		return true;
+	} });
 }
 
 void AFTAutoDirector::Log(const FString& Line, bool bFail)
@@ -199,7 +215,7 @@ void AFTAutoDirector::BuildSteps()
 		}
 		return false;
 	};
-	auto RollCamera = [this, GS, SM, Cam]()
+	auto ClaimCamera = [this, GS, Cam]()
 	{
 		AFTFilmCamera* F = Cam();
 		AFTGameState* G = GS();
@@ -219,6 +235,7 @@ void AFTAutoDirector::BuildSteps()
 		}
 		// frame the scene's required subjects like an operator would before locking off the shot
 		TArray<FVector> Points;
+		float MaxRadius = 120.f;
 		if (const FFTSceneDefinition* Scene = G->GetCurrentScene())
 		{
 			for (FName Tag : Scene->RequiredSubjects)
@@ -229,10 +246,22 @@ void AFTAutoDirector::BuildSteps()
 				if (AFTSceneManager::FindSubject(GetWorld(), Tag, Center, Radius, SubjectActor))
 				{
 					Points.Add(Center);
+					MaxRadius = FMath::Max(MaxRadius, Radius);
 				}
 			}
 		}
-		F->FrameTargets(Points);
+		F->FrameTargets(Points, MaxRadius);
+		return true;
+	};
+	auto RollCamera = [this, GS, SM, Cam]()
+	{
+		AFTFilmCamera* F = Cam();
+		AFTGameState* G = GS();
+		if (!F || !G || F->GetOperator() != Crew.Get() || G->SceneState != EFTSceneState::ReadyToRoll)
+		{
+			Log(TEXT("camera was not ready to roll"), true);
+			return true;
+		}
 		SM()->RequestRecordToggle(F, Crew.Get());
 		const bool bRec = F->IsRecording();
 		Crew->StopUsing();
@@ -240,18 +269,52 @@ void AFTAutoDirector::BuildSteps()
 		return true;
 	};
 
-	Steps.Add({ TEXT("Crew member spawned"), [this]()
+	// -FTAutoPlayers=N: wait until N crew members are in (multiplayer validation), the first one drives the test
+	int32 WantPlayers = 1;
+	FParse::Value(FCommandLine::Get(), TEXT("FTAutoPlayers="), WantPlayers);
+	Steps.Add({ FString::Printf(TEXT("%d crew member(s) spawned"), WantPlayers), [this, WantPlayers]()
 	{
+		int32 Count = 0;
 		for (TActorIterator<AFTCharacter> It(GetWorld()); It; ++It)
 		{
 			if (It->GetController())
 			{
-				Crew = *It;
-				return true;
+				++Count;
+				if (!Crew.IsValid() && It->IsLocallyControlled())
+				{
+					Crew = *It;
+				}
 			}
 		}
+		if (!Crew.IsValid())
+		{
+			for (TActorIterator<AFTCharacter> It(GetWorld()); It; ++It)
+			{
+				if (It->GetController())
+				{
+					Crew = *It;
+					break;
+				}
+			}
+		}
+		if (Count >= WantPlayers && Crew.IsValid())
+		{
+			Log(FString::Printf(TEXT("%d crew member(s) connected, driving %s"), Count, *Crew->GetCrewName()));
+			return true;
+		}
 		return false;
-	} });
+	}, 90.f });
+	AddShot(TEXT("01_lobby"));
+	if (bShots)
+	{
+		// same path as a player holding E on the book, so the client widget really opens
+		Steps.Add({ TEXT("Open the script book"), [this]()
+		{
+			Teleport(FVector(-1250.f, 1480.f, 100.f), 0.f);
+			return Use(TEXT("FTScriptBook"), TEXT("Open"));
+		} });
+		AddShot(TEXT("02_script_book"));
+	}
 	Steps.Add({ TEXT("Open the script book and greenlight Jaws of the Studio"), [this, SM, PC, GS]()
 	{
 		FText Why;
@@ -290,7 +353,9 @@ void AFTAutoDirector::BuildSteps()
 		Teleport(FVector(2020.f, -560.f, 90.f));
 		return EnsureActive(TEXT("FTLighthouse"), TEXT("Toggle"), FTTags::DevLighthouse) && ObjectiveDone(1);
 	} });
-	Steps.Add({ TEXT("Man the camera and roll (scene 1)"), RollCamera, 15.f });
+	Steps.Add({ TEXT("Man the camera (scene 1)"), ClaimCamera, 15.f });
+	AddShot(TEXT("03_lens_scene1"));
+	Steps.Add({ TEXT("Roll, operator steps off (scene 1)"), RollCamera });
 	Steps.Add({ TEXT("Hit the warning siren"), [this]() { Teleport(FVector(60.f, -1300.f, -30.f)); return Use(TEXT("FTSoundConsole"), TEXT("Cue0")); } });
 	Steps.Add({ TEXT("Take 1 accepted"), [TakeAccepted]() { return TakeAccepted(0); }, 25.f });
 	Steps.Add({ TEXT("Scene 2 begins"), [GS]() { return GS()->SceneIndex == 1 && GS()->SceneState == EFTSceneState::Preparation; }, 20.f });
@@ -327,11 +392,18 @@ void AFTAutoDirector::BuildSteps()
 		const bool bRain = bWind && EnsureActive(TEXT("FTEffectMachine"), TEXT("Toggle"), FTTags::DevRain, FTTags::DevRain);
 		return bWind && bRain && ObjectiveDone(1) && ObjectiveDone(2);
 	}, 5.f });
-	Steps.Add({ TEXT("Man the camera and roll (scene 2)"), RollCamera, 15.f });
+	Steps.Add({ TEXT("Man the camera (scene 2)"), ClaimCamera, 15.f });
+	AddShot(TEXT("04_lens_scene2"));
+	Steps.Add({ TEXT("Roll, operator steps off (scene 2)"), RollCamera });
 	Steps.Add({ TEXT("Shark rig lunge at the boat"), [this]() { Teleport(FVector(1400.f, -1150.f, -30.f)); return Use(TEXT("FTSharkRig"), TEXT("Rig3")); } });
 	Steps.Add({ TEXT("Take 2 accepted"), [TakeAccepted]() { return TakeAccepted(1); }, 25.f });
 	Steps.Add({ TEXT("Flood: valve bursts (Leaking)"), [GS]() { return GS()->FloodStage != EFTFloodStage::Dry && !GS()->bStagePower; }, 25.f });
 	Steps.Add({ TEXT("Flood: stage fully flooded"), [GS]() { return GS()->FloodStage == EFTFloodStage::Flooded; }, 40.f });
+	if (bShots)
+	{
+		Steps.Add({ TEXT("Look over the flooded stage"), [this]() { Teleport(FVector(-400.f, 300.f, 100.f), 20.f); return StepTime > 2.f; } });
+		AddShot(TEXT("05_flooded"));
+	}
 	Steps.Add({ TEXT("Scene 3 begins"), [GS]() { return GS()->SceneIndex == 2; }, 20.f });
 	Steps.Add({ TEXT("Restore stage power at the breaker"), [this, GS]() { Teleport(FVector(-460.f, 650.f, 100.f), 180.f); Use(TEXT("FTBreaker"), TEXT("Restore")); return GS()->bStagePower; } });
 	Steps.Add({ TEXT("Hero spotlight on"), [this, ObjectiveDone]()
@@ -366,7 +438,9 @@ void AFTAutoDirector::BuildSteps()
 		Teleport(FVector(1400.f, -1150.f, -30.f));
 		return EnsureActive(TEXT("FTSharkRig"), TEXT("Rig0"), TEXT("Device.SharkRig")) && ObjectiveDone(3);
 	} });
-	Steps.Add({ TEXT("Man the camera and roll (scene 3)"), RollCamera, 15.f });
+	Steps.Add({ TEXT("Man the camera (scene 3)"), ClaimCamera, 15.f });
+	AddShot(TEXT("06_lens_scene3"));
+	Steps.Add({ TEXT("Roll, operator steps off (scene 3)"), RollCamera });
 	Steps.Add({ TEXT("Lunge for the staged defeat"), [this]() { return Use(TEXT("FTSharkRig"), TEXT("Rig3")); } });
 	Steps.Add({ TEXT("Take 3 accepted"), [TakeAccepted]() { return TakeAccepted(2); }, 25.f });
 	Steps.Add({ TEXT("Finale: projection room unlocked"), [GS]() { return GS()->ShootPhase == EFTShootPhase::Finale && GS()->bProjectionUnlocked; }, 20.f });
@@ -386,6 +460,11 @@ void AFTAutoDirector::BuildSteps()
 	}, 15.f });
 	Steps.Add({ TEXT("Restore projector power"), [this, GS]() { Use(TEXT("FTProjector"), TEXT("Power")); return GS()->bProjectorPower; } });
 	Steps.Add({ TEXT("Start the premiere"), [this, GS]() { Use(TEXT("FTProjector"), TEXT("Start")); return GS()->ShootPhase == EFTShootPhase::Premiere; } });
+	if (bShots)
+	{
+		Steps.Add({ TEXT("Watch the premiere"), [this]() { Teleport(FVector(200.f, -1250.f, 520.f), 30.f); return StepTime > 9.f; } });
+		AddShot(TEXT("07_premiere"));
+	}
 	Steps.Add({ TEXT("Premiere ends on the results"), [this, GS]()
 	{
 		if (GS()->ShootPhase != EFTShootPhase::Results)
@@ -396,6 +475,11 @@ void AFTAutoDirector::BuildSteps()
 			GS()->TeamScore, GS()->StyleBonus, GS()->DisasterBonus, GS()->GetCompletedTakeCount(), GS()->StudioCondition));
 		return true;
 	}, 60.f });
+	if (bShots)
+	{
+		Steps.Add({ TEXT("Results screen settles"), [this]() { return StepTime > 2.f; } });
+		AddShot(TEXT("08_results"));
+	}
 	Steps.Add({ TEXT("Retry shoot resets everything"), [this, GS, SM, PC]()
 	{
 		SM()->RequestRestart(PC());

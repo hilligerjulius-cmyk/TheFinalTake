@@ -1,5 +1,6 @@
 #include "TheFinalTake/Game/FTGameState.h"
 
+#include "The_Final_Take.h"
 #include "TheFinalTake/Data/FTFilmDefinition.h"
 #include "TheFinalTake/Interaction/FTStudioActor.h"
 #include "EngineUtils.h"
@@ -75,7 +76,8 @@ FText AFTGameState::GetStudioClockText() const
 	// The night runs from midnight to the 06:00 premiere.
 	const float Elapsed01 = 1.f - FMath::Clamp(GetDawnRemaining() / FMath::Max(DawnDuration, 1.f), 0.f, 1.f);
 	const int32 TotalMinutes = FMath::FloorToInt(Elapsed01 * 360.f);
-	return FText::FromString(FString::Printf(TEXT("%02d:%02d AM"), TotalMinutes / 60, TotalMinutes % 60));
+	const int32 Hour = TotalMinutes / 60;
+	return FText::FromString(FString::Printf(TEXT("%d:%02d AM"), Hour == 0 ? 12 : Hour, TotalMinutes % 60));
 }
 
 int32 AFTGameState::GetCompletedTakeCount() const
@@ -106,6 +108,11 @@ const FFTTakeResult* AFTGameState::GetBestTake(int32 InSceneIndex) const
 
 void AFTGameState::MulticastAnnounce_Implementation(const FText& Text, EFTAnnounceStyle Style, EFTSound Sound)
 {
+	// clients log what reached them, so multiplayer runs can be verified from the client log alone
+	if (GetNetMode() == NM_Client)
+	{
+		UE_LOG(LogFinalTake, Display, TEXT("[Client] announce: %s"), *Text.ToString());
+	}
 	OnAnnounce.Broadcast(Text, Style, Sound);
 	if (Sound != EFTSound::None && GetNetMode() != NM_DedicatedServer)
 	{
@@ -115,6 +122,10 @@ void AFTGameState::MulticastAnnounce_Implementation(const FText& Text, EFTAnnoun
 
 void AFTGameState::MulticastTakeResult_Implementation(const FFTTakeResult& Result)
 {
+	if (GetNetMode() == NM_Client)
+	{
+		UE_LOG(LogFinalTake, Display, TEXT("[Client] take result: scene %d take %d, %d pts, accepted=%d"), Result.SceneIndex + 1, Result.TakeNumber, Result.Score, Result.bAccepted ? 1 : 0);
+	}
 	OnTakeResult.Broadcast(Result);
 }
 
@@ -136,6 +147,11 @@ void AFTGameState::OnRep_State()
 	if (ShootPhase != LastSeenPhase)
 	{
 		LastSeenPhase = ShootPhase;
+		if (GetNetMode() == NM_Client)
+		{
+			UE_LOG(LogFinalTake, Display, TEXT("[Client] shoot phase -> %s (scene %d, flood %d, takes %d)"),
+				*UEnum::GetValueAsString(ShootPhase), SceneIndex + 1, (int32)FloodStage, TakeResults.Num());
+		}
 		for (TActorIterator<AFTStudioActor> It(GetWorld()); It; ++It)
 		{
 			It->OnShootPhaseChanged(ShootPhase);

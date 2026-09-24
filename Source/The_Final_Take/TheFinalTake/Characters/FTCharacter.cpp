@@ -44,10 +44,11 @@ namespace
 		using namespace FTColors;
 		switch (((Index % 4) + 4) % 4)
 		{
-		case 0: return { SkinA, HairBrown, Teal, Teal, Teal, Charcoal, Cream, Teal, TealDark, Teal, Coral, true, false, false, false, 0 };
+		// gloves stay bright: in first person they fill the lower corners, dark gloves read as rocks
+		case 0: return { SkinA, HairBrown, Teal, Teal, Teal, Cream, Cream, Teal, TealDark, Teal, Coral, true, false, false, false, 0 };
 		case 1: return { SkinD, HairBrown, Coral, Coral, Coral, SkinD, Cream, Coral, Coral, Coral, CoralDark, false, true, false, false, 1 };
-		case 2: return { SkinC, HairBlack, Yellow, Yellow, Yellow, Charcoal, Charcoal, Yellow, Amber, Yellow, Charcoal, true, false, true, false, 0 };
-		default: return { SkinA, HairGinger, Cream, TealLight, Cream, Charcoal, TealLight, Cream, Teal, TealLight, Coral, true, false, false, true, 2 };
+		case 2: return { SkinC, HairBlack, Yellow, Yellow, Yellow, Coral, Charcoal, Yellow, Amber, Yellow, Charcoal, true, false, true, false, 0 };
+		default: return { SkinA, HairGinger, Cream, TealLight, Cream, Teal, TealLight, Cream, Teal, TealLight, Coral, true, false, false, true, 2 };
 		}
 	}
 
@@ -394,7 +395,8 @@ void AFTCharacter::ApplyLook()
 	// first-person arms mirror the costume sleeves
 	FTVis::Paint(FPSleeveL, Sleeve);
 	FTVis::Paint(FPSleeveR, Sleeve);
-	const FLinearColor Cuff = Costume == EFTCostume::Lifeguard ? L.Skin : (Costume == EFTCostume::None ? Cream : Sleeve * 0.8f);
+	// the crew accent colour separates sleeve and glove even when both are light
+	const FLinearColor Cuff = Costume == EFTCostume::Lifeguard ? L.Skin : (Costume == EFTCostume::None ? L.Glasses : Sleeve * 0.8f);
 	FTVis::Paint(FPCuffL, Cuff);
 	FTVis::Paint(FPCuffR, Cuff);
 	FTVis::Paint(FPHandL, Glove);
@@ -688,6 +690,16 @@ void AFTCharacter::Tick(float DeltaSeconds)
 			ForceNetUpdate();
 		}
 		UpdateRecovery();
+		// props are handed over / loaded / reset from many places; derive the roster flag instead of tracking it
+		if (AFTPlayerState* PS = GetPlayerState<AFTPlayerState>())
+		{
+			const bool bCarryingNow = HeldProp != nullptr;
+			if (PS->bCarrying != bCarryingNow)
+			{
+				PS->bCarrying = bCarryingNow;
+				PS->ForceNetUpdate();
+			}
+		}
 	}
 
 	// water splashes (cosmetic, local)

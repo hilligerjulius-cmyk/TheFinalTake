@@ -21,11 +21,13 @@
 #include "Components/Image.h"
 #include "Components/Overlay.h"
 #include "Components/OverlaySlot.h"
+#include "Components/ScrollBox.h"
 #include "Components/SizeBox.h"
 #include "Components/Slider.h"
 #include "Components/Spacer.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
+#include "Components/VerticalBoxSlot.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Engine/World.h"
 
@@ -102,10 +104,25 @@ void UFTSettingsPanel::NativeOnInitialized()
 	auto SliderRow = [&](const FText& Label, TObjectPtr<USlider>& OutSlider, TObjectPtr<UTextBlock>& OutValue)
 	{
 		UHorizontalBox* Row = T->ConstructWidget<UHorizontalBox>();
-		AddH(Row, Sized(T, Text(T, Label, 18, Ink, TEXT("Bold")), 230.f));
+		AddH(Row, Sized(T, Text(T, Label, 18, Ink, TEXT("Bold")), 270.f));
 		OutSlider = T->ConstructWidget<USlider>();
-		OutSlider->SetSliderBarColor(PaperDark);
-		OutSlider->SetSliderHandleColor(Coral);
+		// chunky track + pill thumb to match the paper cards
+		FSliderStyle SliderStyle;
+		const FSlateBrush Track = Round(PaperDark, 5.f, Ink, 2.f);
+		FSlateBrush Thumb = Round(Coral, 7.f, Ink, 2.f);
+		Thumb.ImageSize = FVector2D(20.f, 26.f);
+		FSlateBrush ThumbHover = Round(Amber, 7.f, Ink, 2.f);
+		ThumbHover.ImageSize = Thumb.ImageSize;
+		SliderStyle.SetNormalBarImage(Track);
+		SliderStyle.SetHoveredBarImage(Track);
+		SliderStyle.SetDisabledBarImage(Track);
+		SliderStyle.SetNormalThumbImage(Thumb);
+		SliderStyle.SetHoveredThumbImage(ThumbHover);
+		SliderStyle.SetDisabledThumbImage(Thumb);
+		SliderStyle.SetBarThickness(10.f);
+		OutSlider->SetWidgetStyle(SliderStyle);
+		OutSlider->SetSliderBarColor(FLinearColor::White);
+		OutSlider->SetSliderHandleColor(FLinearColor::White);
 		AddH(Row, Sized(T, OutSlider, 240.f, 32.f));
 		OutValue = Text(T, FText::GetEmpty(), 18, TealDark, TEXT("Black"));
 		AddH(Row, Sized(T, OutValue, 70.f), FMargin(12.f, 0.f, 0.f, 0.f));
@@ -114,9 +131,25 @@ void UFTSettingsPanel::NativeOnInitialized()
 	SliderRow(LOCTEXT("Volume", "Master volume"), Volume, VolumeValue);
 	SliderRow(LOCTEXT("Sens", "Mouse sensitivity"), Sensitivity, SensValue);
 	UHorizontalBox* ShakeRow = T->ConstructWidget<UHorizontalBox>();
-	AddH(ShakeRow, Sized(T, Text(T, LOCTEXT("Shake", "Reduced screen shake"), 18, Ink, TEXT("Bold")), 230.f));
+	AddH(ShakeRow, Sized(T, Text(T, LOCTEXT("Shake", "Reduced screen shake"), 18, Ink, TEXT("Bold")), 270.f));
 	Shake = T->ConstructWidget<UCheckBox>();
-	AddH(ShakeRow, Shake);
+	{
+		FCheckBoxStyle BoxStyle;
+		auto BoxBrush = [](const FLinearColor& Fill, float Outline)
+		{
+			FSlateBrush B = Round(Fill, 6.f, Ink, Outline);
+			B.ImageSize = FVector2D(28.f, 28.f);
+			return B;
+		};
+		BoxStyle.SetUncheckedImage(BoxBrush(Cream, 2.f));
+		BoxStyle.SetUncheckedHoveredImage(BoxBrush(Cream, 3.f));
+		BoxStyle.SetUncheckedPressedImage(BoxBrush(PaperDark, 3.f));
+		BoxStyle.SetCheckedImage(BoxBrush(Teal, 2.f));
+		BoxStyle.SetCheckedHoveredImage(BoxBrush(Teal, 3.f));
+		BoxStyle.SetCheckedPressedImage(BoxBrush(TealDark, 3.f));
+		Shake->SetWidgetStyle(BoxStyle);
+	}
+	AddH(ShakeRow, Shake, FMargin(0.f, 0.f, 0.f, 0.f));
 	AddV(V, ShakeRow, FMargin(0.f, 10.f));
 	BackButton = Button(T, LOCTEXT("Back", "BACK"), Cream, 20);
 	AddV(V, BackButton, FMargin(0.f, 16.f, 0.f, 0.f), 1);
@@ -467,10 +500,17 @@ void UFTScriptBookWidget::NativeOnInitialized()
 	// right page: details
 	UVerticalBox* Right = T->ConstructWidget<UVerticalBox>();
 	DetailBox = T->ConstructWidget<UVerticalBox>();
-	AddV(Right, DetailBox, FMargin(0.f));
-	AddV(Right, T->ConstructWidget<USpacer>(), FMargin(0.f, 8.f));
+	// details scroll inside the fixed-height page so the buttons always stay on the page
+	UScrollBox* DetailScroll = T->ConstructWidget<UScrollBox>();
+	DetailScroll->SetScrollBarVisibility(ESlateVisibility::Visible);
+	DetailScroll->SetScrollbarThickness(FVector2D(6.f, 6.f));
+	DetailScroll->AddChild(DetailBox);
+	if (UVerticalBoxSlot* ScrollSlot = Right->AddChildToVerticalBox(DetailScroll))
+	{
+		ScrollSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+	}
 	StatusText = Text(T, FText::GetEmpty(), 15, CoralDarkText(), TEXT("Bold"));
-	StatusText->SetAutoWrapText(true);
+	StatusText->SetAutoWrapText(false);
 	StatusText->SetWrapTextAt(520.f);
 	AddV(Right, StatusText, FMargin(0.f, 4.f));
 	UHorizontalBox* Buttons = T->ConstructWidget<UHorizontalBox>();
@@ -536,7 +576,7 @@ void UFTScriptBookWidget::SelectFilm(int32 Index)
 		UHorizontalBox* Row = T->ConstructWidget<UHorizontalBox>();
 		AddH(Row, Sized(T, Text(T, Label, 14, TealDark, TEXT("Black")), 110.f), FMargin(0.f), false, 0);
 		UTextBlock* VT = Text(T, Value, 15, Ink, TEXT("Regular"));
-		VT->SetAutoWrapText(true);
+		VT->SetAutoWrapText(false);
 		VT->SetWrapTextAt(420.f);
 		AddH(Row, VT, FMargin(0.f), true, 0);
 		AddV(DetailBox, Row, FMargin(0.f, 2.f));
@@ -559,7 +599,7 @@ void UFTScriptBookWidget::SelectFilm(int32 Index)
 	{
 		AddV(DetailBox, Text(T, S.Title, 16, Ink, TEXT("Bold")), FMargin(8.f, 2.f, 0.f, 0.f));
 		UTextBlock* D = Text(T, S.ScriptDescription, 13, Muted, TEXT("Italic"));
-		D->SetAutoWrapText(true);
+		D->SetAutoWrapText(false);
 		D->SetWrapTextAt(500.f);
 		AddV(DetailBox, D, FMargin(20.f, 0.f, 0.f, 2.f));
 	}
@@ -756,9 +796,10 @@ void UFTPremiereWidget::NativeOnInitialized()
 	Place(Root, BigText, FAnchors(0.5f, 0.12f), FVector2D(0.5f, 0.5f), FVector2D::ZeroVector);
 	SubText = Text(T, FText::GetEmpty(), 44, Amber, TEXT("Bold"));
 	SubText->SetJustification(ETextJustify::Center);
-	SubText->SetAutoWrapText(true);
+	SubText->SetAutoWrapText(false);
 	SubText->SetWrapTextAt(1600.f);
-	Place(Root, SubText, FAnchors(0.5f, 0.92f), FVector2D(0.5f, 0.5f), FVector2D::ZeroVector);
+	// bottom-anchored so a two-line description grows upwards instead of off the screen
+	Place(Root, SubText, FAnchors(0.5f, 1.f), FVector2D(0.5f, 1.f), FVector2D(0.f, -24.f));
 	Stamp = Box(T, Teal, 16.f, FMargin(30.f, 10.f), Cream, 6.f);
 	StampText = Text(T, FText::GetEmpty(), 72, Cream, TEXT("Black"), true);
 	Stamp->SetContent(StampText);

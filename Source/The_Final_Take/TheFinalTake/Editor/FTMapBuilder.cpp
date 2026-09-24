@@ -160,9 +160,11 @@ bool FTBuildStudioMap()
 	}
 	Spawn<ACameraActor>(W, FVector(-3150.f, -1050.f, 230.f), 0.f, TEXT("TitleCamera"), [](ACameraActor* C)
 	{
-		C->SetActorRotation(FRotator(6.f, 38.f, 0.f));
+		// the marquee sits right of the menu panel instead of behind the logo
+		C->SetActorRotation(FRotator(7.f, 25.f, 0.f));
 		C->Tags.Add(TEXT("TitleCamera"));
 		C->GetCameraComponent()->SetFieldOfView(62.f);
+		C->GetCameraComponent()->SetConstraintAspectRatio(false);
 	});
 
 	// ---------------------------------------------------------------- doors, office, wardrobe
@@ -242,7 +244,8 @@ bool FTBuildStudioMap()
 	{
 		H->Patrol = { FVector(-180.f, -1350.f, 0.f), FVector(330.f, -1350.f, 0.f), FVector(330.f, 1050.f, 0.f), FVector(-180.f, 1050.f, 0.f) };
 	});
-	Spawn<AFTCinemaScreen>(W, FVector(2360.f, 100.f, 950.f), 180.f, TEXT("CinemaScreen"));
+	// roller housing just under the 1320 ceiling; the sheet unrolls in front of the sky backdrop
+	Spawn<AFTCinemaScreen>(W, FVector(2360.f, 100.f, 760.f), 180.f, TEXT("CinemaScreen"));
 	Spawn<AFTProjector>(W, FVector(120.f, -1125.f, 420.f), 0.f, TEXT("Projector"), [](AFTProjector* P) { P->PowerPanelOffset = FVector(-250.f, -330.f, 0.f); });
 
 	// ---------------------------------------------------------------- props

@@ -88,6 +88,8 @@ private:
 	UPROPERTY() TObjectPtr<UProgressBar> FrameBar;
 	UPROPERTY() TObjectPtr<UTextBlock> FrameText;
 	UPROPERTY() TObjectPtr<UVerticalBox> SubjectList;
+	/** Fixed pool of viewfinder lines (rebuilding widgets every frame stacks them at zero height). */
+	UPROPERTY() TArray<TObjectPtr<UTextBlock>> SubjectLines;
 	UPROPERTY() TObjectPtr<UTextBlock> CameraHint;
 	UPROPERTY() TObjectPtr<UTextBlock> CameraStatus;
 	// help / danger / pings

@@ -352,7 +352,8 @@ AFTProjector::AFTProjector()
 	BeamRoot = CreateDefaultSubobject<USceneComponent>(TEXT("BeamRoot"));
 	BeamRoot->SetupAttachment(Root);
 	BeamRoot->SetRelativeLocation(FVector(92.f, 0.f, 125.f));
-	Beam = FTVis::MakePart(this, BeamRoot, TEXT("Beam"), EFTShape::Cone, FVector(1000.f, 0.f, 0.f), FVector(400.f, 400.f, 2000.f), Cream, FRotator(90.f, 0.f, 0.f), 0.25f);
+	// a faint dusty shaft: the audience looks through it at the screen, so keep it subtle
+	Beam = FTVis::MakePart(this, BeamRoot, TEXT("Beam"), EFTShape::Cone, FVector(1000.f, 0.f, 0.f), FVector(400.f, 400.f, 2000.f), Cream, FRotator(90.f, 0.f, 0.f), 0.06f);
 	Beam->SetMaterial(0, FTVis::Glow());
 	Beam->SetCastShadow(false);
 	Beam->SetVisibility(false);
@@ -399,6 +400,8 @@ void AFTProjector::BeginPlay()
 		const float Dist = FVector::Dist(From, To);
 		BeamRoot->SetWorldRotation((To - From).Rotation());
 		FTVis::ApplyShape(Beam, EFTShape::Cone, FVector(It->ScreenSize.X * 0.85f, It->ScreenSize.X * 0.85f, Dist));
+		// ApplyShape resets the material to matte - the beam must stay a soft glow shaft
+		Beam->SetMaterial(0, FTVis::Glow());
 		Beam->SetRelativeLocation(FVector(Dist * 0.5f, 0.f, 0.f));
 		BeamLight->SetAttenuationRadius(Dist + 800.f);
 		const float Half = FMath::RadiansToDegrees(FMath::Atan2(It->ScreenSize.X * 0.5f, Dist));

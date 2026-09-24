@@ -279,7 +279,7 @@ void AFTFilmCamera::Recenter()
 	LocalZoom = 0.35f;
 }
 
-void AFTFilmCamera::FrameTargets(const TArray<FVector>& Targets)
+void AFTFilmCamera::FrameTargets(const TArray<FVector>& Targets, float SubjectRadius)
 {
 	if (!HasAuthority() || Targets.Num() == 0)
 	{
@@ -292,16 +292,18 @@ void AFTFilmCamera::FrameTargets(const TArray<FVector>& Targets)
 		const FVector Local = GetActorTransform().InverseTransformVectorNoScale(T - Eye);
 		const float Yaw = FMath::RadiansToDegrees(FMath::Atan2(Local.Y, Local.X));
 		const float Pitch = FMath::RadiansToDegrees(FMath::Atan2(Local.Z, FVector2D(Local.X, Local.Y).Size()));
-		YawMin = FMath::Min(YawMin, Yaw);
-		YawMax = FMath::Max(YawMax, Yaw);
-		PitchMin = FMath::Min(PitchMin, Pitch);
-		PitchMax = FMath::Max(PitchMax, Pitch);
+		// the subject's own size, as seen from the lens
+		const float Pad = FMath::RadiansToDegrees(FMath::Atan2(SubjectRadius, FMath::Max(Local.Size(), 1.f)));
+		YawMin = FMath::Min(YawMin, Yaw - Pad);
+		YawMax = FMath::Max(YawMax, Yaw + Pad);
+		PitchMin = FMath::Min(PitchMin, Pitch - Pad);
+		PitchMax = FMath::Max(PitchMax, Pitch + Pad);
 	}
 	Pan = FMath::Clamp((YawMin + YawMax) * 0.5f, -PanLimit, PanLimit);
 	Tilt = FMath::Clamp((PitchMin + PitchMax) * 0.5f, -TiltLimit, TiltLimit);
-	// keep the spread inside ~60% of the horizontal FOV (16:9 lens) with some margin for subject size
+	// fit the padded spread into ~75% of the horizontal FOV (16:9 lens), never tighter than a medium shot
 	const float Spread = FMath::Max(YawMax - YawMin, (PitchMax - PitchMin) * 16.f / 9.f);
-	const float WantFOV = FMath::Clamp(Spread / 0.6f + 12.f, FOVRange.X, FOVRange.Y);
+	const float WantFOV = FMath::Clamp(Spread / 0.75f, FMath::Max(FOVRange.X, 40.f), FOVRange.Y);
 	Zoom = FMath::Clamp((FOVRange.Y - WantFOV) / FMath::Max(FOVRange.Y - FOVRange.X, 1.f), 0.f, 1.f);
 	LocalPan = Pan;
 	LocalTilt = Tilt;
