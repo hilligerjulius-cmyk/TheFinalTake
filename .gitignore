@@ -17,3 +17,4 @@ __pycache__/
 # Blender pipeline: browser-viewer exports (large, regenerate with Tools/blender/scenes.py --web)
 SourceArt/Blender/Web/
 SourceArt/Blender/Catalog.blend
+SourceArt/Blender/Previews/Characters/_*.png
