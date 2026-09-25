@@ -32,7 +32,7 @@ MESH_ROOT = os.path.join(REPO, "Content", "TheFinalTake", "Meshes")
 ART_ROOT = os.path.join(REPO, "SourceArt", "Blender")
 MODULES = ["assets.shared", "assets.studio_exterior", "assets.studio_lobby", "assets.studio_rooms", "assets.studio_stage",
            "assets.studio_tank", "assets.studio_upper", "assets.studio_props", "assets.studio_stations",
-           "assets.city_boulevard", "assets.city_buildings", "assets.city_cinema", "assets.dealership", "assets.vehicles", "assets.signs", "assets.shop_items", "assets.actor_parts"]
+           "assets.city_boulevard", "assets.city_buildings", "assets.city_cinema", "assets.dealership", "assets.vehicles", "assets.signs", "assets.shop_items", "assets.characters", "assets.effects", "assets.actor_parts"]
 
 
 def parse():
@@ -58,7 +58,9 @@ def fit_expect(spec, a):
     """Actors: local asset bounds vs. the constructor parts it replaces (replayed by layout/cppactor.py)."""
     e = spec.expect()
     exp = (Vector(e["min"]), Vector(e["max"]))
-    lo, hi = a.bounds()
+    # unit-space meshes (crew parts, particles) record their real-size bounds in the component frame
+    fb = a.meta.get("fit_bounds")
+    lo, hi = (Vector(fb[0]), Vector(fb[1])) if fb else a.bounds()
     dev = max(max(abs(exp[0][i] - lo[i]), abs(exp[1][i] - hi[i])) for i in range(3))
     ext = max(exp[1][i] - exp[0][i] for i in range(3))
     rec = {"dev_cm": round(dev, 1), "extent_cm": round(ext, 1), "rel": round(dev / max(ext, 1.0), 3),
@@ -218,6 +220,10 @@ def main():
         if not args.no_render:
             png = os.path.join(ART_ROOT, "Previews", spec.folder, spec.name + ".png")
             render.only_visible([obj])
+            px = getattr(spec, "preview_xf", None)
+            if px:
+                # unit-space mesh: show it the way the code scales it
+                obj.matrix_world = L.to_blender_matrix((0, 0, 0), px[0], px[1])
             render.frame([obj], direction=(spec.view[0], -spec.view[1], spec.view[2]))
             render.render(png)
             entry["preview"] = os.path.relpath(png, REPO).replace(os.sep, "/")

@@ -12,6 +12,8 @@ Stand 25.09.2026 · Branch `claude/happy-mendel-cyq16k`
   - die 21 Shop-Artikel sowie optionale 3D-Schriftzüge.
 - **Stil:** chunky low-poly mit kleinen Fasen, gesättigter FT-Palette und vielen kleinen Details (Nieten, Nähte, Beschläge, Kabel, Fugen) statt nackter Primitive.
 - **Detail- und Qualitäts-Pass (25.09.):** Alle Modelle wurden auf ihrer bestehenden Form überarbeitet, ohne Layout, Pivots oder Silhouetten zu ändern. Siehe [Detail-Pass](#detail--und-qualitäts-pass).
+- **Crew-Basisfigur (25.09.):** 36 Module einer einzigen, modularen Spielfigur: Kopf und minimales Gesicht, Haare, Kopfbedeckung, Brille, Kopfhörer, Oberteil, Latz, Gürtel, Funkgerät, Hose, Säume, Schuhe, Ärmel, Handschuhe und die Ego-Arme. Siehe [Crew-Basisfigur](#crew-basisfigur-modular).
+- **Effekte (25.09.):** 16 Meshes für Partikel, Lichtkegel, Wasserflächen mit Schaum und Zonenmarkierungen. Siehe [Effekte](#effekte).
 - **Export:** jedes Asset einzeln als FBX unter `Content/TheFinalTake/Meshes/<Bereich>/…`, im Unreal-Maßstab (1 Einheit = 1 cm), mit Pivot am Einbaupunkt.
 - **Maßstab und Silhouette** werden automatisch gegen die Code-Geometrie geprüft (219 von 233 geprüften Meshes „ok“, 13 „close“, 1 „check“; 63 ohne Code-Gegenstück (Fahrzeuge, Schriftzüge, neue Dealership-Teile)). Details stehen in [`SourceArt/Blender/fit_report.md`](SourceArt/Blender/fit_report.md).
 - **Zuordnung:** Welches Modell welches Code-Objekt ersetzt, steht in [`SourceArt/Blender/ASSET_MAPPING.md`](SourceArt/Blender/ASSET_MAPPING.md). Die Tabelle wird aus dem Manifest erzeugt.
@@ -26,6 +28,7 @@ Stand 25.09.2026 · Branch `claude/happy-mendel-cyq16k`
   - `Studio.blend`: das ganze Studio mit allen Platzierungen (Instanzen teilen sich ihr Mesh), die Laufzeit-Objekte (Shop-Artikel, Filmrolle) stehen in einer Reihe vor dem Gebäude.
   - `City.blend`: Boulevard, Gebäude, Grand Cinema und Dream Cars, die vier Autos auf den Drehscheiben.
   - `Catalog.blend`: jedes Mesh einmal, im Raster, eine Collection pro Ordner.
+  - `Characters.blend`: die Crew-Basisfigur, zusammengesetzt wie im Spiel: Idle-Pose, Ruhepose, das Ausdrucks-Set, die Modul-Varianten und die Ego-Arme.
   - Decken und Dächer liegen in einer eigenen, ausgeblendeten Collection, damit man direkt in die Räume schaut. Die Ansicht ist auf den cm-Maßstab eingestellt (Clipping, Vertex-Farben, Kamera).
 - **Geprüft wurde:**
   - FBX-Reimport jedes Assets in Blender (Bounds, Dreiecke, Material-Slots);
@@ -42,6 +45,8 @@ python3 Tools/blender/build_all.py --only Vehicles       # Teilmenge (Name/Ordne
 python3 Tools/blender/build_all.py --fit-only            # nur Maßprüfung + Platzierungen neu rechnen (ohne Rendern/Export)
 python3 Tools/blender/build_all.py --blend-only          # nur die .blend-Szenen neu schreiben (= python3 Tools/blender/scenes.py)
 python3 Tools/blender/scenes.py --web                    # zusätzlich GLB-Dateien für einen Browser-Viewer (nicht eingecheckt)
+python3 Tools/blender/character_sheet.py                 # Crew-Figur: Characters.blend + Turnaround/Gesicht/Module/Ego-Arme
+python3 Tools/blender/character_sheet.py --no-render     # nur Characters.blend
 python3 Tools/blender/render_overview.py                 # Übersichtsbilder: Code-Blockout neben den Blender-Assets
 python3 Tools/blender/write_mapping.py                   # SourceArt/Blender/ASSET_MAPPING.md aus dem Manifest
 python3 Tools/blender/layout/extract_layout.py           # Shell-Layout neu aus dem C++ lesen (braucht g++)
@@ -64,10 +69,12 @@ Ein kompletter Build dauert auf 4 Kernen rund 15 Minuten, der Großteil davon si
 | `Content/TheFinalTake/Meshes/City/{Boulevard,Buildings,GrandCinema}` | Stadt, Gebäude, Grand Cinema |
 | `Content/TheFinalTake/Meshes/{Studio,City}/Signs` | optionale 3D-Schriftzüge für die statischen TextRender-Schilder |
 | `Content/TheFinalTake/Meshes/Dealership`, `…/Vehicles` | Dream Cars, Fahrzeuge (Karosserie + Räder getrennt) |
+| `Content/TheFinalTake/Meshes/Characters/{Face,HairHeadwear,Body,FirstPerson}` | Module der Crew-Basisfigur (Einheitsraum der ersetzten Komponente) |
+| `Content/TheFinalTake/Meshes/FX/{Particles,Beams,Water,Zones}` | Partikel, Lichtkegel, Wasser und Schaum, Zonenmarkierungen |
 | `SourceArt/Blender/asset_manifest.json` | maschinenlesbar: Pfade, Ersetzt, Pivot, Platzierungen, Sockets, Bounds, Tris, Fit, Einbau |
 | `SourceArt/Blender/ASSET_MAPPING.md`, `fit_report.md` | Zuordnungstabelle, Maßprüfung |
 | `SourceArt/Blender/Previews/` | ein Bild pro Asset, Kontaktbögen `Sheet_*.png`, Übersichten `Overview/*.png` (Code-Blockout links, Blender-Assets rechts) |
-| `SourceArt/Blender/{Studio,City,Catalog}.blend` | zusammengesetzte Szenen zum Anschauen in Blender (siehe oben) |
+| `SourceArt/Blender/{Studio,City,Catalog,Characters}.blend` | zusammengesetzte Szenen zum Anschauen in Blender (siehe oben) |
 | `SourceArt/Blender/layout/shell_layout.json` | alle Primitive der Studio-/Stadt-Hülle mit Datei:Zeile |
 | `Tools/blender/` | Pipeline: `build_all.py`, `ftb/` (Kern, Palette, Export, Render, Layout), `assets/` (Modelle), `layout/` (C++-Auswertung), `fonts/` (OFL-Schriften) |
 | `Tools/unreal/ft_blender_import.py` | Import-Helfer für den Unreal-Editor (**ungetestet**) |
@@ -101,6 +108,9 @@ Alle Farben sind Vertex-Farben (`Col`, sRGB). Die Material-Slots tragen feste Na
 | `M_FT_VertexGlow` | Leuchtteile (Birnen, Neon, Displays, Linsen) | RGB = Farbe, **A = √(Emissive/20)** → Emissive = RGB·20·A² (gleiche Skala wie der Emissive-Wert im Code) |
 | `M_FT_VertexGlass` | Glas | RGB = Tönung, Opazität 0,35 im Material |
 | `M_FT_CarBody` / `M_FT_CarTrim` | Fahrzeuglack / Zierfarbe | Standardfarben aus `FTEconomy.cpp` (Body/Trim). Das Material hat einen Farbparameter zum Umlackieren. |
+| `M_FT_CrewPaint` | vom Code eingefärbte Figurenteile (Haut, Haare, Shirt, Hose, Handschuhe …) | fast weiß mit dunkleren Nähten und Paneelen, **A = Rauheit**; das Material multipliziert mit der Farbe aus `FTVis::Paint` (Custom Primitive Data 0–2) |
+| `M_FT_Water` | Wasserfläche (bestehendes Material des Codes) | Uferband heller, leichte Kaustik-Fleckung |
+| `M_FT_BeamGlow` | Lichtkegel | RGB = Farbe, **A = Helligkeit**; unlit, additiv, zweiseitig, mal der Farbe aus `FTVis::Paint` |
 
 - Diese Materialien existieren in Unreal noch nicht. `Tools/unreal/ft_blender_import.py` legt sie per `create_materials()` an (**ungetestet**).
 - Das Skript linearisiert die sRGB-Vertex-Farben mit dem Parameter `VertexColourGamma` = 2,2. Wirken die Farben zu dunkel, den Wert auf 1,0 setzen.
@@ -137,6 +147,53 @@ Ausgangslage: Formen und Positionen stimmten, die Modelle wirkten aber wie 1:1-B
    - Teile, die der Code einfärbt oder leuchten lässt, bleiben frei sichtbar. Dabei sind zwei Fehler der ersten Fassung behoben: Das Meter-Gehäuse am Tonpult verdeckte die Pegelanzeigen `Meter0-5` des Codes, die Titeltafel am Lichtpult hätte den Schriftzug „LIGHTING“ verdeckt. Das Gehäuse steht jetzt hinter den Anzeigen, die Tafel hinter dem Schriftzug.
    - Flächen verschiedener Teile liegen nie exakt in einer Ebene; die automatische Entkopplung gilt jetzt auch für Meshes mit mehr als 50 Teilen.
 5. **Prüfung:** Die Maßprüfung ist unverändert (219 ok, 13 close, 1 check, 63 ohne Code-Gegenstück), jedes Asset wurde vor und nach dem Pass verglichen. Der FBX-Reimport ist für alle 296 Assets ok.
+
+## Crew-Basisfigur (modular)
+
+Umsetzung der Art Direction: **eine** ausgearbeitete Basisfigur, die die Bildsprache aller Spielfiguren festlegt. Modell und Werkzeuge: `Tools/blender/assets/characters.py`, `Tools/blender/character_sheet.py`.
+
+![Turnaround](SourceArt/Blender/Previews/Characters/Crew_Base_Turnaround.png)
+
+- **Proportionen:** übergroßer, weicher Kopf (rund ein Drittel der Körperhöhe), kompakter Rumpf, schlanke und etwas verlängerte Arme mit leichtem Ellbogenknick, Fäustlings-Handschuhe, klobige Sneaker mit hochgezogener Spitze. Alles ist rund und gefast (Subdivision-Käfige, dichte Drehkörper), nichts sieht nach Blockout oder Klötzchenfigur aus.
+- **Gesicht, bewusst minimal:** glänzende weiße Augen mit feiner Kontur, große Pupillen mit zwei Glanzlichtern, pillenförmige Brauen, ein kleiner dunkler Mund mit Zunge, ein winziger Nasenknubbel. Keine Hautdetails. Die Mimik kommt aus `AFTCharacter::UpdateFace`, das Augen, Pupillen, Brauen und Mund weiter skaliert und dreht, dazu Kopf- und Körperhaltung. Das Ausdrucks-Set zeigt `Crew_Base_Face.png`.
+- **Crew-Identität, dezent:** Arbeitshemd mit zweifarbiger Schulterpasse, Reißverschlussleiste, Brusttasche mit Bleistift, Crew-Ausweis mit Klappen-Symbol, kleiner „CREW“-Print auf dem Rücken; Werkzeuggürtel mit Maßband, Gaffa-Rolle am Karabiner und Tasche; Funkgerät mit leuchtendem Display; Cap mit gesticktem Klappen-Abzeichen; Arbeitshose mit Kniepolstern und Cargotasche.
+- **Modular:** Jedes Modul ist ein eigenes Mesh und ersetzt genau die Komponente, die der Code schon einzeln ein- und ausblendet und einfärbt. So bleiben Kostüme, Crew-Looks und Shop-Accessoires unverändert steuerbar:
+
+| Slot | Code-Komponenten | Wechsel |
+|---|---|---|
+| Gesicht | `Head` (+`Nose`), `EyeL/R`, `PupilL/R`, `BrowL/R`, `Mouth`, `EarL/R` | immer an; Ohren unter Kapuzen aus |
+| Haare | `HairTop`, `HairBack`, `HairBun` | `HairStyle` des Crew-Looks; unter Mützen, Hüten, Kapuzen, Helmen aus |
+| Kopfbedeckung | `CapCrown`, `CapBrim`, `CapBadge`; Anker `AccHead` | `bCap`; Kostüm-Kopfteile oder Shop-Hut ersetzen sie |
+| Brille | `GlassL/R`; Anker `AccFace` | `bGlasses`; Shop-Sonnenbrille ersetzt sie |
+| Kopfhörer | `PhoneL/R`, `PhoneBand` | `bPhones` |
+| Oberteil | `Torso` (+Tasche, Bleistift, Ausweis), `Collar`, `ArmL/R`, `Bib` | Farben Shirt/Sleeve/Bib; Kostüme färben um oder decken ab |
+| Ausrüstung | `Belt` (+Schnalle), `Walkie` (+Antenne, Display) | von Kostümen ausgeblendet |
+| Handschuhe | `HandL/R`, `FPHandL/R`, `FPCuffL/R` | Farbe Glove / Crew-Akzent |
+| Hose | `Pelvis`, `LegL/R`, `CuffL/R` | Farbe Pants/Legs |
+| Schuhe | `ShoeL/R` (+Sohlen, Schnürsenkel) | Farbe Shoe |
+| Kostüm-Ebene | `LG*`, `SH*`, `RC*`, `FK*` an `Neck`/`Chest`/`Hips`/`Shoulder` | ein Mesh pro Kostümteil über der Basis-Silhouette |
+
+  Weitere Kostüme (Cowboy, Astronaut, Monster, Detektiv, Pirat, Ritter, Stuntperson) hängen an denselben Gelenken und blenden die Slots aus, die sie verdecken, genau wie die vier Kostüme in `SetCostumePartsVisible`. `Crew_Base_Modules.png` zeigt dieselbe Figur mit getauschten Modulen.
+- **Einbau ohne Gameplay-Änderung:** Jedes Mesh liegt im **Einheitsraum des ersetzten Primitivs**. Es ist in echter Größe im Komponentenrahmen modelliert und dann durch `Size/100` geteilt und um die Komponentenrotation zurückgedreht. `SetStaticMesh` auf der Komponente genügt: Gelenke, Skalierung, Blinzeln, Ausdrücke, Sichtbarkeit und `FTVis::Paint` greifen weiter. Verschmolzene Kleinteile (Nase, Tasche, Ausweis, Sohlen, Schnürsenkel, Daumen …) stehen pro Asset unter `integration`; diese Code-Teile werden ausgeblendet.
+- **Polycount:** Figur mit Cap 58 742 Dreiecke (ohne Cap 53 682), Ego-Arme 8 556. Das passt zu vier Spielern; für mehr Figuren LODs erzeugen.
+- **Prüfung:** Die Maßprüfung vergleicht die echte Größe mit dem Code-Primitiv im Komponentenrahmen. 31 von 36 sind „ok“. Brillenbügel, Kopfhörerbügel und -kabel sowie die Latz-Träger ragen bewusst über ihr Primitiv hinaus; das steht als Notiz im Fit-Report. `character_sheet.py` setzt die Figur aus dem nachgespielten Komponentenbaum zusammen (`layout/cppactor.py`), mit den Crew-Farben aus `GetCrewLook`.
+- **Noch offen:** Die vier vorhandenen Kostüme (Rettungsschwimmer, Hai, Regenmantel, Schaumstoff-Ritter) und die Identitätsmarke `Marker` sind nicht neu gebaut. Laut Art Direction kommt zuerst die Basisfigur; die Kostüme folgen auf derselben Basis.
+
+## Effekte
+
+Modell: `Tools/blender/assets/effects.py`. Simulation, Ausrichtung, Flutstand und Zonenvolumen bleiben im Code.
+
+| Mesh | Ersetzt | Einbau |
+|---|---|---|
+| `SM_FX_RainStreak`, `SM_FX_Droplet`, `SM_FX_Spark`, `SM_FX_SmokePuff`, `SM_FX_FoamBlob`, `SM_FX_WindStreak`, `SM_FX_Confetti`, `SM_FX_Bubble` | Einheitsformen der `UFTChunkyParticles` (Regen, Spritzer, Funken, Rauch, Schaum, Wind, Konfetti, Seifenblasen) | nach `Configure()` `SetStaticMesh`; Material und Farbe setzt weiter der Code. Die Meshes füllen die ±50-cm-Box wie die alte Form, +Z zeigt in Flugrichtung (Stretch). |
+| `SM_FX_LightBeam` | `GlowCone()` (Leuchtturm, Bühnenlichter), Suchscheinwerfer am Kino | Einheitskegel (Spitze +Z). Verschachtelte offene Kegel mit Helligkeitsabfall zum Rand und zum Ende, Lichtstrahlen, Staubpartikel; Material `M_FT_BeamGlow`. |
+| `SM_FX_ProjectorBeam` | `AFTProjector::Beam` | wie oben, mit mehr Filmstrahlen, Staub und leichten Bändern |
+| `SM_FX_WaterSurface` | `SM_FT_WaterGrid` (Tankwasser, Flutebene) | feineres Raster mit leichter Welligkeit, hellerem Uferband und Kaustik in den Vertex-Farben; Material `M_FT_Water` |
+| `SM_FX_TankFoam` | neu: Schaumkante am Tankrand | statisches Mesh auf der Wasserlinie (1800, 100, −50) |
+| `SM_Zone_LungeMark`, `SM_Zone_Safe_Harpoon`, `SM_Zone_Safe_Shelf`, `SM_Zone_Safe_SharkStation` | Markierungsstreifen von `AFTZone` | echte Größe am Boden der Zone: gestrichelter Leuchtring mit Pfeilen und Haiflosse; Safe-Zonen aus handverlegtem Leuchtband mit schraffierten Ecken und „SAFE“-Schablonen. In `FTMapBuilder` `Mark = None` setzen; das Label bleibt TextRender. |
+
+- In Blender zeigen die Previews unter `SourceArt/Blender/Previews/FX/` die Meshes; in `Studio.blend` liegen Tankwasser, Schaum und Zonen an ihren Plätzen, Partikel und Kegel in der Showcase-Reihe.
+- Nicht gebaut: die `TapeX`-Variante (in der Karte nicht benutzt) und Interaktionsvolumen.
 
 ## Maßstab- und Silhouettentreue
 
@@ -221,8 +278,8 @@ Gameplay bleibt unverändert, wenn die neuen Meshes **nur die Optik** übernehme
 
 ## Nicht enthalten / offen
 
-- **Nicht Teil des Auftrags:** Figuren und Crew (`FTCharacter.cpp`).
-- **Bleiben Code-Effekte:** Wasserflächen, Partikel, Licht- und Projektorkegel, Zonenmarkierungen, Interaktionsvolumen.
+- **Figuren:** Die Crew-Basisfigur ist gebaut; die vier Kostüme und die Identitätsmarke noch nicht (siehe [Crew-Basisfigur](#crew-basisfigur-modular)).
+- **Bleiben Code-Effekte:** Interaktionsvolumen und die ungenutzte `TapeX`-Markierung. Partikel, Kegel, Wasser und Zonenmarkierungen haben jetzt Meshes (siehe [Effekte](#effekte)).
 - **Bleiben TextRender:** Nummern und Titel der Delivery-Bays sowie die Schilder, sofern die optionalen `SM_Sign_*`-Meshes nicht genutzt werden.
 - **Dealership (Arbeitspaket 4) ist geplant, nicht final:** Drehscheiben, Kiosk, Preisaufsteller, Wimpel, Flutlicht und Tube-Man sind neue Meshes ohne Code-Gegenstück. Die Platzierungen sind Vorschläge auf den vorhandenen Stellplätzen.
 - **Fehlt noch:** LODs (Unreal-Auto-LOD oder Nanite nutzen) und Kollisions-Meshes (Kollision bleibt beim Code).

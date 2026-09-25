@@ -4,6 +4,3929 @@
  "space": "Unreal (X forward, Y right, Z up)",
  "assets": [
   {
+   "name": "SM_Crew_Arm",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/Body/SM_Crew_Arm.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/Body/SM_Crew_Arm.SM_Crew_Arm",
+   "folder": "Characters/Body",
+   "desc": "Sleeve: a slim, slightly long arm with a relaxed bend at the elbow, soft shoulder cap, back seam and a rolled cuff at the wrist (paint: sleeve colour).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): ArmL, ArmR"
+   ],
+   "pivot": "ArmL component origin (parent ShoulderL, location V(0, 0, -17)), unit space of the code primitive Capsule size V(23, 23, 40)",
+   "integration": "SetStaticMesh on ArmL, ArmR (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 2208,
+   "bounds_cm": {
+    "min": [
+     -27.65,
+     -27.49,
+     -61.33
+    ],
+    "max": [
+     31.85,
+     27.49,
+     48.31
+    ]
+   },
+   "materials": [
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -6.36,
+      -6.32,
+      -24.53
+     ],
+     [
+      7.32,
+      6.32,
+      19.32
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      23.0,
+      23.0,
+      40.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      13.7,
+      12.6,
+      43.9
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:ArmL"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 4.5,
+    "extent_cm": 40.0,
+    "rel": 0.113,
+    "expected": [
+     [
+      -5.8,
+      -5.8,
+      -20.0
+     ],
+     [
+      5.8,
+      5.8,
+      20.0
+     ]
+    ],
+    "actual": [
+     [
+      -6.4,
+      -6.3,
+      -24.5
+     ],
+     [
+      7.3,
+      6.3,
+      19.3
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 2208,
+    "materials": [
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 91484,
+   "preview": "SourceArt/Blender/Previews/Characters/Body/SM_Crew_Arm.png"
+  },
+  {
+   "name": "SM_Crew_Belt",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/Body/SM_Crew_Belt.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/Body/SM_Crew_Belt.SM_Crew_Belt",
+   "folder": "Characters/Body",
+   "desc": "Utility belt: a rounded strap with a cream buckle and punched tail, a yellow tape measure on the left hip, a roll of gaffer tape on a carabiner and a canvas pouch at the back.",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): Belt + CrewBeltBuckle"
+   ],
+   "pivot": "Belt component origin (parent Chest, location V(0, 0, 2)), unit space of the code primitive Box size V(32, 42, 6)",
+   "integration": "SetStaticMesh on Belt (keep the code's scale, rotation, visibility and FTVis::Paint); hide CrewBeltBuckle (merged into this mesh).",
+   "tris": 5120,
+   "bounds_cm": {
+    "min": [
+     -56.55,
+     -50.89,
+     -192.8
+    ],
+    "max": [
+     52.62,
+     46.33,
+     72.53
+    ]
+   },
+   "materials": [
+    "M_FT_Vertex"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -18.09,
+      -21.38,
+      -11.57
+     ],
+     [
+      16.84,
+      19.46,
+      4.35
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      32.0,
+      42.0,
+      6.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      34.9,
+      40.8,
+      15.9
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:Belt"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 8.6,
+    "extent_cm": 42.0,
+    "rel": 0.204,
+    "expected": [
+     [
+      -16.0,
+      -21.0,
+      -3.0
+     ],
+     [
+      18.5,
+      21.0,
+      3.0
+     ]
+    ],
+    "actual": [
+     [
+      -18.1,
+      -21.4,
+      -11.6
+     ],
+     [
+      16.8,
+      19.5,
+      4.3
+     ]
+    ],
+    "primitives": 2,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 5120,
+    "materials": [
+     "M_FT_Vertex"
+    ]
+   },
+   "fbx_bytes": 196668,
+   "preview": "SourceArt/Blender/Previews/Characters/Body/SM_Crew_Belt.png"
+  },
+  {
+   "name": "SM_Crew_Bib",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/Body/SM_Crew_Bib.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/Body/SM_Crew_Bib.SM_Crew_Bib",
+   "folder": "Characters/Body",
+   "desc": "Overall bib: a soft panel that follows the chest, with a stitched patch pocket, two metal buttons and straps running up under the collar (paint: bib colour).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): Bib"
+   ],
+   "pivot": "Bib component origin (parent Chest, location V(15.5, 0, 18)), unit space of the code primitive Box size V(3, 26, 26)",
+   "integration": "SetStaticMesh on Bib (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 1868,
+   "bounds_cm": {
+    "min": [
+     -169.79,
+     -47.75,
+     -48.15
+    ],
+    "max": [
+     106.85,
+     47.75,
+     96.79
+    ]
+   },
+   "materials": [
+    "M_FT_Vertex",
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -5.09,
+      -12.42,
+      -12.52
+     ],
+     [
+      3.21,
+      12.42,
+      25.17
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      3.0,
+      26.0,
+      26.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      8.3,
+      24.8,
+      37.7
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:Bib"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 12.2,
+    "extent_cm": 26.0,
+    "rel": 0.468,
+    "expected": [
+     [
+      -1.5,
+      -13.0,
+      -13.0
+     ],
+     [
+      1.5,
+      13.0,
+      13.0
+     ]
+    ],
+    "actual": [
+     [
+      -5.1,
+      -12.4,
+      -12.5
+     ],
+     [
+      3.2,
+      12.4,
+      25.2
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "check",
+    "note": "Straps run up under the collar; the code box is only the front panel."
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 1868,
+    "materials": [
+     "M_FT_Vertex",
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 85980,
+   "preview": "SourceArt/Blender/Previews/Characters/Body/SM_Crew_Bib.png"
+  },
+  {
+   "name": "SM_Crew_Collar",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/Body/SM_Crew_Collar.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/Body/SM_Crew_Collar.SM_Crew_Collar",
+   "folder": "Characters/Body",
+   "desc": "Ribbed crew-neck collar ring that dips slightly at the front (paint: cream, or the costume shirt colour).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): Collar"
+   ],
+   "pivot": "Collar component origin (parent Chest, location V(1, 0, 43)), unit space of the code primitive Box size V(26, 30, 5)",
+   "integration": "SetStaticMesh on Collar (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 1980,
+   "bounds_cm": {
+    "min": [
+     -51.89,
+     -49.71,
+     -70.4
+    ],
+    "max": [
+     47.41,
+     49.72,
+     42.08
+    ]
+   },
+   "materials": [
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -13.49,
+      -14.91,
+      -3.52
+     ],
+     [
+      12.33,
+      14.92,
+      2.1
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      26.0,
+      30.0,
+      5.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      25.8,
+      29.8,
+      5.6
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:Collar"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 1.0,
+    "extent_cm": 30.0,
+    "rel": 0.034,
+    "expected": [
+     [
+      -13.0,
+      -15.0,
+      -2.5
+     ],
+     [
+      13.0,
+      15.0,
+      2.5
+     ]
+    ],
+    "actual": [
+     [
+      -13.5,
+      -14.9,
+      -3.5
+     ],
+     [
+      12.3,
+      14.9,
+      2.1
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 1980,
+    "materials": [
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 92652,
+   "preview": "SourceArt/Blender/Previews/Characters/Body/SM_Crew_Collar.png"
+  },
+  {
+   "name": "SM_Crew_Cuff",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/Body/SM_Crew_Cuff.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/Body/SM_Crew_Cuff.SM_Crew_Cuff",
+   "folder": "Characters/Body",
+   "desc": "Rolled-up trouser hem: two soft rolls over the ankle (paint: trouser colour, a shade darker).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): CuffL, CuffR"
+   ],
+   "pivot": "CuffL component origin (parent HipL, location V(0, 0, -33)), unit space of the code primitive Cylinder size V(18, 18, 7)",
+   "integration": "SetStaticMesh on CuffL, CuffR (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 1468,
+   "bounds_cm": {
+    "min": [
+     -51.24,
+     -51.24,
+     -49.1
+    ],
+    "max": [
+     51.24,
+     51.24,
+     47.49
+    ]
+   },
+   "materials": [
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -9.22,
+      -9.22,
+      -3.44
+     ],
+     [
+      9.22,
+      9.22,
+      3.32
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      18.0,
+      18.0,
+      7.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      18.4,
+      18.4,
+      6.8
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:CuffL"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 0.2,
+    "extent_cm": 18.0,
+    "rel": 0.012,
+    "expected": [
+     [
+      -9.0,
+      -9.0,
+      -3.5
+     ],
+     [
+      9.0,
+      9.0,
+      3.5
+     ]
+    ],
+    "actual": [
+     [
+      -9.2,
+      -9.2,
+      -3.4
+     ],
+     [
+      9.2,
+      9.2,
+      3.3
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 1468,
+    "materials": [
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 58268,
+   "preview": "SourceArt/Blender/Previews/Characters/Body/SM_Crew_Cuff.png"
+  },
+  {
+   "name": "SM_Crew_HandL",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/Body/SM_Crew_HandL.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/Body/SM_Crew_HandL.SM_Crew_HandL",
+   "folder": "Characters/Body",
+   "desc": "Left glove: a chunky mitten work glove with a separate thumb, rubberised palm pad, finger grooves on the back and a flared cuff with a strap (paint: glove colour).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): HandL"
+   ],
+   "pivot": "HandL component origin (parent ShoulderL, location V(0, 0, -39)), unit space of the code primitive Sphere size V(16, 15, 16)",
+   "integration": "SetStaticMesh on HandL (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 2840,
+   "bounds_cm": {
+    "min": [
+     -25.58,
+     -40.8,
+     -97.04
+    ],
+    "max": [
+     65.73,
+     38.06,
+     6.26
+    ]
+   },
+   "materials": [
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -4.09,
+      -6.12,
+      -15.53
+     ],
+     [
+      10.52,
+      5.71,
+      1.0
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      16.0,
+      15.0,
+      16.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      14.6,
+      11.8,
+      16.5
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:HandL"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 7.5,
+    "extent_cm": 16.0,
+    "rel": 0.471,
+    "expected": [
+     [
+      -8.0,
+      -7.5,
+      -8.0
+     ],
+     [
+      8.0,
+      7.5,
+      8.0
+     ]
+    ],
+    "actual": [
+     [
+      -4.1,
+      -6.1,
+      -15.5
+     ],
+     [
+      10.5,
+      5.7,
+      1.0
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 2840,
+    "materials": [
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 116012,
+   "preview": "SourceArt/Blender/Previews/Characters/Body/SM_Crew_HandL.png"
+  },
+  {
+   "name": "SM_Crew_HandR",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/Body/SM_Crew_HandR.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/Body/SM_Crew_HandR.SM_Crew_HandR",
+   "folder": "Characters/Body",
+   "desc": "Right glove (mirror of SM_Crew_HandL).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): HandR"
+   ],
+   "pivot": "HandR component origin (parent ShoulderR, location V(0, 0, -39)), unit space of the code primitive Sphere size V(16, 15, 16)",
+   "integration": "SetStaticMesh on HandR (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 2840,
+   "bounds_cm": {
+    "min": [
+     -25.58,
+     -38.06,
+     -97.04
+    ],
+    "max": [
+     65.73,
+     40.8,
+     6.26
+    ]
+   },
+   "materials": [
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -4.09,
+      -5.71,
+      -15.53
+     ],
+     [
+      10.52,
+      6.12,
+      1.0
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      16.0,
+      15.0,
+      16.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      14.6,
+      11.8,
+      16.5
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:HandR"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 7.5,
+    "extent_cm": 16.0,
+    "rel": 0.471,
+    "expected": [
+     [
+      -8.0,
+      -7.5,
+      -8.0
+     ],
+     [
+      8.0,
+      7.5,
+      8.0
+     ]
+    ],
+    "actual": [
+     [
+      -4.1,
+      -5.7,
+      -15.5
+     ],
+     [
+      10.5,
+      6.1,
+      1.0
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 2840,
+    "materials": [
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 116028,
+   "preview": "SourceArt/Blender/Previews/Characters/Body/SM_Crew_HandR.png"
+  },
+  {
+   "name": "SM_Crew_LegL",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/Body/SM_Crew_LegL.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/Body/SM_Crew_LegL.SM_Crew_LegL",
+   "folder": "Characters/Body",
+   "desc": "Left trouser leg: roomy work trousers with a stitched knee patch, a cargo pocket with snap flap on the outer thigh and an outside seam (paint: trouser colour).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): LegL"
+   ],
+   "pivot": "LegL component origin (parent HipL, location V(0, 0, -21)), unit space of the code primitive Capsule size V(25, 25, 44)",
+   "integration": "SetStaticMesh on LegL (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 1962,
+   "bounds_cm": {
+    "min": [
+     -28.05,
+     -36.73,
+     -28.52
+    ],
+    "max": [
+     32.62,
+     28.48,
+     46.93
+    ]
+   },
+   "materials": [
+    "M_FT_Vertex",
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -7.01,
+      -9.18,
+      -12.55
+     ],
+     [
+      8.16,
+      7.12,
+      20.65
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      25.0,
+      25.0,
+      44.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      15.2,
+      16.3,
+      33.2
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:LegL"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 9.4,
+    "extent_cm": 44.0,
+    "rel": 0.215,
+    "expected": [
+     [
+      -6.2,
+      -6.2,
+      -22.0
+     ],
+     [
+      6.2,
+      6.2,
+      22.0
+     ]
+    ],
+    "actual": [
+     [
+      -7.0,
+      -9.2,
+      -12.6
+     ],
+     [
+      8.2,
+      7.1,
+      20.6
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 1962,
+    "materials": [
+     "M_FT_Vertex",
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 84604,
+   "preview": "SourceArt/Blender/Previews/Characters/Body/SM_Crew_LegL.png"
+  },
+  {
+   "name": "SM_Crew_LegR",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/Body/SM_Crew_LegR.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/Body/SM_Crew_LegR.SM_Crew_LegR",
+   "folder": "Characters/Body",
+   "desc": "Right trouser leg (mirror of SM_Crew_LegL).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): LegR"
+   ],
+   "pivot": "LegR component origin (parent HipR, location V(0, 0, -21)), unit space of the code primitive Capsule size V(25, 25, 44)",
+   "integration": "SetStaticMesh on LegR (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 1962,
+   "bounds_cm": {
+    "min": [
+     -28.05,
+     -28.48,
+     -28.52
+    ],
+    "max": [
+     32.62,
+     36.73,
+     46.93
+    ]
+   },
+   "materials": [
+    "M_FT_Vertex",
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -7.01,
+      -7.12,
+      -12.55
+     ],
+     [
+      8.16,
+      9.18,
+      20.65
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      25.0,
+      25.0,
+      44.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      15.2,
+      16.3,
+      33.2
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:LegR"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 9.4,
+    "extent_cm": 44.0,
+    "rel": 0.215,
+    "expected": [
+     [
+      -6.2,
+      -6.2,
+      -22.0
+     ],
+     [
+      6.2,
+      6.2,
+      22.0
+     ]
+    ],
+    "actual": [
+     [
+      -7.0,
+      -7.1,
+      -12.6
+     ],
+     [
+      8.2,
+      9.2,
+      20.6
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 1962,
+    "materials": [
+     "M_FT_Vertex",
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 84364,
+   "preview": "SourceArt/Blender/Previews/Characters/Body/SM_Crew_LegR.png"
+  },
+  {
+   "name": "SM_Crew_Pelvis",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/Body/SM_Crew_Pelvis.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/Body/SM_Crew_Pelvis.SM_Crew_Pelvis",
+   "folder": "Characters/Body",
+   "desc": "Trouser seat: a soft rounded block with fly seam, back patch pockets and belt loops (paint: trouser colour).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): Pelvis"
+   ],
+   "pivot": "Pelvis component origin (parent Hips, location V(0, 0, 2)), unit space of the code primitive Box size V(28, 34, 16)",
+   "integration": "SetStaticMesh on Pelvis (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 2548,
+   "bounds_cm": {
+    "min": [
+     -53.5,
+     -51.31,
+     -52.62
+    ],
+    "max": [
+     52.1,
+     51.3,
+     52.62
+    ]
+   },
+   "materials": [
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -14.98,
+      -17.45,
+      -8.42
+     ],
+     [
+      14.59,
+      17.44,
+      8.42
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      28.0,
+      34.0,
+      16.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      29.6,
+      34.9,
+      16.8
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:Pelvis"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 1.0,
+    "extent_cm": 34.0,
+    "rel": 0.029,
+    "expected": [
+     [
+      -14.0,
+      -17.0,
+      -8.0
+     ],
+     [
+      14.0,
+      17.0,
+      8.0
+     ]
+    ],
+    "actual": [
+     [
+      -15.0,
+      -17.5,
+      -8.4
+     ],
+     [
+      14.6,
+      17.4,
+      8.4
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 2548,
+    "materials": [
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 107324,
+   "preview": "SourceArt/Blender/Previews/Characters/Body/SM_Crew_Pelvis.png"
+  },
+  {
+   "name": "SM_Crew_Shoe",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/Body/SM_Crew_Shoe.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/Body/SM_Crew_Shoe.SM_Crew_Shoe",
+   "folder": "Characters/Body",
+   "desc": "Chunky sneaker / work shoe: soft rounded upper with an upturned toe, cream rubber sole with a midsole line and toe bumper, padded tongue, cream laces with a little bow, eyelets and a heel pull tab (paint: shoe colour).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): ShoeL, ShoeR + CrewSole0, CrewLace0_0, CrewLace0_1, CrewLace0_2"
+   ],
+   "pivot": "ShoeL component origin (parent HipL, location V(4, 0, -40)), unit space of the code primitive Box size V(25, 15, 11)",
+   "integration": "SetStaticMesh on ShoeL, ShoeR (keep the code's scale, rotation, visibility and FTVis::Paint); hide CrewSole0, CrewLace0_0, CrewLace0_1, CrewLace0_2 (merged into this mesh). Also hide CrewSole1 and CrewLace1_0..2 on the right foot.",
+   "tris": 3920,
+   "bounds_cm": {
+    "min": [
+     -53.41,
+     -53.69,
+     -51.09
+    ],
+    "max": [
+     53.41,
+     53.69,
+     66.51
+    ]
+   },
+   "materials": [
+    "M_FT_Vertex",
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -13.35,
+      -8.05,
+      -5.62
+     ],
+     [
+      13.35,
+      8.05,
+      7.32
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      25.0,
+      15.0,
+      11.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      26.7,
+      16.1,
+      12.9
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:ShoeL"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 1.1,
+    "extent_cm": 26.0,
+    "rel": 0.041,
+    "expected": [
+     [
+      -13.0,
+      -8.0,
+      -5.5
+     ],
+     [
+      13.0,
+      8.0,
+      6.2
+     ]
+    ],
+    "actual": [
+     [
+      -13.4,
+      -8.1,
+      -5.6
+     ],
+     [
+      13.4,
+      8.1,
+      7.3
+     ]
+    ],
+    "primitives": 5,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 3920,
+    "materials": [
+     "M_FT_Vertex",
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 160764,
+   "preview": "SourceArt/Blender/Previews/Characters/Body/SM_Crew_Shoe.png"
+  },
+  {
+   "name": "SM_Crew_Torso",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/Body/SM_Crew_Torso.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/Body/SM_Crew_Torso.SM_Crew_Torso",
+   "folder": "Characters/Body",
+   "desc": "Crew work shirt: a compact rounded torso with a two-tone shoulder yoke and piping, zip placket, side seams, chest pocket with flap and pencil, a clip-on crew ID badge (clapperboard icon, coral stripe) and a small CREW print on the back (paint: shirt colour).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): Torso + CrewPocket, CrewPocketFlap, CrewPencil, CrewBadge, CrewBadgeStripe"
+   ],
+   "pivot": "Torso component origin (parent Chest, location V(0, 0, 22)), unit space of the code primitive CrewTorso size V(32, 46, 44)",
+   "integration": "SetStaticMesh on Torso (keep the code's scale, rotation, visibility and FTVis::Paint); hide CrewPocket, CrewPocketFlap, CrewPencil, CrewBadge, CrewBadgeStripe (merged into this mesh).",
+   "tris": 6854,
+   "bounds_cm": {
+    "min": [
+     -51.44,
+     -50.79,
+     -51.18
+    ],
+    "max": [
+     56.44,
+     50.93,
+     52.77
+    ]
+   },
+   "materials": [
+    "M_FT_Vertex",
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -16.46,
+      -23.36,
+      -22.52
+     ],
+     [
+      18.06,
+      23.43,
+      23.22
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      32.0,
+      46.0,
+      44.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      34.5,
+      46.8,
+      45.7
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:Torso"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 1.2,
+    "extent_cm": 46.0,
+    "rel": 0.027,
+    "expected": [
+     [
+      -16.0,
+      -23.0,
+      -22.0
+     ],
+     [
+      19.0,
+      23.0,
+      22.0
+     ]
+    ],
+    "actual": [
+     [
+      -16.5,
+      -23.4,
+      -22.5
+     ],
+     [
+      18.1,
+      23.4,
+      23.2
+     ]
+    ],
+    "primitives": 6,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 6854,
+    "materials": [
+     "M_FT_Vertex",
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 263836,
+   "preview": "SourceArt/Blender/Previews/Characters/Body/SM_Crew_Torso.png"
+  },
+  {
+   "name": "SM_Crew_Walkie",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/Body/SM_Crew_Walkie.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/Body/SM_Crew_Walkie.SM_Crew_Walkie",
+   "folder": "Characters/Body",
+   "desc": "Walkie-talkie on the right hip: soft charcoal body, glowing teal screen in a bezel, speaker slots, push-to-talk button, channel knob, red status LED, rubber antenna and belt clip.",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): Walkie + CrewRadioAntenna, CrewRadioScreen"
+   ],
+   "pivot": "Walkie component origin (parent Chest, location V(4, 22, 5)), unit space of the code primitive Box size V(6, 5, 12)",
+   "integration": "SetStaticMesh on Walkie (keep the code's scale, rotation, visibility and FTVis::Paint); hide CrewRadioAntenna, CrewRadioScreen (merged into this mesh).",
+   "tris": 1572,
+   "bounds_cm": {
+    "min": [
+     -48.67,
+     -67.48,
+     -49.33
+    ],
+    "max": [
+     53.95,
+     46.82,
+     148.78
+    ]
+   },
+   "materials": [
+    "M_FT_Vertex",
+    "M_FT_VertexGlow"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -2.92,
+      -3.37,
+      -5.92
+     ],
+     [
+      3.24,
+      2.34,
+      17.85
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      6.0,
+      5.0,
+      12.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      6.2,
+      5.7,
+      23.8
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:Walkie"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 0.9,
+    "extent_cm": 24.0,
+    "rel": 0.036,
+    "expected": [
+     [
+      -3.0,
+      -2.5,
+      -6.0
+     ],
+     [
+      3.7,
+      2.5,
+      18.0
+     ]
+    ],
+    "actual": [
+     [
+      -2.9,
+      -3.4,
+      -5.9
+     ],
+     [
+      3.2,
+      2.3,
+      17.9
+     ]
+    ],
+    "primitives": 3,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 1572,
+    "materials": [
+     "M_FT_Vertex",
+     "M_FT_VertexGlow"
+    ]
+   },
+   "fbx_bytes": 67932,
+   "preview": "SourceArt/Blender/Previews/Characters/Body/SM_Crew_Walkie.png"
+  },
+  {
+   "name": "SM_Crew_BrowL",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/Face/SM_Crew_BrowL.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/Face/SM_Crew_BrowL.SM_Crew_BrowL",
+   "folder": "Characters/Face",
+   "desc": "Left eyebrow: a soft pill that hugs the forehead (expressions roll and lift it; paint: hair colour).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): BrowL"
+   ],
+   "pivot": "BrowL component origin (parent Neck, location V(20.5, -8.5, 31.5)), unit space of the code primitive Box size V(3, 10, 2.5)",
+   "integration": "SetStaticMesh on BrowL (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 376,
+   "bounds_cm": {
+    "min": [
+     -190.18,
+     -53.73,
+     -43.04
+    ],
+    "max": [
+     34.96,
+     53.76,
+     78.2
+    ]
+   },
+   "materials": [
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -5.71,
+      -5.37,
+      -1.08
+     ],
+     [
+      1.05,
+      5.38,
+      1.95
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      3.0,
+      10.0,
+      2.5
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      6.8,
+      10.7,
+      3.0
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:BrowL"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 4.2,
+    "extent_cm": 10.0,
+    "rel": 0.421,
+    "expected": [
+     [
+      -1.5,
+      -5.0,
+      -1.2
+     ],
+     [
+      1.5,
+      5.0,
+      1.2
+     ]
+    ],
+    "actual": [
+     [
+      -5.7,
+      -5.4,
+      -1.1
+     ],
+     [
+      1.0,
+      5.4,
+      2.0
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 376,
+    "materials": [
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 29340,
+   "preview": "SourceArt/Blender/Previews/Characters/Face/SM_Crew_BrowL.png"
+  },
+  {
+   "name": "SM_Crew_BrowR",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/Face/SM_Crew_BrowR.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/Face/SM_Crew_BrowR.SM_Crew_BrowR",
+   "folder": "Characters/Face",
+   "desc": "Right eyebrow (mirror of SM_Crew_BrowL).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): BrowR"
+   ],
+   "pivot": "BrowR component origin (parent Neck, location V(20.5, 8.5, 31.5)), unit space of the code primitive Box size V(3, 10, 2.5)",
+   "integration": "SetStaticMesh on BrowR (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 376,
+   "bounds_cm": {
+    "min": [
+     -190.27,
+     -53.73,
+     -42.92
+    ],
+    "max": [
+     34.86,
+     53.76,
+     78.52
+    ]
+   },
+   "materials": [
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -5.71,
+      -5.37,
+      -1.07
+     ],
+     [
+      1.05,
+      5.38,
+      1.96
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      3.0,
+      10.0,
+      2.5
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      6.8,
+      10.7,
+      3.0
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:BrowR"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 4.2,
+    "extent_cm": 10.0,
+    "rel": 0.421,
+    "expected": [
+     [
+      -1.5,
+      -5.0,
+      -1.2
+     ],
+     [
+      1.5,
+      5.0,
+      1.2
+     ]
+    ],
+    "actual": [
+     [
+      -5.7,
+      -5.4,
+      -1.1
+     ],
+     [
+      1.0,
+      5.4,
+      2.0
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 376,
+    "materials": [
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 29372,
+   "preview": "SourceArt/Blender/Previews/Characters/Face/SM_Crew_BrowR.png"
+  },
+  {
+   "name": "SM_Crew_EarL",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/Face/SM_Crew_EarL.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/Face/SM_Crew_EarL.SM_Crew_EarL",
+   "folder": "Characters/Face",
+   "desc": "Left ear: a simple rounded ear with one soft inner dimple.",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): EarL"
+   ],
+   "pivot": "EarL component origin (parent Neck, location V(0, -22, 20)), unit space of the code primitive Sphere size V(7, 4, 10)",
+   "integration": "SetStaticMesh on EarL (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 564,
+   "bounds_cm": {
+    "min": [
+     -42.48,
+     -44.33,
+     -46.2
+    ],
+    "max": [
+     42.48,
+     43.0,
+     46.2
+    ]
+   },
+   "materials": [
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -2.97,
+      -1.77,
+      -4.62
+     ],
+     [
+      2.97,
+      1.72,
+      4.62
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      7.0,
+      4.0,
+      10.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      5.9,
+      3.5,
+      9.2
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:EarL"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 0.5,
+    "extent_cm": 10.0,
+    "rel": 0.053,
+    "expected": [
+     [
+      -3.5,
+      -2.0,
+      -5.0
+     ],
+     [
+      3.5,
+      2.0,
+      5.0
+     ]
+    ],
+    "actual": [
+     [
+      -3.0,
+      -1.8,
+      -4.6
+     ],
+     [
+      3.0,
+      1.7,
+      4.6
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 564,
+    "materials": [
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 33564,
+   "preview": "SourceArt/Blender/Previews/Characters/Face/SM_Crew_EarL.png"
+  },
+  {
+   "name": "SM_Crew_EarR",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/Face/SM_Crew_EarR.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/Face/SM_Crew_EarR.SM_Crew_EarR",
+   "folder": "Characters/Face",
+   "desc": "Right ear (mirror of SM_Crew_EarL).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): EarR"
+   ],
+   "pivot": "EarR component origin (parent Neck, location V(0, 22, 20)), unit space of the code primitive Sphere size V(7, 4, 10)",
+   "integration": "SetStaticMesh on EarR (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 564,
+   "bounds_cm": {
+    "min": [
+     -42.48,
+     -43.0,
+     -46.2
+    ],
+    "max": [
+     42.48,
+     44.33,
+     46.2
+    ]
+   },
+   "materials": [
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -2.97,
+      -1.72,
+      -4.62
+     ],
+     [
+      2.97,
+      1.77,
+      4.62
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      7.0,
+      4.0,
+      10.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      5.9,
+      3.5,
+      9.2
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:EarR"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 0.5,
+    "extent_cm": 10.0,
+    "rel": 0.053,
+    "expected": [
+     [
+      -3.5,
+      -2.0,
+      -5.0
+     ],
+     [
+      3.5,
+      2.0,
+      5.0
+     ]
+    ],
+    "actual": [
+     [
+      -3.0,
+      -1.7,
+      -4.6
+     ],
+     [
+      3.0,
+      1.8,
+      4.6
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 564,
+    "materials": [
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 33452,
+   "preview": "SourceArt/Blender/Previews/Characters/Face/SM_Crew_EarR.png"
+  },
+  {
+   "name": "SM_Crew_Eye",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/Face/SM_Crew_Eye.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/Face/SM_Crew_Eye.SM_Crew_Eye",
+   "folder": "Characters/Face",
+   "desc": "Eye: a clean glossy white oval with a thin ink outline where it meets the face - the main carrier of emotion (blink and panic keep scaling it).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): EyeL, EyeR"
+   ],
+   "pivot": "EyeL component origin (parent Neck, location V(19.5, -8.5, 24)), unit space of the code primitive Ball size V(7, 8, 11)",
+   "integration": "SetStaticMesh on EyeL, EyeR (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 1008,
+   "bounds_cm": {
+    "min": [
+     -47.43,
+     -51.94,
+     -50.77
+    ],
+    "max": [
+     47.43,
+     51.92,
+     50.77
+    ]
+   },
+   "materials": [
+    "M_FT_Vertex"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -3.32,
+      -4.15,
+      -5.58
+     ],
+     [
+      3.32,
+      4.15,
+      5.58
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      7.0,
+      8.0,
+      11.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      6.6,
+      8.3,
+      11.2
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:EyeL"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 0.2,
+    "extent_cm": 11.0,
+    "rel": 0.016,
+    "expected": [
+     [
+      -3.5,
+      -4.0,
+      -5.5
+     ],
+     [
+      3.5,
+      4.0,
+      5.5
+     ]
+    ],
+    "actual": [
+     [
+      -3.3,
+      -4.2,
+      -5.6
+     ],
+     [
+      3.3,
+      4.2,
+      5.6
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 1008,
+    "materials": [
+     "M_FT_Vertex"
+    ]
+   },
+   "fbx_bytes": 48332,
+   "preview": "SourceArt/Blender/Previews/Characters/Face/SM_Crew_Eye.png"
+  },
+  {
+   "name": "SM_Crew_Head",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/Face/SM_Crew_Head.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/Face/SM_Crew_Head.SM_Crew_Head",
+   "folder": "Characters/Face",
+   "desc": "Base head: an oversized soft toy head with full cheeks and a gently flattened face plane, a tiny rounded nose and a neck stub. Deliberately bare - eyes, brows and mouth are separate animated parts.",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): Head + Nose"
+   ],
+   "pivot": "Head component origin (parent Neck, location V(0, 0, 21)), unit space of the code primitive Ball size V(46, 44, 44)",
+   "integration": "SetStaticMesh on Head (keep the code's scale, rotation, visibility and FTVis::Paint); hide Nose (merged into this mesh).",
+   "tris": 2100,
+   "bounds_cm": {
+    "min": [
+     -50.04,
+     -51.96,
+     -69.37
+    ],
+    "max": [
+     49.59,
+     51.96,
+     50.05
+    ]
+   },
+   "materials": [
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -23.02,
+      -22.86,
+      -30.52
+     ],
+     [
+      22.81,
+      22.86,
+      22.02
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      46.0,
+      44.0,
+      44.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      45.8,
+      45.7,
+      52.5
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:Head"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 8.5,
+    "extent_cm": 49.0,
+    "rel": 0.174,
+    "expected": [
+     [
+      -23.0,
+      -22.0,
+      -22.0
+     ],
+     [
+      26.0,
+      22.0,
+      22.0
+     ]
+    ],
+    "actual": [
+     [
+      -23.0,
+      -22.9,
+      -30.5
+     ],
+     [
+      22.8,
+      22.9,
+      22.0
+     ]
+    ],
+    "primitives": 2,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 2100,
+    "materials": [
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 89020,
+   "preview": "SourceArt/Blender/Previews/Characters/Face/SM_Crew_Head.png"
+  },
+  {
+   "name": "SM_Crew_Mouth",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/Face/SM_Crew_Mouth.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/Face/SM_Crew_Mouth.SM_Crew_Mouth",
+   "folder": "Characters/Face",
+   "desc": "Mouth: a small dark smile bean following the face curve, with a tongue tucked in the bottom - a subtle smile at the neutral size, a round 'O' when panic stretches it.",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): Mouth"
+   ],
+   "pivot": "Mouth component origin (parent Neck, location V(21.5, 0, 12)), unit space of the code primitive Box size V(3, 11, 3)",
+   "integration": "SetStaticMesh on Mouth (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 336,
+   "bounds_cm": {
+    "min": [
+     -84.83,
+     -44.87,
+     -41.93
+    ],
+    "max": [
+     4.94,
+     44.87,
+     43.57
+    ]
+   },
+   "materials": [
+    "M_FT_Vertex"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -2.54,
+      -4.94,
+      -1.26
+     ],
+     [
+      0.15,
+      4.94,
+      1.31
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      3.0,
+      11.0,
+      3.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      2.7,
+      9.9,
+      2.6
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:Mouth"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 1.3,
+    "extent_cm": 11.0,
+    "rel": 0.123,
+    "expected": [
+     [
+      -1.5,
+      -5.5,
+      -1.5
+     ],
+     [
+      1.5,
+      5.5,
+      1.5
+     ]
+    ],
+    "actual": [
+     [
+      -2.5,
+      -4.9,
+      -1.3
+     ],
+     [
+      0.2,
+      4.9,
+      1.3
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 336,
+    "materials": [
+     "M_FT_Vertex"
+    ]
+   },
+   "fbx_bytes": 27820,
+   "preview": "SourceArt/Blender/Previews/Characters/Face/SM_Crew_Mouth.png"
+  },
+  {
+   "name": "SM_Crew_Pupil",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/Face/SM_Crew_Pupil.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/Face/SM_Crew_Pupil.SM_Crew_Pupil",
+   "folder": "Characters/Face",
+   "desc": "Pupil: a big glossy ink oval with two catch-lights (large and small) so the eyes read alive from across the stage.",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): PupilL, PupilR"
+   ],
+   "pivot": "PupilL component origin (parent Neck, location V(22.8, -8.5, 23.5)), unit space of the code primitive Ball size V(3, 5, 7)",
+   "integration": "SetStaticMesh on PupilL, PupilR (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 604,
+   "bounds_cm": {
+    "min": [
+     -40.67,
+     -50.4,
+     -50.29
+    ],
+    "max": [
+     33.35,
+     50.4,
+     50.29
+    ]
+   },
+   "materials": [
+    "M_FT_Vertex",
+    "M_FT_VertexGlow"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -1.22,
+      -2.52,
+      -3.52
+     ],
+     [
+      1.0,
+      2.52,
+      3.52
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      3.0,
+      5.0,
+      7.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      2.2,
+      5.0,
+      7.0
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:PupilL"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 0.5,
+    "extent_cm": 7.0,
+    "rel": 0.071,
+    "expected": [
+     [
+      -1.5,
+      -2.5,
+      -3.5
+     ],
+     [
+      1.5,
+      2.5,
+      3.5
+     ]
+    ],
+    "actual": [
+     [
+      -1.2,
+      -2.5,
+      -3.5
+     ],
+     [
+      1.0,
+      2.5,
+      3.5
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 604,
+    "materials": [
+     "M_FT_Vertex",
+     "M_FT_VertexGlow"
+    ]
+   },
+   "fbx_bytes": 35084,
+   "preview": "SourceArt/Blender/Previews/Characters/Face/SM_Crew_Pupil.png"
+  },
+  {
+   "name": "SM_Crew_FPCuff",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/FirstPerson/SM_Crew_FPCuff.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/FirstPerson/SM_Crew_FPCuff.SM_Crew_FPCuff",
+   "folder": "Characters/FirstPerson",
+   "desc": "First-person glove cuff: a flared, ribbed cuff (paint: the crew accent colour).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): FPCuffL, FPCuffR"
+   ],
+   "pivot": "FPCuffL component origin (parent FPArmPivotL, location V(31, 0, 0)), unit space of the code primitive Cylinder size V(11, 11, 4)",
+   "integration": "SetStaticMesh on FPCuffL, FPCuffR (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 764,
+   "bounds_cm": {
+    "min": [
+     -53.86,
+     -53.86,
+     -55.49
+    ],
+    "max": [
+     53.86,
+     53.86,
+     55.49
+    ]
+   },
+   "materials": [
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -5.93,
+      -5.93,
+      -2.22
+     ],
+     [
+      5.93,
+      5.93,
+      2.22
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      11.0,
+      11.0,
+      4.0
+     ],
+     "rotation": [
+      -90.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      11.9,
+      11.9,
+      4.4
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:FPCuffL"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 0.4,
+    "extent_cm": 11.0,
+    "rel": 0.039,
+    "expected": [
+     [
+      -5.5,
+      -5.5,
+      -2.0
+     ],
+     [
+      5.5,
+      5.5,
+      2.0
+     ]
+    ],
+    "actual": [
+     [
+      -5.9,
+      -5.9,
+      -2.2
+     ],
+     [
+      5.9,
+      5.9,
+      2.2
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 764,
+    "materials": [
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 39644,
+   "preview": "SourceArt/Blender/Previews/Characters/FirstPerson/SM_Crew_FPCuff.png"
+  },
+  {
+   "name": "SM_Crew_FPHandL",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/FirstPerson/SM_Crew_FPHandL.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/FirstPerson/SM_Crew_FPHandL.SM_Crew_FPHandL",
+   "folder": "Characters/FirstPerson",
+   "desc": "First-person left glove: a chunky mitten with the thumb, sewn knuckle pad and finger grooves in one mesh (paint: glove colour).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): FPHandL + FPThumbL, FPKnucklePad0, FPFingerSeam0_0, FPFingerSeam0_1, FPFingerSeam0_2"
+   ],
+   "pivot": "FPHandL component origin (parent FPArmPivotL, location V(39, 0, 0)), unit space of the code primitive Ball size V(17, 12, 10)",
+   "integration": "SetStaticMesh on FPHandL (keep the code's scale, rotation, visibility and FTVis::Paint); hide FPThumbL, FPKnucklePad0, FPFingerSeam0_0, FPFingerSeam0_1, FPFingerSeam0_2 (merged into this mesh).",
+   "tris": 2474,
+   "bounds_cm": {
+    "min": [
+     -41.0,
+     -46.62,
+     -50.99
+    ],
+    "max": [
+     50.41,
+     77.3,
+     43.29
+    ]
+   },
+   "materials": [
+    "M_FT_Vertex",
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -6.97,
+      -5.59,
+      -5.1
+     ],
+     [
+      8.57,
+      9.28,
+      4.33
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      17.0,
+      12.0,
+      10.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      15.5,
+      14.9,
+      9.4
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:FPHandL"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 1.5,
+    "extent_cm": 17.0,
+    "rel": 0.09,
+    "expected": [
+     [
+      -8.5,
+      -6.0,
+      -5.0
+     ],
+     [
+      8.5,
+      8.7,
+      5.0
+     ]
+    ],
+    "actual": [
+     [
+      -7.0,
+      -5.6,
+      -5.1
+     ],
+     [
+      8.6,
+      9.3,
+      4.3
+     ]
+    ],
+    "primitives": 6,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 2474,
+    "materials": [
+     "M_FT_Vertex",
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 104828,
+   "preview": "SourceArt/Blender/Previews/Characters/FirstPerson/SM_Crew_FPHandL.png"
+  },
+  {
+   "name": "SM_Crew_FPHandR",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/FirstPerson/SM_Crew_FPHandR.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/FirstPerson/SM_Crew_FPHandR.SM_Crew_FPHandR",
+   "folder": "Characters/FirstPerson",
+   "desc": "First-person right glove (mirror of SM_Crew_FPHandL).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): FPHandR + FPThumbR, FPKnucklePad1, FPFingerSeam1_0, FPFingerSeam1_1, FPFingerSeam1_2"
+   ],
+   "pivot": "FPHandR component origin (parent FPArmPivotR, location V(39, 0, 0)), unit space of the code primitive Ball size V(17, 12, 10)",
+   "integration": "SetStaticMesh on FPHandR (keep the code's scale, rotation, visibility and FTVis::Paint); hide FPThumbR, FPKnucklePad1, FPFingerSeam1_0, FPFingerSeam1_1, FPFingerSeam1_2 (merged into this mesh).",
+   "tris": 2474,
+   "bounds_cm": {
+    "min": [
+     -41.0,
+     -77.3,
+     -50.99
+    ],
+    "max": [
+     50.41,
+     46.62,
+     43.29
+    ]
+   },
+   "materials": [
+    "M_FT_Vertex",
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -6.97,
+      -9.28,
+      -5.1
+     ],
+     [
+      8.57,
+      5.59,
+      4.33
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      17.0,
+      12.0,
+      10.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      15.5,
+      14.9,
+      9.4
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:FPHandR"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 1.5,
+    "extent_cm": 17.0,
+    "rel": 0.09,
+    "expected": [
+     [
+      -8.5,
+      -8.7,
+      -5.0
+     ],
+     [
+      8.5,
+      6.0,
+      5.0
+     ]
+    ],
+    "actual": [
+     [
+      -7.0,
+      -9.3,
+      -5.1
+     ],
+     [
+      8.6,
+      5.6,
+      4.3
+     ]
+    ],
+    "primitives": 6,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 2474,
+    "materials": [
+     "M_FT_Vertex",
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 104556,
+   "preview": "SourceArt/Blender/Previews/Characters/FirstPerson/SM_Crew_FPHandR.png"
+  },
+  {
+   "name": "SM_Crew_FPSleeve",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/FirstPerson/SM_Crew_FPSleeve.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/FirstPerson/SM_Crew_FPSleeve.SM_Crew_FPSleeve",
+   "folder": "Characters/FirstPerson",
+   "desc": "First-person forearm sleeve with a rolled cuff and a seam along the top (paint: sleeve colour).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): FPSleeveL, FPSleeveR"
+   ],
+   "pivot": "FPSleeveL component origin (parent FPArmPivotL, location V(14, 0, 0)), unit space of the code primitive Capsule size V(18, 18, 40)",
+   "integration": "SetStaticMesh on FPSleeveL, FPSleeveR (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 1040,
+   "bounds_cm": {
+    "min": [
+     -34.02,
+     -34.02,
+     -55.03
+    ],
+    "max": [
+     34.02,
+     34.02,
+     41.81
+    ]
+   },
+   "materials": [
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -6.12,
+      -6.12,
+      -22.01
+     ],
+     [
+      6.12,
+      6.12,
+      16.72
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      18.0,
+      18.0,
+      40.0
+     ],
+     "rotation": [
+      -90.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      12.2,
+      12.2,
+      38.7
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:FPSleeveL"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 3.3,
+    "extent_cm": 40.0,
+    "rel": 0.082,
+    "expected": [
+     [
+      -4.5,
+      -4.5,
+      -20.0
+     ],
+     [
+      4.5,
+      4.5,
+      20.0
+     ]
+    ],
+    "actual": [
+     [
+      -6.1,
+      -6.1,
+      -22.0
+     ],
+     [
+      6.1,
+      6.1,
+      16.7
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 1040,
+    "materials": [
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 47324,
+   "preview": "SourceArt/Blender/Previews/Characters/FirstPerson/SM_Crew_FPSleeve.png"
+  },
+  {
+   "name": "SM_Crew_CapBadge",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/HairHeadwear/SM_Crew_CapBadge.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/HairHeadwear/SM_Crew_CapBadge.SM_Crew_CapBadge",
+   "folder": "Characters/HairHeadwear",
+   "desc": "Embroidered clapperboard patch on the cap front: cream slate, striped ink clapper, coral stitched border.",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): CapBadge"
+   ],
+   "pivot": "CapBadge component origin (parent Neck, location V(20.5, 0, 40)), unit space of the code primitive Box size V(2, 9, 7)",
+   "integration": "SetStaticMesh on CapBadge (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 304,
+   "bounds_cm": {
+    "min": [
+     -122.98,
+     -50.6,
+     -16.76
+    ],
+    "max": [
+     95.86,
+     50.78,
+     72.66
+    ]
+   },
+   "materials": [
+    "M_FT_Vertex"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -2.46,
+      -4.55,
+      -1.17
+     ],
+     [
+      1.92,
+      4.57,
+      5.09
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      2.0,
+      9.0,
+      7.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      4.4,
+      9.1,
+      6.3
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:CapBadge"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 2.3,
+    "extent_cm": 9.0,
+    "rel": 0.259,
+    "expected": [
+     [
+      -1.0,
+      -4.5,
+      -3.5
+     ],
+     [
+      1.0,
+      4.5,
+      3.5
+     ]
+    ],
+    "actual": [
+     [
+      -2.5,
+      -4.6,
+      -1.2
+     ],
+     [
+      1.9,
+      4.6,
+      5.1
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 304,
+    "materials": [
+     "M_FT_Vertex"
+    ]
+   },
+   "fbx_bytes": 30204,
+   "preview": "SourceArt/Blender/Previews/Characters/HairHeadwear/SM_Crew_CapBadge.png"
+  },
+  {
+   "name": "SM_Crew_CapBrim",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/HairHeadwear/SM_Crew_CapBrim.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/HairHeadwear/SM_Crew_CapBrim.SM_Crew_CapBrim",
+   "folder": "Characters/HairHeadwear",
+   "desc": "Curved cap peak with a rounded edge and four rows of stitching; its back edge tucks into the crown (paint: brim colour).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): CapBrim"
+   ],
+   "pivot": "CapBrim component origin (parent Neck, location V(22, 0, 33)), unit space of the code primitive Box size V(22, 32, 3)",
+   "integration": "SetStaticMesh on CapBrim (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 1100,
+   "bounds_cm": {
+    "min": [
+     -18.89,
+     -50.06,
+     -19.1
+    ],
+    "max": [
+     50.09,
+     50.06,
+     123.6
+    ]
+   },
+   "materials": [
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -4.15,
+      -16.02,
+      -0.57
+     ],
+     [
+      11.02,
+      16.02,
+      3.71
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      22.0,
+      32.0,
+      3.0
+     ],
+     "rotation": [
+      -8.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      15.2,
+      32.0,
+      4.3
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:CapBrim"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 6.8,
+    "extent_cm": 32.0,
+    "rel": 0.214,
+    "expected": [
+     [
+      -11.0,
+      -16.0,
+      -1.5
+     ],
+     [
+      11.0,
+      16.0,
+      1.5
+     ]
+    ],
+    "actual": [
+     [
+      -4.2,
+      -16.0,
+      -0.6
+     ],
+     [
+      11.0,
+      16.0,
+      3.7
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 1100,
+    "materials": [
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 58140,
+   "preview": "SourceArt/Blender/Previews/Characters/HairHeadwear/SM_Crew_CapBrim.png"
+  },
+  {
+   "name": "SM_Crew_CapCrown",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/HairHeadwear/SM_Crew_CapCrown.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/HairHeadwear/SM_Crew_CapCrown.SM_Crew_CapCrown",
+   "folder": "Characters/HairHeadwear",
+   "desc": "Crew cap crown: a rounded six-panel crown with stitched seams, embroidered eyelets, a covered top button, a sweatband rim and a snapback strap at the back (paint: cap colour).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): CapCrown"
+   ],
+   "pivot": "CapCrown component origin (parent Neck, location V(0, 0, 35)), unit space of the code primitive Ball size V(49, 47, 25)",
+   "integration": "SetStaticMesh on CapCrown (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 3656,
+   "bounds_cm": {
+    "min": [
+     -51.53,
+     -52.27,
+     -36.55
+    ],
+    "max": [
+     50.72,
+     52.3,
+     54.22
+    ]
+   },
+   "materials": [
+    "M_FT_Vertex",
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -25.25,
+      -24.56,
+      -9.14
+     ],
+     [
+      24.85,
+      24.58,
+      13.56
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      49.0,
+      47.0,
+      25.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      50.1,
+      49.1,
+      22.7
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:CapCrown"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 3.4,
+    "extent_cm": 49.0,
+    "rel": 0.069,
+    "expected": [
+     [
+      -24.5,
+      -23.5,
+      -12.5
+     ],
+     [
+      24.5,
+      23.5,
+      12.5
+     ]
+    ],
+    "actual": [
+     [
+      -25.2,
+      -24.6,
+      -9.1
+     ],
+     [
+      24.9,
+      24.6,
+      13.6
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 3656,
+    "materials": [
+     "M_FT_Vertex",
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 158572,
+   "preview": "SourceArt/Blender/Previews/Characters/HairHeadwear/SM_Crew_CapCrown.png"
+  },
+  {
+   "name": "SM_Crew_GlassL",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/HairHeadwear/SM_Crew_GlassL.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/HairHeadwear/SM_Crew_GlassL.SM_Crew_GlassL",
+   "folder": "Characters/HairHeadwear",
+   "desc": "Round crew glasses, left half: chunky round frame, tinted lens with a glint, half bridge, hinge and a temple hooked over the ear (paint: frame colour).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): GlassL"
+   ],
+   "pivot": "GlassL component origin (parent Neck, location V(23, -8.5, 24)), unit space of the code primitive Torus size V(15, 15, 4)",
+   "integration": "SetStaticMesh on GlassL (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 1116,
+   "bounds_cm": {
+    "min": [
+     -47.54,
+     -101.99,
+     -47.53
+    ],
+    "max": [
+     47.54,
+     58.63,
+     693.38
+    ]
+   },
+   "materials": [
+    "M_FT_VertexGlow",
+    "M_FT_VertexGlass",
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -7.13,
+      -15.3,
+      -1.9
+     ],
+     [
+      7.13,
+      8.79,
+      27.74
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      15.0,
+      15.0,
+      4.0
+     ],
+     "rotation": [
+      90.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      14.3,
+      24.1,
+      29.6
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:GlassL"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 27.1,
+    "extent_cm": 15.0,
+    "rel": 1.809,
+    "expected": [
+     [
+      -7.5,
+      -7.5,
+      -0.6
+     ],
+     [
+      7.5,
+      7.5,
+      0.6
+     ]
+    ],
+    "actual": [
+     [
+      -7.1,
+      -15.3,
+      -1.9
+     ],
+     [
+      7.1,
+      8.8,
+      27.7
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "check",
+    "note": "Temple arm runs back over the ear; the code torus is only the lens ring."
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 1116,
+    "materials": [
+     "M_FT_VertexGlow",
+     "M_FT_VertexGlass",
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 57068,
+   "preview": "SourceArt/Blender/Previews/Characters/HairHeadwear/SM_Crew_GlassL.png"
+  },
+  {
+   "name": "SM_Crew_GlassR",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/HairHeadwear/SM_Crew_GlassR.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/HairHeadwear/SM_Crew_GlassR.SM_Crew_GlassR",
+   "folder": "Characters/HairHeadwear",
+   "desc": "Round crew glasses, right half (mirror of SM_Crew_GlassL).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): GlassR"
+   ],
+   "pivot": "GlassR component origin (parent Neck, location V(23, 8.5, 24)), unit space of the code primitive Torus size V(15, 15, 4)",
+   "integration": "SetStaticMesh on GlassR (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 1116,
+   "bounds_cm": {
+    "min": [
+     -47.54,
+     -58.63,
+     -47.53
+    ],
+    "max": [
+     47.54,
+     101.99,
+     693.38
+    ]
+   },
+   "materials": [
+    "M_FT_VertexGlow",
+    "M_FT_VertexGlass",
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -7.13,
+      -8.79,
+      -1.9
+     ],
+     [
+      7.13,
+      15.3,
+      27.74
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      15.0,
+      15.0,
+      4.0
+     ],
+     "rotation": [
+      90.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      14.3,
+      24.1,
+      29.6
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:GlassR"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 27.1,
+    "extent_cm": 15.0,
+    "rel": 1.809,
+    "expected": [
+     [
+      -7.5,
+      -7.5,
+      -0.6
+     ],
+     [
+      7.5,
+      7.5,
+      0.6
+     ]
+    ],
+    "actual": [
+     [
+      -7.1,
+      -8.8,
+      -1.9
+     ],
+     [
+      7.1,
+      15.3,
+      27.7
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "check",
+    "note": "Temple arm runs back over the ear; the code torus is only the lens ring."
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 1116,
+    "materials": [
+     "M_FT_VertexGlow",
+     "M_FT_VertexGlass",
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 57068,
+   "preview": "SourceArt/Blender/Previews/Characters/HairHeadwear/SM_Crew_GlassR.png"
+  },
+  {
+   "name": "SM_Crew_HairBack",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/HairHeadwear/SM_Crew_HairBack.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/HairHeadwear/SM_Crew_HairBack.SM_Crew_HairBack",
+   "folder": "Characters/HairHeadwear",
+   "desc": "Back hair: a full rounded nape volume with soft clumps falling down and flicking out at the neckline (paint: hair colour).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): HairBack"
+   ],
+   "pivot": "HairBack component origin (parent Neck, location V(-8, 0, 22)), unit space of the code primitive Ball size V(36, 45, 34)",
+   "integration": "SetStaticMesh on HairBack (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 3272,
+   "bounds_cm": {
+    "min": [
+     -52.72,
+     -53.9,
+     -47.04
+    ],
+    "max": [
+     36.17,
+     53.9,
+     66.52
+    ]
+   },
+   "materials": [
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -18.98,
+      -24.25,
+      -15.99
+     ],
+     [
+      13.02,
+      24.25,
+      22.62
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      36.0,
+      45.0,
+      34.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      32.0,
+      48.5,
+      38.6
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:HairBack"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 5.6,
+    "extent_cm": 45.0,
+    "rel": 0.125,
+    "expected": [
+     [
+      -18.0,
+      -22.5,
+      -17.0
+     ],
+     [
+      18.0,
+      22.5,
+      17.0
+     ]
+    ],
+    "actual": [
+     [
+      -19.0,
+      -24.2,
+      -16.0
+     ],
+     [
+      13.0,
+      24.2,
+      22.6
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 3272,
+    "materials": [
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 138796,
+   "preview": "SourceArt/Blender/Previews/Characters/HairHeadwear/SM_Crew_HairBack.png"
+  },
+  {
+   "name": "SM_Crew_HairBun",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/HairHeadwear/SM_Crew_HairBun.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/HairHeadwear/SM_Crew_HairBun.SM_Crew_HairBun",
+   "folder": "Characters/HairHeadwear",
+   "desc": "Top-knot bun: wound strands with a coral scrunchie and two loose wisps (paint: hair colour).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): HairBun"
+   ],
+   "pivot": "HairBun component origin (parent Neck, location V(-13, 0, 43)), unit space of the code primitive Sphere size V(19, 19, 19)",
+   "integration": "SetStaticMesh on HairBun (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 2544,
+   "bounds_cm": {
+    "min": [
+     -46.42,
+     -46.42,
+     -71.79
+    ],
+    "max": [
+     46.42,
+     46.42,
+     46.42
+    ]
+   },
+   "materials": [
+    "M_FT_Vertex",
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -8.82,
+      -8.82,
+      -13.64
+     ],
+     [
+      8.82,
+      8.82,
+      8.82
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      19.0,
+      19.0,
+      19.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      17.6,
+      17.6,
+      22.5
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:HairBun"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 4.1,
+    "extent_cm": 19.0,
+    "rel": 0.218,
+    "expected": [
+     [
+      -9.5,
+      -9.5,
+      -9.5
+     ],
+     [
+      9.5,
+      9.5,
+      9.5
+     ]
+    ],
+    "actual": [
+     [
+      -8.8,
+      -8.8,
+      -13.6
+     ],
+     [
+      8.8,
+      8.8,
+      8.8
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 2544,
+    "materials": [
+     "M_FT_Vertex",
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 102348,
+   "preview": "SourceArt/Blender/Previews/Characters/HairHeadwear/SM_Crew_HairBun.png"
+  },
+  {
+   "name": "SM_Crew_HairTop",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/HairHeadwear/SM_Crew_HairTop.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/HairHeadwear/SM_Crew_HairTop.SM_Crew_HairTop",
+   "folder": "Characters/HairHeadwear",
+   "desc": "Short hair: a sculpted cap of big soft clumps - a side-swept fringe that stops above the brows, chunky tufts over the crown, sideburns and a cowlick (paint: hair colour).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): HairTop"
+   ],
+   "pivot": "HairTop component origin (parent Neck, location V(-2, 0, 33)), unit space of the code primitive Ball size V(47, 46, 26)",
+   "integration": "SetStaticMesh on HairTop (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 4328,
+   "bounds_cm": {
+    "min": [
+     -46.36,
+     -51.65,
+     -34.9
+    ],
+    "max": [
+     54.94,
+     51.65,
+     67.13
+    ]
+   },
+   "materials": [
+    "M_FT_CrewPaint"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -21.79,
+      -23.76,
+      -9.08
+     ],
+     [
+      25.82,
+      23.76,
+      17.46
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      47.0,
+      46.0,
+      26.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      47.6,
+      47.5,
+      26.5
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:HairTop"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 4.5,
+    "extent_cm": 47.0,
+    "rel": 0.095,
+    "expected": [
+     [
+      -23.5,
+      -23.0,
+      -13.0
+     ],
+     [
+      23.5,
+      23.0,
+      13.0
+     ]
+    ],
+    "actual": [
+     [
+      -21.8,
+      -23.8,
+      -9.1
+     ],
+     [
+      25.8,
+      23.8,
+      17.5
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 4328,
+    "materials": [
+     "M_FT_CrewPaint"
+    ]
+   },
+   "fbx_bytes": 187612,
+   "preview": "SourceArt/Blender/Previews/Characters/HairHeadwear/SM_Crew_HairTop.png"
+  },
+  {
+   "name": "SM_Crew_PhoneBand",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/HairHeadwear/SM_Crew_PhoneBand.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/HairHeadwear/SM_Crew_PhoneBand.SM_Crew_PhoneBand",
+   "folder": "Characters/HairHeadwear",
+   "desc": "Headphone band arching over the head (and over a cap): steel band, padded top cushion with stitching, chrome sliders at both ends.",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): PhoneBand"
+   ],
+   "pivot": "PhoneBand component origin (parent Neck, location V(0, 0, 44.5)), unit space of the code primitive Box size V(6, 48, 4)",
+   "integration": "SetStaticMesh on PhoneBand (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 736,
+   "bounds_cm": {
+    "min": [
+     -33.72,
+     -54.4,
+     -432.15
+    ],
+    "max": [
+     33.72,
+     54.4,
+     217.65
+    ]
+   },
+   "materials": [
+    "M_FT_Vertex"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -2.02,
+      -26.11,
+      -17.29
+     ],
+     [
+      2.02,
+      26.11,
+      8.71
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      6.0,
+      48.0,
+      4.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "real_size_cm": [
+      4.0,
+      52.2,
+      26.0
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:PhoneBand"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 15.3,
+    "extent_cm": 48.0,
+    "rel": 0.319,
+    "expected": [
+     [
+      -3.0,
+      -24.0,
+      -2.0
+     ],
+     [
+      3.0,
+      24.0,
+      2.0
+     ]
+    ],
+    "actual": [
+     [
+      -2.0,
+      -26.1,
+      -17.3
+     ],
+     [
+      2.0,
+      26.1,
+      8.7
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "check",
+    "note": "Band arches from cup to cup over the head and the cap; the code box is only the top strip."
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 736,
+    "materials": [
+     "M_FT_Vertex"
+    ]
+   },
+   "fbx_bytes": 40508,
+   "preview": "SourceArt/Blender/Previews/Characters/HairHeadwear/SM_Crew_PhoneBand.png"
+  },
+  {
+   "name": "SM_Crew_PhoneCupL",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/HairHeadwear/SM_Crew_PhoneCupL.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/HairHeadwear/SM_Crew_PhoneCupL.SM_Crew_PhoneCupL",
+   "folder": "Characters/HairHeadwear",
+   "desc": "Left headphone cup: soft charcoal shell, fat cushion towards the head, coral trim ring, fork yoke and the cable to the walkie.",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): PhoneL"
+   ],
+   "pivot": "PhoneL component origin (parent Neck, location V(0, -24, 21)), unit space of the code primitive Cylinder size V(15, 15, 8)",
+   "integration": "SetStaticMesh on PhoneL (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 2304,
+   "bounds_cm": {
+    "min": [
+     -58.88,
+     -70.93,
+     -42.6
+    ],
+    "max": [
+     58.9,
+     135.91,
+     52.86
+    ]
+   },
+   "materials": [
+    "M_FT_Vertex"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -8.83,
+      -10.64,
+      -3.41
+     ],
+     [
+      8.84,
+      20.39,
+      4.23
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      15.0,
+      15.0,
+      8.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      90.0
+     ],
+     "real_size_cm": [
+      17.7,
+      31.0,
+      7.6
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:PhoneL"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 12.9,
+    "extent_cm": 15.0,
+    "rel": 0.859,
+    "expected": [
+     [
+      -7.5,
+      -7.5,
+      -4.0
+     ],
+     [
+      7.5,
+      7.5,
+      4.0
+     ]
+    ],
+    "actual": [
+     [
+      -8.8,
+      -10.6,
+      -3.4
+     ],
+     [
+      8.8,
+      20.4,
+      4.2
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "check",
+    "note": "Cable hangs down from the cup; the code cylinder is only the cup."
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 2304,
+    "materials": [
+     "M_FT_Vertex"
+    ]
+   },
+   "fbx_bytes": 95084,
+   "preview": "SourceArt/Blender/Previews/Characters/HairHeadwear/SM_Crew_PhoneCupL.png"
+  },
+  {
+   "name": "SM_Crew_PhoneCupR",
+   "fbx": "Content/TheFinalTake/Meshes/Characters/HairHeadwear/SM_Crew_PhoneCupR.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/Characters/HairHeadwear/SM_Crew_PhoneCupR.SM_Crew_PhoneCupR",
+   "folder": "Characters/HairHeadwear",
+   "desc": "Right headphone cup (mirror of SM_Crew_PhoneCupL, no cable).",
+   "replaces": [
+    "AFTCharacter::BuildBody() (Characters/FTCharacter.cpp): PhoneR"
+   ],
+   "pivot": "PhoneR component origin (parent Neck, location V(0, 24, 21)), unit space of the code primitive Cylinder size V(15, 15, 8)",
+   "integration": "SetStaticMesh on PhoneR (keep the code's scale, rotation, visibility and FTVis::Paint).",
+   "tris": 2152,
+   "bounds_cm": {
+    "min": [
+     -58.88,
+     -70.93,
+     -52.86
+    ],
+    "max": [
+     58.9,
+     50.15,
+     42.6
+    ]
+   },
+   "materials": [
+    "M_FT_Vertex"
+   ],
+   "sockets": {},
+   "meta": {
+    "fit_bounds": [
+     [
+      -8.83,
+      -10.64,
+      -4.23
+     ],
+     [
+      8.84,
+      7.52,
+      3.41
+     ]
+    ],
+    "unit_space": {
+     "size": [
+      15.0,
+      15.0,
+      8.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      90.0
+     ],
+     "real_size_cm": [
+      17.7,
+      18.2,
+      7.6
+     ]
+    }
+   },
+   "placements": [],
+   "tags": [
+    "crew",
+    "unit:PhoneR"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 3.1,
+    "extent_cm": 15.0,
+    "rel": 0.209,
+    "expected": [
+     [
+      -7.5,
+      -7.5,
+      -4.0
+     ],
+     [
+      7.5,
+      7.5,
+      4.0
+     ]
+    ],
+    "actual": [
+     [
+      -8.8,
+      -10.6,
+      -4.2
+     ],
+     [
+      8.8,
+      7.5,
+      3.4
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 2152,
+    "materials": [
+     "M_FT_Vertex"
+    ]
+   },
+   "fbx_bytes": 87436,
+   "preview": "SourceArt/Blender/Previews/Characters/HairHeadwear/SM_Crew_PhoneCupR.png"
+  },
+  {
    "name": "SM_City_AlleyEnd_200",
    "fbx": "Content/TheFinalTake/Meshes/City/Boulevard/SM_City_AlleyEnd_200.fbx",
    "unreal_path": "/Game/TheFinalTake/Meshes/City/Boulevard/SM_City_AlleyEnd_200.SM_City_AlleyEnd_200",
@@ -11646,6 +15569,1308 @@
    },
    "fbx_bytes": 95884,
    "preview": "SourceArt/Blender/Previews/Dealership/SM_Dealer_TubeMan.png"
+  },
+  {
+   "name": "SM_FX_LightBeam",
+   "fbx": "Content/TheFinalTake/Meshes/FX/Beams/SM_FX_LightBeam.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/FX/Beams/SM_FX_LightBeam.SM_FX_LightBeam",
+   "folder": "FX/Beams",
+   "desc": "Volumetric light beam: nested soft cones that fade towards the rim and the far end, a bright core, faint light rays and floating dust motes.",
+   "replaces": [
+    "GlowCone() cones (Production/FTStations.cpp): AFTLighthouse BeamCone, AFTStageLight Cone",
+    "AFTCityShell SearchBeam0/1 (World/FTCity.cpp)"
+   ],
+   "pivot": "unit-shape centre (+-50 cm box, +Z leading), like FTVis::GetMesh",
+   "integration": "SetStaticMesh on BeamCone / Cone / SearchBeam%d after they are made (unit Cone space, apex +Z); keep the code scale and paint colour. Material M_FT_BeamGlow: two-sided additive, emissive = paint colour x vertex colour x vertex alpha (or leave FTVis::Glow() on it).",
+   "tris": 7260,
+   "bounds_cm": {
+    "min": [
+     -50.04,
+     -50.04,
+     -51.0
+    ],
+    "max": [
+     50.04,
+     50.04,
+     50.01
+    ]
+   },
+   "materials": [
+    "M_FT_BeamGlow"
+   ],
+   "sockets": {},
+   "meta": {},
+   "placements": [],
+   "tags": [
+    "fx",
+    "unit"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 1.0,
+    "extent_cm": 100.0,
+    "rel": 0.01,
+    "expected": [
+     [
+      -50.0,
+      -50.0,
+      -50.0
+     ],
+     [
+      50.0,
+      50.0,
+      50.0
+     ]
+    ],
+    "actual": [
+     [
+      -50.0,
+      -50.0,
+      -51.0
+     ],
+     [
+      50.0,
+      50.0,
+      50.0
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 7260,
+    "materials": [
+     "M_FT_BeamGlow"
+    ]
+   },
+   "fbx_bytes": 257292,
+   "preview": "SourceArt/Blender/Previews/FX/Beams/SM_FX_LightBeam.png"
+  },
+  {
+   "name": "SM_FX_ProjectorBeam",
+   "fbx": "Content/TheFinalTake/Meshes/FX/Beams/SM_FX_ProjectorBeam.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/FX/Beams/SM_FX_ProjectorBeam.SM_FX_ProjectorBeam",
+   "folder": "FX/Beams",
+   "desc": "Projector beam: the light-beam volume with more flickering film rays, drifting dust and faint banding, like a cinema throw through a dusty room.",
+   "replaces": [
+    "AFTProjector Beam (World/FTStudioObjects.cpp): test screening and Grand Cinema premiere"
+   ],
+   "pivot": "unit-shape centre (+-50 cm box, +Z leading), like FTVis::GetMesh",
+   "integration": "SetStaticMesh on AFTProjector::Beam in the constructor and after each FTVis::ApplyShape(Beam, Cone, ...) in the aiming code (unit Cone space, apex +Z); SetGlow/scale stay code-driven. Material M_FT_BeamGlow as for SM_FX_LightBeam.",
+   "tris": 11396,
+   "bounds_cm": {
+    "min": [
+     -50.04,
+     -50.04,
+     -51.02
+    ],
+    "max": [
+     50.04,
+     50.04,
+     50.01
+    ]
+   },
+   "materials": [
+    "M_FT_BeamGlow"
+   ],
+   "sockets": {},
+   "meta": {},
+   "placements": [],
+   "tags": [
+    "fx",
+    "unit"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 1.0,
+    "extent_cm": 100.0,
+    "rel": 0.01,
+    "expected": [
+     [
+      -50.0,
+      -50.0,
+      -50.0
+     ],
+     [
+      50.0,
+      50.0,
+      50.0
+     ]
+    ],
+    "actual": [
+     [
+      -50.0,
+      -50.0,
+      -51.0
+     ],
+     [
+      50.0,
+      50.0,
+      50.0
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 11396,
+    "materials": [
+     "M_FT_BeamGlow"
+    ]
+   },
+   "fbx_bytes": 409964,
+   "preview": "SourceArt/Blender/Previews/FX/Beams/SM_FX_ProjectorBeam.png"
+  },
+  {
+   "name": "SM_FX_Bubble",
+   "fbx": "Content/TheFinalTake/Meshes/FX/Particles/SM_FX_Bubble.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/FX/Particles/SM_FX_Bubble.SM_FX_Bubble",
+   "folder": "FX/Particles",
+   "desc": "Soap bubble: a round shell with a curved highlight and a small glint.",
+   "replaces": [
+    "UFTChunkyParticles Ball shape of the bubble shop item (Career/FTShopItems.cpp)"
+   ],
+   "pivot": "unit-shape centre (+-50 cm box, +Z leading), like FTVis::GetMesh",
+   "integration": "Runtime particles: after UFTChunkyParticles::Configure() call SetStaticMesh(this mesh) on the component (Configure keeps setting material and colour). Replaces the Ball unit shape of: bubble machine item.",
+   "tris": 888,
+   "bounds_cm": {
+    "min": [
+     -48.0,
+     -48.0,
+     -48.0
+    ],
+    "max": [
+     48.0,
+     48.0,
+     48.0
+    ]
+   },
+   "materials": [
+    "M_FT_Vertex",
+    "M_FT_VertexGlow"
+   ],
+   "sockets": {},
+   "meta": {},
+   "placements": [],
+   "tags": [
+    "fx",
+    "unit"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 2.0,
+    "extent_cm": 100.0,
+    "rel": 0.02,
+    "expected": [
+     [
+      -50.0,
+      -50.0,
+      -50.0
+     ],
+     [
+      50.0,
+      50.0,
+      50.0
+     ]
+    ],
+    "actual": [
+     [
+      -48.0,
+      -48.0,
+      -48.0
+     ],
+     [
+      48.0,
+      48.0,
+      48.0
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 888,
+    "materials": [
+     "M_FT_Vertex",
+     "M_FT_VertexGlow"
+    ]
+   },
+   "fbx_bytes": 43340,
+   "preview": "SourceArt/Blender/Previews/FX/Particles/SM_FX_Bubble.png"
+  },
+  {
+   "name": "SM_FX_Confetti",
+   "fbx": "Content/TheFinalTake/Meshes/FX/Particles/SM_FX_Confetti.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/FX/Particles/SM_FX_Confetti.SM_FX_Confetti",
+   "folder": "FX/Particles",
+   "desc": "Confetti: a curled, slightly twisted paper strip (the particle colour tints it).",
+   "replaces": [
+    "UFTChunkyParticles Cube shape of the confetti burst (Career/FTShopItems.cpp)"
+   ],
+   "pivot": "unit-shape centre (+-50 cm box, +Z leading), like FTVis::GetMesh",
+   "integration": "Runtime particles: after UFTChunkyParticles::Configure() call SetStaticMesh(this mesh) on the component (Configure keeps setting material and colour). Replaces the Cube unit shape of: confetti and party items.",
+   "tris": 84,
+   "bounds_cm": {
+    "min": [
+     -48.0,
+     -48.0,
+     -48.0
+    ],
+    "max": [
+     48.0,
+     48.0,
+     48.0
+    ]
+   },
+   "materials": [
+    "M_FT_Vertex"
+   ],
+   "sockets": {},
+   "meta": {},
+   "placements": [],
+   "tags": [
+    "fx",
+    "unit"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 2.0,
+    "extent_cm": 100.0,
+    "rel": 0.02,
+    "expected": [
+     [
+      -50.0,
+      -50.0,
+      -50.0
+     ],
+     [
+      50.0,
+      50.0,
+      50.0
+     ]
+    ],
+    "actual": [
+     [
+      -48.0,
+      -48.0,
+      -48.0
+     ],
+     [
+      48.0,
+      48.0,
+      48.0
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 84,
+    "materials": [
+     "M_FT_Vertex"
+    ]
+   },
+   "fbx_bytes": 19164,
+   "preview": "SourceArt/Blender/Previews/FX/Particles/SM_FX_Confetti.png"
+  },
+  {
+   "name": "SM_FX_Droplet",
+   "fbx": "Content/TheFinalTake/Meshes/FX/Particles/SM_FX_Droplet.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/FX/Particles/SM_FX_Droplet.SM_FX_Droplet",
+   "folder": "FX/Particles",
+   "desc": "Water droplet: a chunky teardrop with two tiny satellite drops, so every splash, wake and valve spray reads as water.",
+   "replaces": [
+    "UFTChunkyParticles Sphere shape: shark splash and wake (Production/FTShark.cpp), boat wake (FTStations.cpp), valve spray (World/FTFloodController.cpp), set-piece splash (Props/FTSetPieces.cpp)"
+   ],
+   "pivot": "unit-shape centre (+-50 cm box, +Z leading), like FTVis::GetMesh",
+   "integration": "Runtime particles: after UFTChunkyParticles::Configure() call SetStaticMesh(this mesh) on the component (Configure keeps setting material and colour). Replaces the Sphere unit shape of: splashes, wakes and the flood valve spray.",
+   "tris": 500,
+   "bounds_cm": {
+    "min": [
+     -48.0,
+     -48.0,
+     -48.0
+    ],
+    "max": [
+     48.0,
+     48.0,
+     48.0
+    ]
+   },
+   "materials": [
+    "M_FT_Vertex"
+   ],
+   "sockets": {},
+   "meta": {},
+   "placements": [],
+   "tags": [
+    "fx",
+    "unit"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 2.0,
+    "extent_cm": 100.0,
+    "rel": 0.02,
+    "expected": [
+     [
+      -50.0,
+      -50.0,
+      -50.0
+     ],
+     [
+      50.0,
+      50.0,
+      50.0
+     ]
+    ],
+    "actual": [
+     [
+      -48.0,
+      -48.0,
+      -48.0
+     ],
+     [
+      48.0,
+      48.0,
+      48.0
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 500,
+    "materials": [
+     "M_FT_Vertex"
+    ]
+   },
+   "fbx_bytes": 30140,
+   "preview": "SourceArt/Blender/Previews/FX/Particles/SM_FX_Droplet.png"
+  },
+  {
+   "name": "SM_FX_FoamBlob",
+   "fbx": "Content/TheFinalTake/Meshes/FX/Particles/SM_FX_FoamBlob.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/FX/Particles/SM_FX_FoamBlob.SM_FX_FoamBlob",
+   "folder": "FX/Particles",
+   "desc": "Foam blob: a squashed dollop of suds with bubbles of different sizes on top and a flat underside to rest on the floor.",
+   "replaces": [
+    "UFTChunkyParticles Ball shape of the foam cannon (Production/FTStations.cpp)"
+   ],
+   "pivot": "unit-shape centre (+-50 cm box, +Z leading), like FTVis::GetMesh",
+   "integration": "Runtime particles: after UFTChunkyParticles::Configure() call SetStaticMesh(this mesh) on the component (Configure keeps setting material and colour). Replaces the Ball unit shape of: foam cannon.",
+   "tris": 2672,
+   "bounds_cm": {
+    "min": [
+     -48.0,
+     -48.0,
+     -27.02
+    ],
+    "max": [
+     48.0,
+     48.0,
+     27.02
+    ]
+   },
+   "materials": [
+    "M_FT_Vertex"
+   ],
+   "sockets": {},
+   "meta": {},
+   "placements": [],
+   "tags": [
+    "fx",
+    "unit"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 23.0,
+    "extent_cm": 100.0,
+    "rel": 0.23,
+    "expected": [
+     [
+      -50.0,
+      -50.0,
+      -50.0
+     ],
+     [
+      50.0,
+      50.0,
+      50.0
+     ]
+    ],
+    "actual": [
+     [
+      -48.0,
+      -48.0,
+      -27.0
+     ],
+     [
+      48.0,
+      48.0,
+      27.0
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "check",
+    "note": "Flat underside so the resting blob sits on the floor; lower than the unit ball it replaces."
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 2672,
+    "materials": [
+     "M_FT_Vertex"
+    ]
+   },
+   "fbx_bytes": 92716,
+   "preview": "SourceArt/Blender/Previews/FX/Particles/SM_FX_FoamBlob.png"
+  },
+  {
+   "name": "SM_FX_RainStreak",
+   "fbx": "Content/TheFinalTake/Meshes/FX/Particles/SM_FX_RainStreak.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/FX/Particles/SM_FX_RainStreak.SM_FX_RainStreak",
+   "folder": "FX/Particles",
+   "desc": "Rain streak: a falling drop with a round leading head and a long thinning tail, plus a glint - stretches nicely along the velocity.",
+   "replaces": [
+    "UFTChunkyParticles Cube shape of the rain machine (Production/FTStations.cpp) and AFTAmbientRain (World/FTStudioObjects.cpp)"
+   ],
+   "pivot": "unit-shape centre (+-50 cm box, +Z leading), like FTVis::GetMesh",
+   "integration": "Runtime particles: after UFTChunkyParticles::Configure() call SetStaticMesh(this mesh) on the component (Configure keeps setting material and colour). Replaces the Cube unit shape of: rain machine, ambient street rain.",
+   "tris": 244,
+   "bounds_cm": {
+    "min": [
+     -48.0,
+     -48.0,
+     -48.0
+    ],
+    "max": [
+     48.0,
+     48.0,
+     48.0
+    ]
+   },
+   "materials": [
+    "M_FT_Vertex"
+   ],
+   "sockets": {},
+   "meta": {},
+   "placements": [],
+   "tags": [
+    "fx",
+    "unit"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 2.0,
+    "extent_cm": 100.0,
+    "rel": 0.02,
+    "expected": [
+     [
+      -50.0,
+      -50.0,
+      -50.0
+     ],
+     [
+      50.0,
+      50.0,
+      50.0
+     ]
+    ],
+    "actual": [
+     [
+      -48.0,
+      -48.0,
+      -48.0
+     ],
+     [
+      48.0,
+      48.0,
+      48.0
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 244,
+    "materials": [
+     "M_FT_Vertex"
+    ]
+   },
+   "fbx_bytes": 22764,
+   "preview": "SourceArt/Blender/Previews/FX/Particles/SM_FX_RainStreak.png"
+  },
+  {
+   "name": "SM_FX_SmokePuff",
+   "fbx": "Content/TheFinalTake/Meshes/FX/Particles/SM_FX_SmokePuff.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/FX/Particles/SM_FX_SmokePuff.SM_FX_SmokePuff",
+   "folder": "FX/Particles",
+   "desc": "Smoke puff: a cauliflower cluster of soft round lobes, lighter on top and shaded underneath.",
+   "replaces": [
+    "UFTChunkyParticles Ball shape of the smoke machine (Production/FTStations.cpp) and the smoke shop items (Career/FTShopItems.cpp)"
+   ],
+   "pivot": "unit-shape centre (+-50 cm box, +Z leading), like FTVis::GetMesh",
+   "integration": "Runtime particles: after UFTChunkyParticles::Configure() call SetStaticMesh(this mesh) on the component (Configure keeps setting material and colour). Replaces the Ball unit shape of: smoke machine, smoke bomb items.",
+   "tris": 3168,
+   "bounds_cm": {
+    "min": [
+     -48.0,
+     -48.0,
+     -48.0
+    ],
+    "max": [
+     48.0,
+     48.0,
+     48.0
+    ]
+   },
+   "materials": [
+    "M_FT_Vertex"
+   ],
+   "sockets": {},
+   "meta": {},
+   "placements": [],
+   "tags": [
+    "fx",
+    "unit"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 2.0,
+    "extent_cm": 100.0,
+    "rel": 0.02,
+    "expected": [
+     [
+      -50.0,
+      -50.0,
+      -50.0
+     ],
+     [
+      50.0,
+      50.0,
+      50.0
+     ]
+    ],
+    "actual": [
+     [
+      -48.0,
+      -48.0,
+      -48.0
+     ],
+     [
+      48.0,
+      48.0,
+      48.0
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 3168,
+    "materials": [
+     "M_FT_Vertex"
+    ]
+   },
+   "fbx_bytes": 105148,
+   "preview": "SourceArt/Blender/Previews/FX/Particles/SM_FX_SmokePuff.png"
+  },
+  {
+   "name": "SM_FX_Spark",
+   "fbx": "Content/TheFinalTake/Meshes/FX/Particles/SM_FX_Spark.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/FX/Particles/SM_FX_Spark.SM_FX_Spark",
+   "folder": "FX/Particles",
+   "desc": "Spark: a hot core with a long four-point star flare - reads as a crackling electric spark or a firework ember.",
+   "replaces": [
+    "UFTChunkyParticles Sphere shape of the breaker sparks (Production/FTStations.cpp) and the firework / sparkler shop items (Career/FTShopItems.cpp)"
+   ],
+   "pivot": "unit-shape centre (+-50 cm box, +Z leading), like FTVis::GetMesh",
+   "integration": "Runtime particles: after UFTChunkyParticles::Configure() call SetStaticMesh(this mesh) on the component (Configure keeps setting material and colour). Replaces the Sphere unit shape of: breaker sparks, firework and sparkler items.",
+   "tris": 216,
+   "bounds_cm": {
+    "min": [
+     -48.0,
+     -48.0,
+     -48.0
+    ],
+    "max": [
+     48.0,
+     48.0,
+     48.0
+    ]
+   },
+   "materials": [
+    "M_FT_VertexGlow"
+   ],
+   "sockets": {},
+   "meta": {},
+   "placements": [],
+   "tags": [
+    "fx",
+    "unit"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 2.0,
+    "extent_cm": 100.0,
+    "rel": 0.02,
+    "expected": [
+     [
+      -50.0,
+      -50.0,
+      -50.0
+     ],
+     [
+      50.0,
+      50.0,
+      50.0
+     ]
+    ],
+    "actual": [
+     [
+      -48.0,
+      -48.0,
+      -48.0
+     ],
+     [
+      48.0,
+      48.0,
+      48.0
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 216,
+    "materials": [
+     "M_FT_VertexGlow"
+    ]
+   },
+   "fbx_bytes": 22156,
+   "preview": "SourceArt/Blender/Previews/FX/Particles/SM_FX_Spark.png"
+  },
+  {
+   "name": "SM_FX_WindStreak",
+   "fbx": "Content/TheFinalTake/Meshes/FX/Particles/SM_FX_WindStreak.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/FX/Particles/SM_FX_WindStreak.SM_FX_WindStreak",
+   "folder": "FX/Particles",
+   "desc": "Wind streak: a thin curved swoosh with tapered ends and a fainter companion line.",
+   "replaces": [
+    "UFTChunkyParticles Cube shape of the wind machine (Production/FTStations.cpp)"
+   ],
+   "pivot": "unit-shape centre (+-50 cm box, +Z leading), like FTVis::GetMesh",
+   "integration": "Runtime particles: after UFTChunkyParticles::Configure() call SetStaticMesh(this mesh) on the component (Configure keeps setting material and colour). Replaces the Cube unit shape of: wind machine.",
+   "tris": 344,
+   "bounds_cm": {
+    "min": [
+     -48.0,
+     -3.17,
+     -48.0
+    ],
+    "max": [
+     48.0,
+     3.17,
+     48.0
+    ]
+   },
+   "materials": [
+    "M_FT_Vertex"
+   ],
+   "sockets": {},
+   "meta": {},
+   "placements": [],
+   "tags": [
+    "fx",
+    "unit"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 46.8,
+    "extent_cm": 100.0,
+    "rel": 0.468,
+    "expected": [
+     [
+      -50.0,
+      -50.0,
+      -50.0
+     ],
+     [
+      50.0,
+      50.0,
+      50.0
+     ]
+    ],
+    "actual": [
+     [
+      -48.0,
+      -3.2,
+      -48.0
+     ],
+     [
+      48.0,
+      3.2,
+      48.0
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "check",
+    "note": "A flat ribbon by design: it fills the unit box along X and the stretched Z axis, not along Y."
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 344,
+    "materials": [
+     "M_FT_Vertex"
+    ]
+   },
+   "fbx_bytes": 26028,
+   "preview": "SourceArt/Blender/Previews/FX/Particles/SM_FX_WindStreak.png"
+  },
+  {
+   "name": "SM_FX_TankFoam",
+   "fbx": "Content/TheFinalTake/Meshes/FX/Water/SM_FX_TankFoam.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/FX/Water/SM_FX_TankFoam.SM_FX_TankFoam",
+   "folder": "FX/Water",
+   "desc": "Foam line of the shark tank: a soft suds band hugging the tank walls, clumps of foam blobs, corner build-ups and loose bubbles drifting on the water.",
+   "replaces": [
+    "(new) foam on the AFTStudioShell TankWater line (World/FTStudioShell.cpp)"
+   ],
+   "pivot": "tank water centre on the water line",
+   "integration": "Static mesh actor at the placement, no collision, no shadow.",
+   "tris": 24520,
+   "bounds_cm": {
+    "min": [
+     -470.66,
+     -968.76,
+     -5.65
+    ],
+    "max": [
+     470.96,
+     969.89,
+     8.45
+    ]
+   },
+   "materials": [
+    "M_FT_Vertex"
+   ],
+   "sockets": {},
+   "meta": {},
+   "placements": [
+    {
+     "loc": [
+      1800.0,
+      100.0,
+      -50.0
+     ],
+     "rot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "note": "TankWater water line (StudioShell at the origin)"
+    }
+   ],
+   "tags": [
+    "fx"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fbx_check": {
+    "ok": true,
+    "tris": 24520,
+    "materials": [
+     "M_FT_Vertex"
+    ]
+   },
+   "fbx_bytes": 816076,
+   "preview": "SourceArt/Blender/Previews/FX/Water/SM_FX_TankFoam.png"
+  },
+  {
+   "name": "SM_FX_WaterSurface",
+   "fbx": "Content/TheFinalTake/Meshes/FX/Water/SM_FX_WaterSurface.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/FX/Water/SM_FX_WaterSurface.SM_FX_WaterSurface",
+   "folder": "FX/Water",
+   "desc": "Water surface: a finer, gently rippled grid with a lighter shoreline band and soft caustic mottling in the vertex colours (M_FT_Water still drives colour and waves).",
+   "replaces": [
+    "SM_FT_WaterGrid (Editor/FTContentCommandlet.cpp) used by AFTStudioShell TankWater and AFTFloodController WaterPlane"
+   ],
+   "pivot": "unit plane centre (100 x 100 cm, z = 0), like SM_FT_WaterGrid",
+   "integration": "Point FTVis::GetMesh(EFTShape::WaterGrid) at this mesh (or SetStaticMesh on TankWater / WaterPlane); material and scale stay.",
+   "tris": 4608,
+   "bounds_cm": {
+    "min": [
+     -50.0,
+     -50.0,
+     -0.23
+    ],
+    "max": [
+     50.0,
+     50.0,
+     0.18
+    ]
+   },
+   "materials": [
+    "M_FT_Water"
+   ],
+   "sockets": {},
+   "meta": {},
+   "placements": [
+    {
+     "loc": [
+      1800.0,
+      100.0,
+      -50.0
+     ],
+     "rot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "scale": [
+      9.2,
+      19.2,
+      1.0
+     ],
+     "note": "AFTStudioShell TankWater (code scale 920 x 1920)"
+    }
+   ],
+   "tags": [
+    "fx",
+    "unit"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fbx_check": {
+    "ok": true,
+    "tris": 4608,
+    "materials": [
+     "M_FT_Water"
+    ]
+   },
+   "fbx_bytes": 173084,
+   "preview": "SourceArt/Blender/Previews/FX/Water/SM_FX_WaterSurface.png"
+  },
+  {
+   "name": "SM_Zone_LungeMark",
+   "fbx": "Content/TheFinalTake/Meshes/FX/Zones/SM_Zone_LungeMark.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/FX/Zones/SM_Zone_LungeMark.SM_Zone_LungeMark",
+   "folder": "FX/Zones",
+   "desc": "Shark-lunge floor mark: a dashed glowing oval, an inner guide ring, four chevrons pointing in, and a shark-fin icon over wavy water lines in the middle.",
+   "replaces": [
+    "AFTZone Zone_LungeMark mark (World/FTZone.cpp, placed by Editor/FTMapBuilder.cpp)"
+   ],
+   "pivot": "zone centre on the floor-mark height (-Extent.Z + 0.6)",
+   "integration": "Static mesh actor at the placement (no collision, no shadow); set Mark = None on Zone_LungeMark in FTMapBuilder so the code strips are not drawn on top (the label TextRender stays).",
+   "tris": 3112,
+   "bounds_cm": {
+    "min": [
+     -109.05,
+     -148.99,
+     -0.48
+    ],
+    "max": [
+     109.02,
+     148.95,
+     0.88
+    ]
+   },
+   "materials": [
+    "M_FT_VertexGlow"
+   ],
+   "sockets": {},
+   "meta": {},
+   "placements": [
+    {
+     "loc": [
+      1180.0,
+      250.0,
+      -149.4
+     ],
+     "rot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "note": "Zone_LungeMark floor mark"
+    }
+   ],
+   "tags": [
+    "fx",
+    "zone"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 1.1,
+    "extent_cm": 300.0,
+    "rel": 0.004,
+    "expected": [
+     [
+      -110.0,
+      -150.0,
+      -0.5
+     ],
+     [
+      110.0,
+      150.0,
+      0.5
+     ]
+    ],
+    "actual": [
+     [
+      -109.1,
+      -149.0,
+      -0.5
+     ],
+     [
+      109.0,
+      148.9,
+      0.9
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 3112,
+    "materials": [
+     "M_FT_VertexGlow"
+    ]
+   },
+   "fbx_bytes": 124972,
+   "preview": "SourceArt/Blender/Previews/FX/Zones/SM_Zone_LungeMark.png"
+  },
+  {
+   "name": "SM_Zone_Safe_Harpoon",
+   "fbx": "Content/TheFinalTake/Meshes/FX/Zones/SM_Zone_Safe_Harpoon.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/FX/Zones/SM_Zone_Safe_Harpoon.SM_Zone_Safe_Harpoon",
+   "folder": "FX/Zones",
+   "desc": "Safe-zone outline by the harpoon: hand-laid glowing mint tape in overlapping pieces, hatched corners and SAFE stencils facing out.",
+   "replaces": [
+    "AFTZone Zone_Safe_Harpoon mark (World/FTZone.cpp, placed by Editor/FTMapBuilder.cpp)"
+   ],
+   "pivot": "zone centre on the floor-mark height (-Extent.Z + 0.6)",
+   "integration": "Static mesh actor at the placement (no collision, no shadow); set Mark = None on Zone_Safe_Harpoon in FTMapBuilder so the code strips are not drawn on top (the label TextRender stays).",
+   "tris": 3620,
+   "bounds_cm": {
+    "min": [
+     -265.86,
+     -325.98,
+     -0.45
+    ],
+    "max": [
+     265.97,
+     325.95,
+     0.46
+    ]
+   },
+   "materials": [
+    "M_FT_VertexGlow"
+   ],
+   "sockets": {},
+   "meta": {},
+   "placements": [
+    {
+     "loc": [
+      2200.0,
+      1700.0,
+      -209.4
+     ],
+     "rot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "note": "Zone_Safe_Harpoon floor mark"
+    }
+   ],
+   "tags": [
+    "fx",
+    "zone"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 1.0,
+    "extent_cm": 650.0,
+    "rel": 0.002,
+    "expected": [
+     [
+      -265.0,
+      -325.0,
+      -0.5
+     ],
+     [
+      265.0,
+      325.0,
+      0.5
+     ]
+    ],
+    "actual": [
+     [
+      -265.9,
+      -326.0,
+      -0.4
+     ],
+     [
+      266.0,
+      326.0,
+      0.5
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 3620,
+    "materials": [
+     "M_FT_VertexGlow"
+    ]
+   },
+   "fbx_bytes": 162076,
+   "preview": "SourceArt/Blender/Previews/FX/Zones/SM_Zone_Safe_Harpoon.png"
+  },
+  {
+   "name": "SM_Zone_Safe_SharkStation",
+   "fbx": "Content/TheFinalTake/Meshes/FX/Zones/SM_Zone_Safe_SharkStation.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/FX/Zones/SM_Zone_Safe_SharkStation.SM_Zone_Safe_SharkStation",
+   "folder": "FX/Zones",
+   "desc": "Safe-zone outline by the shark station (same tape language as SM_Zone_Safe_Harpoon).",
+   "replaces": [
+    "AFTZone Zone_Safe_SharkStation mark (World/FTZone.cpp, placed by Editor/FTMapBuilder.cpp)"
+   ],
+   "pivot": "zone centre on the floor-mark height (-Extent.Z + 0.6)",
+   "integration": "Static mesh actor at the placement (no collision, no shadow); set Mark = None on Zone_Safe_SharkStation in FTMapBuilder so the code strips are not drawn on top (the label TextRender stays).",
+   "tris": 3548,
+   "bounds_cm": {
+    "min": [
+     -206.02,
+     -225.64,
+     -0.43
+    ],
+    "max": [
+     205.92,
+     225.91,
+     0.44
+    ]
+   },
+   "materials": [
+    "M_FT_VertexGlow"
+   ],
+   "sockets": {},
+   "meta": {},
+   "placements": [
+    {
+     "loc": [
+      1420.0,
+      -1180.0,
+      -209.4
+     ],
+     "rot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "note": "Zone_Safe_SharkStation floor mark"
+    }
+   ],
+   "tags": [
+    "fx",
+    "zone"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 1.0,
+    "extent_cm": 450.0,
+    "rel": 0.002,
+    "expected": [
+     [
+      -205.0,
+      -225.0,
+      -0.5
+     ],
+     [
+      205.0,
+      225.0,
+      0.5
+     ]
+    ],
+    "actual": [
+     [
+      -206.0,
+      -225.6,
+      -0.4
+     ],
+     [
+      205.9,
+      225.9,
+      0.4
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 3548,
+    "materials": [
+     "M_FT_VertexGlow"
+    ]
+   },
+   "fbx_bytes": 158748,
+   "preview": "SourceArt/Blender/Previews/FX/Zones/SM_Zone_Safe_SharkStation.png"
+  },
+  {
+   "name": "SM_Zone_Safe_Shelf",
+   "fbx": "Content/TheFinalTake/Meshes/FX/Zones/SM_Zone_Safe_Shelf.fbx",
+   "unreal_path": "/Game/TheFinalTake/Meshes/FX/Zones/SM_Zone_Safe_Shelf.SM_Zone_Safe_Shelf",
+   "folder": "FX/Zones",
+   "desc": "Safe-zone outline by the shelf (same tape language as SM_Zone_Safe_Harpoon).",
+   "replaces": [
+    "AFTZone Zone_Safe_Shelf mark (World/FTZone.cpp, placed by Editor/FTMapBuilder.cpp)"
+   ],
+   "pivot": "zone centre on the floor-mark height (-Extent.Z + 0.6)",
+   "integration": "Static mesh actor at the placement (no collision, no shadow); set Mark = None on Zone_Safe_Shelf in FTMapBuilder so the code strips are not drawn on top (the label TextRender stays).",
+   "tris": 3548,
+   "bounds_cm": {
+    "min": [
+     -205.9,
+     -205.58,
+     -0.43
+    ],
+    "max": [
+     206.02,
+     205.95,
+     0.44
+    ]
+   },
+   "materials": [
+    "M_FT_VertexGlow"
+   ],
+   "sockets": {},
+   "meta": {},
+   "placements": [
+    {
+     "loc": [
+      1450.0,
+      1820.0,
+      -209.4
+     ],
+     "rot": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "note": "Zone_Safe_Shelf floor mark"
+    }
+   ],
+   "tags": [
+    "fx",
+    "zone"
+   ],
+   "hookup": "",
+   "code_parts": "",
+   "fit": {
+    "dev_cm": 1.0,
+    "extent_cm": 410.0,
+    "rel": 0.002,
+    "expected": [
+     [
+      -205.0,
+      -205.0,
+      -0.5
+     ],
+     [
+      205.0,
+      205.0,
+      0.5
+     ]
+    ],
+    "actual": [
+     [
+      -205.9,
+      -205.6,
+      -0.4
+     ],
+     [
+      206.0,
+      206.0,
+      0.4
+     ]
+    ],
+    "primitives": 1,
+    "code_refs": "",
+    "status": "ok"
+   },
+   "fbx_check": {
+    "ok": true,
+    "tris": 3548,
+    "materials": [
+     "M_FT_VertexGlow"
+    ]
+   },
+   "fbx_bytes": 158444,
+   "preview": "SourceArt/Blender/Previews/FX/Zones/SM_Zone_Safe_Shelf.png"
   },
   {
    "name": "SM_Deco_FloorArrow_Coral",

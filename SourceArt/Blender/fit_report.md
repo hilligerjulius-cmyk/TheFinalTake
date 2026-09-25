@@ -8,6 +8,42 @@ close (<= 20 %), check (review the silhouette). *Note* explains deliberate devia
 
 | Asset | Replaces (code) | Parts | Max deviation | Status | Note |
 |---|---|---|---|---|---|
+| SM_Crew_Arm |  | 1 | 4.5 cm (11 %) | ok |  |
+| SM_Crew_Belt |  | 2 | 8.6 cm (20 %) | ok |  |
+| SM_Crew_Bib |  | 1 | 12.2 cm (47 %) | check | Straps run up under the collar; the code box is only the front panel. |
+| SM_Crew_Collar |  | 1 | 1.0 cm (3 %) | ok |  |
+| SM_Crew_Cuff |  | 1 | 0.2 cm (1 %) | ok |  |
+| SM_Crew_HandL |  | 1 | 7.5 cm (47 %) | ok |  |
+| SM_Crew_HandR |  | 1 | 7.5 cm (47 %) | ok |  |
+| SM_Crew_LegL |  | 1 | 9.4 cm (22 %) | ok |  |
+| SM_Crew_LegR |  | 1 | 9.4 cm (22 %) | ok |  |
+| SM_Crew_Pelvis |  | 1 | 1.0 cm (3 %) | ok |  |
+| SM_Crew_Shoe |  | 5 | 1.1 cm (4 %) | ok |  |
+| SM_Crew_Torso |  | 6 | 1.2 cm (3 %) | ok |  |
+| SM_Crew_Walkie |  | 3 | 0.9 cm (4 %) | ok |  |
+| SM_Crew_BrowL |  | 1 | 4.2 cm (42 %) | ok |  |
+| SM_Crew_BrowR |  | 1 | 4.2 cm (42 %) | ok |  |
+| SM_Crew_EarL |  | 1 | 0.5 cm (5 %) | ok |  |
+| SM_Crew_EarR |  | 1 | 0.5 cm (5 %) | ok |  |
+| SM_Crew_Eye |  | 1 | 0.2 cm (2 %) | ok |  |
+| SM_Crew_Head |  | 2 | 8.5 cm (17 %) | ok |  |
+| SM_Crew_Mouth |  | 1 | 1.3 cm (12 %) | ok |  |
+| SM_Crew_Pupil |  | 1 | 0.5 cm (7 %) | ok |  |
+| SM_Crew_FPCuff |  | 1 | 0.4 cm (4 %) | ok |  |
+| SM_Crew_FPHandL |  | 6 | 1.5 cm (9 %) | ok |  |
+| SM_Crew_FPHandR |  | 6 | 1.5 cm (9 %) | ok |  |
+| SM_Crew_FPSleeve |  | 1 | 3.3 cm (8 %) | ok |  |
+| SM_Crew_CapBadge |  | 1 | 2.3 cm (26 %) | ok |  |
+| SM_Crew_CapBrim |  | 1 | 6.8 cm (21 %) | ok |  |
+| SM_Crew_CapCrown |  | 1 | 3.4 cm (7 %) | ok |  |
+| SM_Crew_GlassL |  | 1 | 27.1 cm (181 %) | check | Temple arm runs back over the ear; the code torus is only the lens ring. |
+| SM_Crew_GlassR |  | 1 | 27.1 cm (181 %) | check | Temple arm runs back over the ear; the code torus is only the lens ring. |
+| SM_Crew_HairBack |  | 1 | 5.6 cm (12 %) | ok |  |
+| SM_Crew_HairBun |  | 1 | 4.1 cm (22 %) | ok |  |
+| SM_Crew_HairTop |  | 1 | 4.5 cm (10 %) | ok |  |
+| SM_Crew_PhoneBand |  | 1 | 15.3 cm (32 %) | check | Band arches from cup to cup over the head and the cap; the code box is only the top strip. |
+| SM_Crew_PhoneCupL |  | 1 | 12.9 cm (86 %) | check | Cable hangs down from the cup; the code cylinder is only the cup. |
+| SM_Crew_PhoneCupR |  | 1 | 3.1 cm (21 %) | ok |  |
 | SM_City_AlleyEnd_200 | FTCity.cpp:287-290 | 12 | 48.1 cm (7 %) | ok |  |
 | SM_City_AlleyEnd_300 | FTCity.cpp:287-290 | 3 | 48.1 cm (7 %) | ok |  |
 | SM_City_AlleyEnd_400 | FTCity.cpp:287-290 | 3 | 48.1 cm (7 %) | ok |  |
@@ -55,6 +91,20 @@ close (<= 20 %), check (review the silhouette). *Note* explains deliberate devia
 | SM_City_CinemaPlaza | FTCity.cpp:346,349-353,368-369,374,378 | 33 | 14.2 cm (0 %) | ok |  |
 | SM_Dealer_Lot | FTCity.cpp:294,297-300 | 8 | 10.3 cm (1 %) | ok |  |
 | SM_Dealer_SignGantry | FTCity.cpp:302,307-310 | 13 | 17.0 cm (1 %) | ok | checked against the board turned to span the pillars (code board rotated 90 degrees, see BLENDER_ASSETS.md) |
+| SM_FX_LightBeam |  | 1 | 1.0 cm (1 %) | ok |  |
+| SM_FX_ProjectorBeam |  | 1 | 1.0 cm (1 %) | ok |  |
+| SM_FX_Bubble |  | 1 | 2.0 cm (2 %) | ok |  |
+| SM_FX_Confetti |  | 1 | 2.0 cm (2 %) | ok |  |
+| SM_FX_Droplet |  | 1 | 2.0 cm (2 %) | ok |  |
+| SM_FX_FoamBlob |  | 1 | 23.0 cm (23 %) | check | Flat underside so the resting blob sits on the floor; lower than the unit ball it replaces. |
+| SM_FX_RainStreak |  | 1 | 2.0 cm (2 %) | ok |  |
+| SM_FX_SmokePuff |  | 1 | 2.0 cm (2 %) | ok |  |
+| SM_FX_Spark |  | 1 | 2.0 cm (2 %) | ok |  |
+| SM_FX_WindStreak |  | 1 | 46.8 cm (47 %) | check | A flat ribbon by design: it fills the unit box along X and the stretched Z axis, not along Y. |
+| SM_Zone_LungeMark |  | 1 | 1.1 cm (0 %) | ok |  |
+| SM_Zone_Safe_Harpoon |  | 1 | 1.0 cm (0 %) | ok |  |
+| SM_Zone_Safe_SharkStation |  | 1 | 1.0 cm (0 %) | ok |  |
+| SM_Zone_Safe_Shelf |  | 1 | 1.0 cm (0 %) | ok |  |
 | SM_Deco_FloorArrow_Coral | FTCity.cpp:183; FTStudioShell.cpp:546,614 | 30 | 28.0 cm (0 %) | ok |  |
 | SM_Deco_FloorArrow_Cyan | FTStudioShell.cpp:793 | 4 | 5.0 cm (3 %) | ok |  |
 | SM_Deco_FloorArrow_Magenta | FTStudioShell.cpp:794-795 | 12 | 22.8 cm (2 %) | ok |  |

@@ -5,7 +5,9 @@ the browser viewer.
     python3 Tools/blender/scenes.py --web      # + SourceArt/Blender/Web/{Studio,City}.glb for a browser viewer (not committed)
 
 - Studio.blend / City.blend: every mesh at every level placement (instances share their mesh), the cars on the
-  Dream Cars turntables, runtime-only items (shop items, film reel) on a showcase row outside the building.
+  Dream Cars turntables, runtime-only items (shop items, film reel, particle and beam meshes) on a showcase row
+  outside the building; the tank water surface with its foam line in the tank.
+- Characters.blend: the modular crew base character assembled like AFTCharacter::BuildBody (see character_sheet.py).
   Ceilings/roofs sit in their own collection that starts hidden, so the viewport looks straight into the rooms.
 - Catalog.blend: each of the meshes once, in a grid, one collection per folder.
 The 3D viewports are set up for the cm scale (clip distances, framing, solid shading with vertex colours).
@@ -126,7 +128,7 @@ def area_scene(area):
     for spec in registry.ASSETS:
         pls = spec.placements() if spec.placements else []
         mine = [p for p in pls if area_of(p["loc"]) == area]
-        runtime = not pls and spec.folder.startswith("Studio") and area == "Studio"
+        runtime = not pls and spec.folder.startswith(("Studio", "FX")) and area == "Studio"
         car = any(t.startswith("wheels:") for t in spec.tags) or spec.folder == "Vehicles"
         if not mine and not runtime and not (car and area == "City"):
             continue
@@ -219,6 +221,8 @@ def main(web=None):
             export_glb(os.path.join(WEB, area + ".glb"))
     catalog_scene()
     save(os.path.join(ART, "Catalog.blend"))
+    import character_sheet
+    character_sheet.build(render_sheets=False)
 
 
 if __name__ == "__main__":

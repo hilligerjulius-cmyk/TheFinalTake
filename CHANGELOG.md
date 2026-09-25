@@ -1,5 +1,15 @@
 # Änderungsprotokoll
 
+## 2026-09-25 – Crew-Basisfigur und Effekte in Blender
+- **Crew-Basisfigur nach der neuen Art Direction:** 36 Module unter `Content/TheFinalTake/Meshes/Characters/…`. Übergroßer weicher Kopf, minimales Gesicht, kompakter Rumpf, schlanke, etwas längere Arme, Fäustlings-Handschuhe, klobige Sneaker. Dazu dezente Crew-Details: Ausweis, Tasche mit Bleistift, Werkzeuggürtel mit Maßband und Gaffa-Rolle, Funkgerät, „CREW“-Print.
+  - Modular: ein Mesh pro Komponente, die der Code schon ein- und ausblendet und einfärbt (Haare, Cap, Brille, Kopfhörer, Oberteil, Latz, Gürtel, Hose, Schuhe, Handschuhe, Ego-Arme).
+  - Einbau per `SetStaticMesh`, ohne Gameplay-Änderung: Die Meshes liegen im Einheitsraum der ersetzten Primitive. Einfärbung über das neue Material `M_FT_CrewPaint`.
+  - Neues Werkzeug `Tools/blender/character_sheet.py`: setzt die Figur wie `AFTCharacter::BuildBody` zusammen, rendert Turnaround, Ausdrucks-Set, Modul-Varianten und Ego-Arme und schreibt `SourceArt/Blender/Characters.blend`.
+  - Noch nicht gebaut: die vier Kostüme und die Identitätsmarke.
+- **Effekte:** 16 Meshes unter `Content/TheFinalTake/Meshes/FX/…`: 8 Partikelformen, Licht- und Projektorkegel (Material `M_FT_BeamGlow`), feinere Wasserfläche, Schaumkante am Tank und 4 Zonenmarkierungen.
+- **Prüfung:** FBX-Reimport für alle 52 neuen Meshes ok. Maßprüfung: 43 ok; 7 „check“ sind gewollt und im Fit-Report notiert (Brillen- und Kopfhörerbügel, Kabel, Latz-Träger, flacher Wind-Streifen, Schaumklecks).
+- `Tools/unreal/ft_blender_import.py` legt zusätzlich `M_FT_CrewPaint` und `M_FT_BeamGlow` an (ungetestet). Kein C++ geändert.
+
 ## 2026-09-25 – Blender-Assets: Detail- und Qualitäts-Pass
 - **Alle 296 Meshes überarbeitet**, auf Basis der bestehenden Modelle: gleiche Formen, Positionen, Pivots und Sockets, kein Layoutwechsel, kein C++ geändert.
   - Oberflächen-Pass in den Vertex-Farben: Farbvariation pro Teil, Fleckung und Schmutz auf großen Flächen, abgegriffene Kanten mit Abplatzern, Schmutz in Innenecken.

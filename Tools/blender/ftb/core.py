@@ -891,6 +891,20 @@ def get_material(name):
         for l in list(nt.links):
             if l.to_socket == bsdf.inputs["Roughness"]:
                 nt.links.remove(l)
+    if name.endswith("BeamGlow"):
+        # light volumes: additive-looking emission whose opacity is the vertex alpha (brightness), rest transparent
+        nt.nodes.remove(bsdf)
+        em = nt.nodes.new("ShaderNodeEmission")
+        em.inputs["Strength"].default_value = 3.0
+        nt.links.new(vc.outputs["Color"], em.inputs["Color"])
+        tr = nt.nodes.new("ShaderNodeBsdfTransparent")
+        mix = nt.nodes.new("ShaderNodeMixShader")
+        nt.links.new(vc.outputs["Alpha"], mix.inputs["Fac"])
+        nt.links.new(tr.outputs["BSDF"], mix.inputs[1])
+        nt.links.new(em.outputs["Emission"], mix.inputs[2])
+        nt.links.new(mix.outputs["Shader"], out.inputs["Surface"])
+        m.blend_method = 'BLEND' if hasattr(m, "blend_method") else m.blend_method
+        return m
     if name == MAT_GLASS or name.endswith("Glass"):
         bsdf.inputs["Alpha"].default_value = 0.35
         m.blend_method = 'BLEND' if hasattr(m, "blend_method") else m.blend_method

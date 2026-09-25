@@ -4,7 +4,7 @@ Run inside the Unreal Editor (Python plugin enabled), e.g. from the Output Log's
 
     import sys; sys.path.append(r"<project>/Tools/unreal")
     import ft_blender_import as ftb
-    ftb.create_materials()            # M_FT_Vertex / VertexGlow / VertexGlass / CarBody / CarTrim
+    ftb.create_materials()            # M_FT_Vertex / VertexGlow / VertexGlass / CarBody / CarTrim / CrewPaint / BeamGlow
     ftb.import_all()                  # every FBX listed in SourceArt/Blender/asset_manifest.json
     ftb.import_all(only="Vehicles")   # ... or a subset (substring of name or folder)
     ftb.build_preview_level()         # optional: new level with every mesh at its manifest placement
@@ -111,6 +111,46 @@ def create_materials():
         MEL.connect_material_expressions(amount, "", lerp, "Alpha")
         MEL.connect_material_property(lerp, "", unreal.MaterialProperty.MP_BASE_COLOR)
         MEL.connect_material_property(vc, "A", unreal.MaterialProperty.MP_ROUGHNESS)
+        made.append(mat)
+    # crew paint: vertex shading x the colour the code paints (FTVis::Paint -> custom primitive data 0-2)
+    mat, new = _new_material("M_FT_CrewPaint")
+    if new:
+        vc, rgb = _vertex_colour(mat)
+        paint = MEL.create_material_expression(mat, unreal.MaterialExpressionVectorParameter, -650, 200)
+        paint.set_editor_property("parameter_name", "PaintColor")
+        paint.set_editor_property("use_custom_primitive_data", True)
+        paint.set_editor_property("primitive_data_index", 0)
+        paint.set_editor_property("default_value", unreal.LinearColor(1.0, 1.0, 1.0, 1.0))
+        mul = MEL.create_material_expression(mat, unreal.MaterialExpressionMultiply, -350, 100)
+        MEL.connect_material_expressions(rgb, "", mul, "A")
+        MEL.connect_material_expressions(paint, "", mul, "B")
+        MEL.connect_material_property(mul, "", unreal.MaterialProperty.MP_BASE_COLOR)
+        MEL.connect_material_property(vc, "A", unreal.MaterialProperty.MP_ROUGHNESS)
+        made.append(mat)
+    # light beams: unlit, additive, two-sided; brightness = vertex alpha x painted colour x BeamScale
+    mat, new = _new_material("M_FT_BeamGlow")
+    if new:
+        mat.set_editor_property("blend_mode", unreal.BlendMode.BLEND_ADDITIVE)
+        mat.set_editor_property("shading_model", unreal.MaterialShadingModel.MSM_UNLIT)
+        mat.set_editor_property("two_sided", True)
+        vc, rgb = _vertex_colour(mat)
+        paint = MEL.create_material_expression(mat, unreal.MaterialExpressionVectorParameter, -650, 200)
+        paint.set_editor_property("parameter_name", "BeamColor")
+        paint.set_editor_property("use_custom_primitive_data", True)
+        paint.set_editor_property("primitive_data_index", 0)
+        scale = MEL.create_material_expression(mat, unreal.MaterialExpressionScalarParameter, -650, 340)
+        scale.set_editor_property("parameter_name", "BeamScale")
+        scale.set_editor_property("default_value", 3.0)
+        a = MEL.create_material_expression(mat, unreal.MaterialExpressionMultiply, -450, 120)
+        MEL.connect_material_expressions(rgb, "", a, "A")
+        MEL.connect_material_expressions(paint, "", a, "B")
+        b = MEL.create_material_expression(mat, unreal.MaterialExpressionMultiply, -300, 180)
+        MEL.connect_material_expressions(vc, "A", b, "A")
+        MEL.connect_material_expressions(scale, "", b, "B")
+        em = MEL.create_material_expression(mat, unreal.MaterialExpressionMultiply, -150, 120)
+        MEL.connect_material_expressions(a, "", em, "A")
+        MEL.connect_material_expressions(b, "", em, "B")
+        MEL.connect_material_property(em, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
         made.append(mat)
     for m in made:
         MEL.recompile_material(m)
