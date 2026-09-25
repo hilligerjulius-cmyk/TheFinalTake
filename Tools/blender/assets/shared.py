@@ -1,6 +1,7 @@
 """Reusable dressing used all over the studio and the city (instanced many times)."""
 import math
 
+from ftb import detail as D
 from ftb import layout as L
 from ftb import palette as C
 from ftb.core import FONT_BLOCK
@@ -59,6 +60,11 @@ def potted_plant(a):
     # young centre shoot
     a.leaf(46, 15, at=(0, 0, 66), rot=(78, 40, 0), col=C.LEAF_LIGHT, droop=0.35, thick=1.2, rough=0.6)
     a.leaf(40, 13, at=(0, 0, 64), rot=(74, 220, 0), col=C.GREEN, droop=0.35, thick=1.2, rough=0.6)
+    # saucer, a chip in the rim, a fallen leaf on the soil, a little plant label
+    a.cyl(21, 2, at=(0, 0, -1.2), r_top=22.5, col=C.shade(C.TERRACOTTA, 0.85), sides=16, bevel=0.6)
+    a.box((5, 3, 3), at=(17.5, 17.5, 49.5), rot=(0, 45, 0), col=C.shade(C.TERRACOTTA, 1.15), bevel=0.8)
+    a.leaf(12, 5, at=(6, -8, 49.4), rot=(2, 70, 0), col=C.shade(C.GREEN, 0.75), droop=0.1, thick=0.5, segs=4)
+    a.box(( 0.6, 5, 9), at=(-12, 10, 52), rot=(0, 30, 8), col=C.WHITE, bevel=0.1)
 
 
 # ============================================================================== wooden crate
@@ -107,6 +113,19 @@ def wood_crate(a):
         a.box((3, S * 0.28, S * 0.1), at=(sx * S * 0.525, 0, S * 0.7), col=C.INK, bevel=1.5)
         a.box((2, S * 0.32, 3), at=(sx * S * 0.53, 0, S * 0.7 + S * 0.065), col=C.WOOD_DARK, bevel=0.8)
     a.text("FRAGILE", 11, 0.8, at=(0, 0, S + 1.0), rot=(90, 90, 0), col=C.CORAL_DARK, font=FONT_BLOCK)
+    # nail heads in the plank ends, steel corner brackets on the lid, a shipping label
+    for side in range(4):
+        yaw = side * 90
+        n = (math.cos(math.radians(yaw)), math.sin(math.radians(yaw)))
+        t = (-n[1], n[0])
+        for k in range(4):
+            z = 18 + k * 23.5
+            for s in (-1, 1):
+                a.sphere(0.9, at=(n[0] * (S / 2 + 0.4) + t[0] * s * 40, n[1] * (S / 2 + 0.4) + t[1] * s * 40, z), col=C.GREY, segs=6, rings=3, rough=0.4)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            a.box((12, 12, 1.4), at=(sx * (S / 2 - 6), sy * (S / 2 - 6), S + 1.2), col=C.GREY_DARK, bevel=0.4, rough=0.4)
+    D.label(a, (0, -S / 2 - 0.2, S * 0.28), "-y", 22, 14, lines=3)
 
 
 # ============================================================================== flight cases
@@ -130,6 +149,15 @@ def _case(a, X, Y, Z):
         a.box((12, 4, 5), at=(sx * X * 0.3, Y / 2 + 1.5, Z * 0.52), col=C.GREY, bevel=1.2, rough=0.3)
     a.box((X * 0.34, 2, Z * 0.2), at=(0, -Y / 2 - 1, Z * 0.26), col=C.TEAL, bevel=0.7, rough=0.6)
     a.box((X * 0.24, 2, 2.5), at=(0, -Y / 2 - 1.7, Z * 0.3), col=C.CREAM, bevel=0.4)
+    # rivets along the vertical extrusions, a barcode sticker on the side, scuffs on the lid
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            for k in range(4):
+                a.sphere(0.8, at=(sx * (X / 2 + 0.6), sy * (Y / 2 - 3.2), 12 + k * (Z - 24) / 3), col=C.CHROME, segs=6, rings=3, rough=0.3)
+    a.box((1, 16, 8), at=(X / 2 + 0.2, Y * 0.2, Z * 0.3), col=C.WHITE, bevel=0.1, jitter=0)
+    for k in range(7):
+        a.box((1.2, 0.6 + (k % 3) * 0.3, 5), at=(X / 2 + 0.6, Y * 0.2 - 6 + k * 2, Z * 0.3), col=C.INK, bevel=0, jitter=0, wear=False)
+    D.scuffs(a, (0, 0, Z + 0.1), "+z", X * 0.8, Y * 0.8, n=5, col=C.shade(C.CHARCOAL, 1.6))
     a.box((X * 0.18, 2, 2.5), at=(-X * 0.03, -Y / 2 - 1.7, Z * 0.23), col=C.CREAM, bevel=0.4)
     for sx in (-1, 1):
         a.box((7, 4.5, 6), at=(sx * 13, -Y / 2 - 2, Z * 0.8), col=C.GREY_DARK, bevel=1.2, rough=0.4)
@@ -192,6 +220,9 @@ def traffic_cone(a):
     a.lathe([(17.5, 4.5), (15.5, 20), (11, 38), (7.2, 54), (4.2, 66), (2.8, 69), (0, 69.8)], col=C.ORANGE, sides=14, rough=0.55)
     a.cyl(12.6, 9, at=(0, 0, 39.5), r_top=10.4, col=C.WHITE, sides=14, bevel=0.6, rough=0.4)
     a.cyl(8.2, 6, at=(0, 0, 55), r_top=6.9, col=C.WHITE, sides=14, bevel=0.5, rough=0.4)
+    for k in range(3):
+        a.box((6, 0.4, 2), at=(12 + k * 2, 21 - k * 3, 3), rot=(0, 40 + k * 20, 0), col=C.shade(C.ORANGE, 0.6), bevel=0, jitter=0, wear=False)
+    a.box((20, 20, 0.4), at=(0, 0, 5.1), rot=(0, 45, 0), col=C.shade(C.ORANGE, 0.7), bevel=0, jitter=0, wear=False)
 
 
 # ============================================================================== cable coil
@@ -218,6 +249,13 @@ def cable_coil(a):
     a.tube([(30, -8, 4), (42, -18, 3), (52, -14, 2.5), (60, -20, 2.5)], 4, col=C.RUBBER, sides=8, rough=0.6)
     a.box((12, 9, 9), at=(64, -22, 4.5), rot=(0, -30, 0), col=C.YELLOW, bevel=2, rough=0.5)
     a.cyl(3, 5, at=(70, -25, 4.5), rot=(-90, -30, 0), col=C.GREY_DARK, sides=8)
+    # connector pins, grip ridges, a tape label on the cable, a velcro tie around the coil
+    for k in range(3):
+        a.cyl(0.7, 3, at=(71.8 + k * 0.4, -26 + (k - 1) * 2.4, 4.5), rot=(-90, -30, 0), col=C.BRASS, sides=5)
+    for k in range(3):
+        a.torus(4.4, 0.6, at=(58 - k * 2.5, -19, 3), rot=(-90, -30, 0), col=C.shade(C.RUBBER, 1.4), major=8, minor=3)
+    a.box((6, 9, 9), at=(46, -16, 3), rot=(0, -30, 0), col=C.WHITE, bevel=2)
+    a.box((8, 10, 14.5), at=(0, -31.5, 12), col=C.RED, bevel=1.5, rough=0.9)
 
 
 # ============================================================================== film posters
@@ -237,6 +275,14 @@ def _poster_frame(a, bg, trim):
     for sy in (-1, 1):
         for sz in (-1, 1):
             a.sphere(3.2, at=(5.5, sy * 76, sz * 116), col=C.BRASS, segs=8, rings=5, rough=0.3)
+    # hanging wire + hooks on the back, backing-board seams, brass corner plates
+    a.tube([(-4.5, -60, 60), (-6, 0, 90), (-4.5, 60, 60)], 0.4, col=C.GREY, sides=4)
+    for sy in (-1, 1):
+        a.box((1.5, 5, 5), at=(-4.6, sy * 60, 60), col=C.GREY_DARK, bevel=0.3)
+    D.seams(a, (-4.1, 0, 0), "-x", 160, 240, n=1, along="v", col=C.shade(C.CHARCOAL, 0.7))
+    for sy in (-1, 1):
+        for sz in (-1, 1):
+            a.box((1, 12, 12), at=(4.3, sy * 79, sz * 119), rot=(0, 0, 0), col=C.BRASS, bevel=0.4, rough=0.3)
 
 
 _pj_p, _pj_c = _poster_kit(0)
@@ -339,6 +385,10 @@ def brass_stanchion(a):
     a.sphere(8, at=(0, 0, 99), col=C.BRASS, segs=14, rings=9, rough=0.25)
     a.torus(3.6, 1.1, at=(0, 7.2, 91), rot=(0, 0, 90), col=C.shade(C.BRASS, 0.8), major=10, minor=5, rough=0.3)
     a.torus(3.6, 1.1, at=(0, -7.2, 91), rot=(0, 0, 90), col=C.shade(C.BRASS, 0.8), major=10, minor=5, rough=0.3)
+    a.cyl(14.5, 0.8, at=(0, 0, -0.2), col=C.shade(C.CARPET, 0.6), sides=16, bevel=0.2)
+    for k in range(8):
+        ang = k * 45
+        a.box((1, 1, 60), at=(math.cos(math.radians(ang)) * 3.05, math.sin(math.radians(ang)) * 3.05, 52), rot=(0, ang, 0), col=C.shade(C.BRASS, 0.85), bevel=0, jitter=0)
 
 
 def _rope_records(area):
@@ -374,6 +424,9 @@ def velvet_rope(a):
     for s in (-1, 1):
         a.cyl(3.4, 6, at=(0, s * 69, 0), rot=(0, 0, 90), col=C.BRASS, sides=8, bevel=0.8, rough=0.3)
         a.tube([(0, s * 72, 0), (0, s * 75, 2.5), (0, s * 75.5, 5)], 1.0, col=C.BRASS, sides=6, rough=0.3)
+    for i in range(1, 12):
+        t = i / 12
+        a.torus(3.05, 0.4, at=(0, -68 + 136 * t, -16 * math.sin(math.pi * t)), rot=(0, 0, 90), col=C.shade(C.CARPET, 0.7), major=10, minor=3)
 
 
 # ============================================================================== street lamp
@@ -421,6 +474,18 @@ def street_lamp(a):
     a.cyl(19, 16, at=(86, 0, 399), r_top=24, col=C.CHARCOAL, sides=8, bevel=1.0, rough=0.5, cap=True)
     a.cyl(17, 10, at=(86, 0, 392), r_top=18.5, col=C.AMBER, sides=8, bevel=0.5, mat="glow")
     a.cyl(12, 3, at=(86, 0, 386), col=C.YELLOW, sides=8, mat="glow")
+    # access hatch + screws in the base, flange bolts, a taped flyer and a sticker on the pole, a dent of rust
+    D.plate(a, (14.5, 0, 12), "+x", 10, 12, t=0.8, col=C.shade(C.NAVY_LIGHT, 0.9))
+    a.cyl(0.8, 1, at=(15.6, 0, 9), rot=(-90, 0, 0), col=C.INK, sides=6)
+    for k in range(6):
+        ang = math.radians(k * 60 + 30)
+        a.cyl(1.4, 2, at=(15 * math.cos(ang), 15 * math.sin(ang), 4.6), col=C.CHROME, sides=6, rough=0.3)
+    a.box((0.4, 20, 28), at=(-6.8, 0, 150), rot=(0, 0, 2), col=C.CREAM, bevel=0.05, jitter=0)
+    a.box((0.3, 16, 6), at=(-7.1, 0, 158), rot=(0, 0, 2), col=C.CORAL, bevel=0, jitter=0, wear=False)
+    for k in range(3):
+        a.box((0.3, 14 - k * 3, 1.2), at=(-7.1, 0, 148 - k * 4), rot=(0, 0, 2), col=C.INK, bevel=0, jitter=0, wear=False)
+    D.tape(a, (-6.9, 0, 164.5), "-x", 8, 2.5, deg=-6, col=C.SAND)
+    a.cyl(3, 0.3, at=(4.6, 5, 110), rot=(-90, 30, 0), col=C.YELLOW, sides=10, bevel=0)
 
 
 # ============================================================================== palm tree
@@ -452,6 +517,13 @@ def palm_tree(a):
     for k in range(3):
         ang = math.radians(k * 120 + 20)
         a.sphere(12, at=(top[0] + 12 * math.cos(ang), 12 * math.sin(ang), top[2] - 13), col=C.WOOD, ry=11, rz=14, segs=10, rings=7, rough=0.8)
+    # dry brown fronds hanging under the crown, fibre tufts at the leaf bases, a nail-on sign-plate scar
+    for k in range(3):
+        yaw = k * 120 + 60
+        a.leaf(80, 26, at=(top[0], top[1], top[2] - 6), rot=(-35, yaw, 0), col=C.shade(C.WOOD, 0.85), droop=0.2, fold=0.3, thick=1.4, segs=7, rough=0.9)
+    for k in range(6):
+        ang = math.radians(k * 60 + 15)
+        a.sphere(4, at=(top[0] + 9 * math.cos(ang), 9 * math.sin(ang), top[2] - 4), rz=6, col=C.shade(C.WOOD_DARK, 0.9), segs=6, rings=3, rough=1.0)
 
 
 # ============================================================================== rocks
@@ -490,6 +562,12 @@ def boulder(a):
         wobble(b, r * 0.25, scale=0.08, seed=int(r))
         deform(b, lambda c: Vector((c.x, c.y, max(c.z, -r * 0.5) + r * 0.5)))
         a.add(b, xf((x, y, 0)), col=col, rough=0.9, flat=True, jitter=0)
+    # moss on the top facets, a few pebbles around the foot
+    for (x, y, z, r) in ((6, -8, 70, 18), (-16, 14, 60, 13), (22, 18, 50, 10)):
+        a.sphere(r, at=(x, y, z), rz=r * 0.28, col=C.shade(C.GREEN_DARK, 1.1), segs=8, rings=4, rough=1.0)
+    for k in range(5):
+        ang = math.radians(k * 72 + 20)
+        a.sphere(3 + (k % 2) * 1.5, at=(46 * math.cos(ang), 42 * math.sin(ang), 1.5), rz=2, col=C.ROCK_B if k % 2 else C.ROCK_A, segs=6, rings=3, flat=True)
 
 
 # ============================================================================== floor arrows
@@ -527,6 +605,9 @@ def _arrow_asset(name, col, pred, desc):
     def build(a):
         a.slab([(-70, -13), (6, -13), (6, -30), (47, 0), (6, 30), (6, 13), (-70, 13)], 1.2, at=(0, 0, -0.5), col=col, bevel=0.5, glow=0.35, ao=False)
         a.slab([(-64, -8), (0, -8), (0, -20), (34, 0), (0, 20), (0, 8), (-64, 8)], 0.4, at=(0, 0, 0.7), col=C.shade(col, 1.12), glow=0.35, ao=False)
+        # worn patches where people walk over the paint
+        for (x, y, w) in ((-40, 3, 14), (-12, -5, 9), (14, 8, 7)):
+            a.box((w, 5, 0.2), at=(x, y, 1.2), rot=(0, 20, 0), col=C.shade(col, 0.72), bevel=0, jitter=0, ao=False)
     return build
 
 

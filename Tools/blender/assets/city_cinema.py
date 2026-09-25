@@ -3,6 +3,7 @@ import math
 
 from mathutils import Vector
 
+from ftb import detail as D
 from ftb import layout as L
 from ftb import palette as C
 from ftb.core import bm_box, bulge, deform, xf
@@ -46,6 +47,25 @@ def plaza(a):
         for x in range(-10550, -11150, -200):
             for k in range(3):
                 a.sphere(8, at=(x - pv[0] + (k - 1) * 22, y - pv[1] + 14, 110 + (k % 2) * 6), col=C.CORAL if k != 1 else C.YELLOW, segs=6, rings=4)
+    # detail pass: engraved lines in the star medallions, gum spots and cracks in the stone, drain grates,
+    # chipped planter rims
+    for (x, y) in ((-10620, -800), (-10620, 500)):
+        for k in range(3):
+            a.box((30 - k * 6, 1.4, 0.3), at=(x - pv[0] + 44, y - pv[1] - 8 + k * 6, 6.2), col=C.shade(C.BRASS, 0.7), bevel=0, jitter=0, wear=False)
+    rng = a.rng
+    for k in range(40):
+        a.cyl(rng.uniform(0.8, 1.6), 0.2, at=(rng.uniform(-11100, -10400) - pv[0], rng.uniform(-1400, 1100) - pv[1], 4.3), col=C.shade(C.PLAZA_STONE, 0.6), sides=6, bevel=0, jitter=0, ao=False)
+    for k in range(8):
+        x = rng.uniform(-11100, -10400) - pv[0]
+        y = rng.uniform(-1400, 1100) - pv[1]
+        for j in range(3):
+            a.box((rng.uniform(8, 16), 0.6, 0.3), at=(x + j * 8, y + rng.uniform(-3, 3), 4.3), rot=(0, rng.uniform(-50, 50), 0), col=C.PLAZA_JOINT, bevel=0, jitter=0, ao=False)
+    for y in (-1300, 1000):
+        a.box((60, 30, 1), at=(-10450 - pv[0], y - pv[1], 4.4), col=C.GREY_DARK, bevel=0.3)
+        D.seams(a, (-10450 - pv[0], y - pv[1], 4.9), "+z", 56, 26, n=6, along="v", col=C.INK, width=2)
+    for y in (-1480, 1180):
+        for x in (-10700, -11000):
+            a.box((6, 5, 4), at=(x - pv[0], y - pv[1] + 28, 70), rot=(0, 30, 0), col=C.shade(C.PLAZA_STONE, 1.1), bevel=1)
 
 
 # ============================================================================== building shell + facade
@@ -67,6 +87,26 @@ def cinema_shell(a):
     for x in range(-3400, -200, 400):
         for y in (1101 - pv[1], -1401 - pv[1]):
             a.box((24, 6, 1400), at=(x, y, 770), col=C.shade(C.CINEMA_OUTER, 1.25), bevel=2)
+    # side exits with EXIT lamps and steps, drainpipes, roof hatches and a vent stack, a service ladder at the back
+    for (y, n, s) in ((1100 - pv[1], "+y", 1), (-1400 - pv[1], "-y", -1)):
+        for x in (-1600, -3000):
+            a.box((140, 10, 240), at=(x, y + s * 3, 120), col=C.shade(C.CINEMA_OUTER, 0.7), bevel=2)
+            a.box((150, 12, 10), at=(x, y + s * 4, 245), col=C.GREY, bevel=1.5)
+            D.handle(a, (x + 40, y + s * 8, 110), n, 50, along="u", r=1.6, standoff=4, col=C.GREY)
+            a.box((40, 12, 16), at=(x, y + s * 10, 275), col=C.GREY_DARK, bevel=1.5)
+            a.box(D._size(n, 34, 10, 0.6), at=(x, y + s * 16.4, 275), col=C.GREEN, glow=3)
+            a.box((170, 60, 10), at=(x, y + s * 30, 5), col=C.PLAZA_STONE, bevel=2)
+        for x in (-400, -3500):
+            a.tube([(x, y + s * 10, 0), (x, y + s * 10, 1560), (x, y + s * 24, 1590)], 7, col=C.GREY_DARK, sides=8, rough=0.5)
+    for (x, y) in ((-1500, -700), (-2600, 600)):
+        a.box((90, 90, 18), at=(x, y, 1589), col=C.GREY, bevel=3)
+        a.box((96, 96, 6), at=(x, y + 6, 1600), rot=(6, 0, 0), col=C.GREY_DARK, bevel=2)
+    a.cyl(14, 60, at=(-1200, -900, 1610), col=C.GREY, sides=10, bevel=1)
+    a.cone(24, 14, at=(-1200, -900, 1647), col=C.GREY_DARK, sides=10)
+    for sy in (-1, 1):
+        a.box((6, 6, 1580), at=(-3610, -200 + sy * 25, 790), col=C.GREY, bevel=1)
+    for k in range(50):
+        a.cyl(1.6, 50, at=(-3610, -200, 40 + k * 31), rot=(0, 0, 90), col=C.GREY, sides=6)
 
 
 @asset("SM_Cinema_FacadeDressing", F,
@@ -95,6 +135,14 @@ def cinema_facade(a):
     for k in range(9):
         ang = math.radians(-80 + k * 20)
         a.box((6, 10, 90), at=(8, 55 * math.sin(ang) * 2.2, 460 + 55 * math.cos(ang)), rot=(0, 0, -math.degrees(ang)), col=C.BRASS, bevel=2, glow=0.5)
+    # brass door pulls and kick plates on the entrance glass, a founding plaque, poster rail screws
+    for y in (-80, 80):
+        a.cyl(2, 90, at=(12, y, 120), col=C.BRASS, sides=8, rough=0.3)
+        for z in (80, 160):
+            a.cyl(1.4, 6, at=(9, y, z), rot=(-90, 0, 0), col=C.BRASS, sides=6)
+        a.box((2, 120, 24), at=(9, y * 2, 14), col=C.BRASS, bevel=0.6, rough=0.3)
+    D.plate(a, (8, -300, 180), "+x", 60, 40, t=1.2, col=C.BRASS, rough=0.3)
+    a.text("GRAND 1931", 8, 0.6, at=(9.6, -300, 182), col=C.NAVY, ao=False)
 
 
 # ============================================================================== foyer
@@ -113,6 +161,15 @@ def foyer(a):
         for x in range(-12550, -11300, 150):
             a.poly([(-30, 0), (30, 0), (0, 30)], 3, at=(x - pv[0], y - pv[1] + s * 6, 1330), rot=(0, 90 if s < 0 else -90, 0), col=C.BRASS, glow=0.3)
     vent(a, (-11500 - pv[0], 1053 - pv[1], 1100), rot=(0, -90, 0), w=90, h=40, col=C.BRASS)
+    # diamond pattern in the carpet, framed star portraits, sockets on the skirting
+    for x in range(-12550, -11300, 160):
+        for y in range(-1200, 900, 160):
+            a.box((12, 12, 0.3), at=(x - pv[0], y - pv[1], 1.4), rot=(0, 45, 0), col=C.shade(C.FOYER_CARPET, 1.25), bevel=0, jitter=0, ao=False)
+    for k, x in enumerate(range(-12400, -11400, 250)):
+        for y, n in ((1055 - pv[1] - 1, "-y"), (-1355 - pv[1] + 1, "+y")):
+            D.plate(a, (x - pv[0], y, 330), n, 70, 90, t=2, col=C.BRASS, screws=False, rough=0.3)
+            D.plate(a, D.on((x - pv[0], y, 330), n, dn=2), n, 58, 76, t=0.4, col=[C.CREAM, C.SKY_BLUE, C.CORAL, C.TEAL_LIGHT][k % 4], screws=False)
+            a.sphere(12, at=D.on((x - pv[0], y, 340), n, dn=3), ry=0.8, rz=14, col=C.shade(C.INK, 2), segs=8, rings=5)
 
 
 def _chandeliers():
@@ -165,6 +222,11 @@ def box_office(a):
     a.sphere(6, at=(150, -40, 122), rz=5, col=C.BRASS, segs=10, rings=6, rough=0.2)
     for k in range(4):
         a.box((24, 12, 0.6), at=(40 + k * 3, -30, 119.5 + k * 0.6), rot=(0, k * 7, 0), col=C.YELLOW if k % 2 else C.CREAM, bevel=0.2)
+    a.box((30, 20, 3), at=(60, -20, 120), col=C.GREY_DARK, bevel=1)
+    for k in range(4):
+        a.cyl(3, 0.8, at=(52 + k * 5, -20, 122), col=C.BRASS, sides=8, bevel=0.2)
+    a.box((40, 30, 0.6), at=(-100, -35, 119.4), rot=(0, 10, 0), col=C.WHITE, bevel=0.1)
+    D.label(a, (-120, 30.5, 200), "+y", 40, 14, lines=3)
 
 
 @asset("SM_Cinema_Concessions", F,
@@ -200,6 +262,15 @@ def concessions(a):
         a.cyl(10, 26, at=(-160 + k * 26 + 280, 30, 132), col=C.GLASS, sides=12, bevel=2, mat="glass")
         for j in range(5):
             a.sphere(3.5, at=(-160 + k * 26 + 280 + rng.uniform(-5, 5), 30 + rng.uniform(-5, 5), 124 + j * 4), col=c, segs=6, rings=4)
+    # napkin dispenser, straw holder, price tags on the counter front, scoop in the popcorn machine
+    a.box((14, 10, 16), at=(170, 10, 128), col=C.CHROME, bevel=2, rough=0.25)
+    a.box((10, 1, 8), at=(170, 5, 130), col=C.WHITE, bevel=0.2)
+    a.cyl(5, 18, at=(200, 20, 129), col=C.GLASS, sides=10, mat="glass")
+    for k in range(6):
+        a.cyl(0.5, 22, at=(198 + (k % 3) * 2, 18 + (k // 3) * 3, 134), rot=(4 * (k - 3), 0, 0), col=[C.RED, C.WHITE][k % 2], sides=5)
+    for k in range(9):
+        a.box((0.4, 16, 8), at=(-230 + k * 58, -63, 90), col=C.WHITE, bevel=0.1, jitter=0)
+    a.box((4, 16, 30), at=(x0 + 20, 10, 150), rot=(20, 0, 0), col=C.CHROME, bevel=1)
 
 
 # ============================================================================== mezzanine + partition
@@ -265,6 +336,14 @@ def hall(a):
             b = bm_box(300, 8, 540, 6, 1)
             bulge(b, 3, axis=1)
             a.add(b, xf((x - pv[0] + 175 + 7, y - pv[1] + s * 6, 330)), C.shade(C.HALL_WALL, 1.25), rough=0.95)
+    # surround speakers on the side walls, aisle runner lines, seat-row number plates on the walls
+    for y, s in ((1055, -1), (-1355, 1)):
+        for x in range(-14500, -12800, 500):
+            a.box((50, 30, 70), at=(x - pv[0], y - pv[1] + s * 18, 900), col=C.CHARCOAL, bevel=4)
+            D.grille_holes(a, (x - pv[0], y - pv[1] + s * 33.2, 900), "+y" if s > 0 else "-y", 40, 60, pitch=6, r=1.2, col=C.INK)
+            a.box((20, 20, 8), at=(x - pv[0], y - pv[1] + s * 8, 940), col=C.GREY_DARK, bevel=1)
+    for y in (-500, 200):
+        a.box((1900, 4, 0.4), at=(0, y, 1.4), col=C.BRASS, bevel=0, jitter=0, ao=False)
 
 
 @asset("SM_Cinema_Stage", F,
@@ -283,6 +362,10 @@ def stage(a):
     for y in (-1200, 900):
         for k in range(3):
             a.box((40, 120, 16 * (3 - k)), at=(235 + k * 40 - 20 + 20, y + 60, 8 * (3 - k)), col=C.STAGE_WOOD, bevel=2)
+    for (y, c) in ((-600, C.YELLOW), (0, C.CORAL), (600, C.CYAN)):
+        for s in (-1, 1):
+            a.box((24, 4, 0.3), at=(0, y, 65.4), rot=(0, s * 45, 0), col=c, bevel=0, jitter=0)
+    D.scuffs(a, (0, 0, 65.3), "+z", 400, 2200, n=12, col=C.shade(C.STAGE_WOOD, 0.7))
 
 
 @asset("SM_Cinema_Curtains", F,
@@ -349,6 +432,15 @@ def marquee(a):
         for k in range(3):
             a.box((150 - k * 30, 20, 60 - k * 12), at=(190, s * (590 + k * 16), 610 - k * 10), col=C.CREAM, bevel=4)
         a.sphere(12, at=(190, s * 640, 700), col=C.YELLOW, segs=10, rings=6, glow=4)
+    # bolts along the canopy edge and marquee box, cable conduit to the bulbs, bracing on the back
+    for y in range(-440, 441, 110):
+        D.screw(a, (345, y, 428), "+x", r=1.4, col=C.BRASS)
+    for y in range(-540, 541, 135):
+        D.screw(a, (265.5, y, 682), "+x", r=1.4)
+        D.screw(a, (265.5, y, 478), "+x", r=1.4)
+    a.cyl(3, 1100, at=(120, 0, 700), rot=(0, 0, 90), col=C.GREY, sides=8)
+    for y in (-400, 0, 400):
+        a.tube([(115, y, 470), (40, y, 560)], 4, col=C.GREY_DARK, sides=6)
 
 
 @asset("SM_Cinema_MarqueeBulb", F,
@@ -374,6 +466,14 @@ def blade_sign(a):
     a.cone(36, 45, at=(22, 1030, 542), rot=(180, 0, 0), col=C.BRASS, sides=8)
     for k in range(20):
         a.sphere(4, at=(44, 1030 + (-88 if k % 2 == 0 else 88), 600 + (k // 2) * 84), col=C.WINDOW_WARM, segs=6, rings=4, glow=8)
+    # wall brackets that carry the blade, bolts on the border, a service ladder rung set on the back edge
+    for z in (700, 1000, 1300):
+        a.box((20, 30, 12), at=(0, 1030, z), col=C.GREY_DARK, bevel=2)
+        for dy in (-10, 10):
+            D.screw(a, (5, 1030 + dy, z + 6), "+z", r=1.2)
+    for z in range(600, 1400, 100):
+        D.screw(a, (42.2, 1030 - 96, z), "+x", r=1.4, col=C.BRASS)
+        D.screw(a, (42.2, 1030 + 96, z), "+x", r=1.4, col=C.BRASS)
 
 
 @asset("SM_Cinema_PosterCase", F,
@@ -388,6 +488,10 @@ def poster_case(a):
         a.box((6, w, h), at=(37, y, z), col=C.BRASS, bevel=2, rough=0.35)
     for y in (-1123, -937):
         a.box((6, 10, 510), at=(37, y, 900), col=C.BRASS, bevel=2, rough=0.35)
+    for (y, z) in ((-1123, 1150), (-937, 1150), (-1123, 650), (-937, 650)):
+        D.screw(a, (40.2, y, z), "+x", r=1.6, col=C.BRASS)
+    D.hinge(a, (37, -1128, 900), "z", 400, r=1.6, col=C.BRASS)
+    a.cyl(2, 8, at=(40, -932, 900), rot=(-90, 0, 0), col=C.CHROME, sides=8)
 
 
 @asset("SM_Cinema_SearchlightBase", F,
@@ -400,6 +504,9 @@ def searchlight_base(a):
         ang = math.radians(k * 45 + 22.5)
         a.box((6, 6, 5), at=(41 * math.cos(ang), 41 * math.sin(ang), 3), rot=(0, k * 45 + 22.5, 0), col=C.GREY, bevel=1)
     a.tube([(36, 0, 14), (46, 4, 6), (52, 6, 1)], 3, col=C.RUBBER, sides=6)
+    D.plate(a, (40, 0, 22), "+x", 22, 30, t=1.0, col=C.GREY)
+    a.box((1.2, 14, 3), at=(41.5, 0, 30), col=C.CHROME, bevel=0.4)
+    D.label(a, (0, -39, 30), "-y", 24, 10, lines=2)
 
 
 @asset("SM_Cinema_SearchlightHead", F,
@@ -414,6 +521,9 @@ def searchlight_head(a):
     a.torus(38, 3, at=(46, 0, 0), rot=(-90, 0, 0), col=C.CHROME, major=20, minor=6, rough=0.25)
     for s in (-1, 1):
         a.cyl(8, 10, at=(0, s * 44, 0), rot=(0, 0, 90), col=C.GREY_DARK, sides=10, bevel=2)
+    for s in (-1, 1):
+        D.handle(a, (-20, s * 40, 30), "+y" if s > 0 else "-y", 30, along="u", r=1.4, standoff=5, col=C.GREY_DARK)
+    D.vent(a, (-46, 0, 0), "-x", 40, 30, slats=5, col=C.GREY_DARK)
 
 
 @asset("SM_Cinema_ChartBoard", F,
@@ -485,6 +595,9 @@ def hall_seat(a):
     a.box((24, 6, 6), at=(2, 33, 58), col=C.CHARCOAL, bevel=2)
     a.box((6, 6, 4), at=(-10, 33, 61), col=C.BRASS, bevel=1, rough=0.3)
     a.box((6, 4, 50), at=(14, 33, 34), col=C.CHARCOAL, bevel=1.5)
+    D.plate(a, (30.8, 0, 96), "+x", 12, 5, t=0.4, col=C.BRASS, screws=False, rough=0.3)
+    for k in range(3):
+        a.box((50, 0.6, 0.6), at=(-4, -14 + k * 14, 48.2), col=C.shade(C.CARPET, 0.75), bevel=0, jitter=0, wear=False)
 
 
 @asset("SM_Cinema_AudienceBody", F,

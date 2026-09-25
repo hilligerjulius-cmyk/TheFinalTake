@@ -1,6 +1,7 @@
 """Studio street front: road, sidewalk, facade, marquee, entrance, carpet, STAGE 4 sign, blocks across the street."""
 import math
 
+from ftb import detail as D
 from ftb import layout as L
 from ftb import palette as C
 from ftb.core import FONT_BLOCK
@@ -54,6 +55,25 @@ def street(a):
         a.box((6, 90, 10), at=(-2263 - pv[0], y - pv[1], 1.0), col=C.CHARCOAL, bevel=1)
         for k in range(6):
             a.box((7, 3, 11), at=(-2263 - pv[0], y - pv[1] - 35 + k * 14, 1.0), col=C.GREY, bevel=0.4, rough=0.4)
+    # detail pass: cracked sidewalk slabs, weeds in the joints, gum spots, oil stains in the parking lane,
+    # worn lane paint, a utility cover in the sidewalk, a bent drain grate bar
+    for k in range(10):
+        x = rng.uniform(-2240, -1820) - pv[0]
+        y = rng.uniform(-2150, 2550) - pv[1]
+        for j in range(3):
+            a.box((rng.uniform(8, 18), 0.6, 0.3), at=(x + j * 9, y + rng.uniform(-4, 4), 4.3), rot=(0, rng.uniform(-50, 50), 0),
+                  col=C.shade(C.SIDEWALK, 0.6), bevel=0, jitter=0, ao=False)
+    for k in range(14):
+        x = -2025 + rng.choice((-219, 219)) * rng.uniform(0.2, 1.0) - pv[0]
+        y = -2200 + 60 + rng.randrange(40) * 120 - pv[1]
+        for j in range(3):
+            a.leaf(rng.uniform(6, 11), 2.4, at=(x, y + 1.5, 4.2), rot=(rng.uniform(25, 55), rng.uniform(0, 360), 0), col=C.GREEN_DARK if j % 2 else C.GREEN, droop=0.3, thick=0.5, segs=4)
+    for k in range(25):
+        a.cyl(rng.uniform(0.8, 1.6), 0.2, at=(rng.uniform(-2240, -1820) - pv[0], rng.uniform(-2150, 2550) - pv[1], 4.45), col=C.shade(C.SIDEWALK, 0.55), sides=6, bevel=0, jitter=0, ao=False)
+    for (x, y) in ((-2400, -1100), (-2380, 900), (-2420, 1500)):
+        a.cyl(rng.uniform(30, 50), 0.3, at=(x - pv[0], y - pv[1], 0.35), ry=rng.uniform(20, 30), col=C.shade(C.ASPHALT, 0.72), sides=12, bevel=0, jitter=0, ao=False)
+    a.box((70, 70, 1.2), at=(-1950 - pv[0], -1700 - pv[1], 4.3), col=C.GREY_DARK, bevel=0.4, rough=0.5)
+    D.seams(a, (-1950 - pv[0], -1700 - pv[1], 4.9), "+z", 66, 66, n=3, along="u", col=C.shade(C.GREY_DARK, 0.7), width=0.8)
 
 
 # ============================================================================== facade
@@ -109,6 +129,31 @@ def facade(a):
     a.box((2, 12, 10), at=(X - 7, 410, 142), col=C.GREY, bevel=0.5)
     # roof parapet cap
     a.box((12, 3640, 10), at=(X + 22, 200, 845), col=C.CREAM_DARK, bevel=2)
+    # detail pass: stone base course joints, an AC unit and a satellite dish-style vent on the upper floor, a
+    # security camera over the doors, an electric meter box with conduit, a painted house number, bird droppings
+    # on the cornice, weather streaks under the window sills
+    for y in range(-1560, 2000, 160):
+        a.box((0.6, 0.8, 60), at=(X - 1, y, 30), col=C.shade(C.TEAL, 0.6), bevel=0, jitter=0, wear=False)
+    a.box((0.6, 3640, 0.8), at=(X - 1, 200, 62), col=C.shade(C.TEAL, 0.6), bevel=0, jitter=0, wear=False)
+    for (y, z) in ((-1250, 560), (1750, 560)):
+        a.box((50, 70, 44), at=(X - 25, y, z), col=C.GREY, bevel=3, rough=0.5)
+        D.vent(a, (X - 50, y, z), "-x", 60, 34, slats=6, col=C.GREY_DARK)
+        a.box((40, 8, 6), at=(X - 22, y - 30, z - 25), col=C.GREY_DARK, bevel=1)
+        D.cable(a, [(X - 10, y + 30, z - 15), (X - 4, y + 34, z - 60), (X - 4, y + 34, z - 200)], r=1.4, col=C.GREY)
+    a.box((14, 12, 12), at=(X - 10, 310, 420), col=C.GREY_DARK, bevel=1.5)
+    a.box((22, 12, 12), at=(X - 22, 310, 414), rot=(-20, 0, 0), col=C.WHITE, bevel=2.5)
+    a.cyl(3, 2, at=(X - 33, 310, 410), rot=(70, 0, 0), col=C.INK, sides=10)
+    D.led(a, (X - 28, 316, 418), "-x", r=0.6, col=C.RED)
+    a.box((8, 40, 56), at=(X - 4, 1950, 120), col=C.GREY, bevel=2, rough=0.5)
+    D.plate(a, (X - 8, 1950, 130), "-x", 30, 20, t=0.6, col=C.GLASS, screws=True)
+    a.cyl(2.4, 110, at=(X - 4, 1950, 205), col=C.GREY, sides=8)
+    a.text("1938", 16, 0.8, at=(X - 1.2, 900, 380), rot=(0, 180, 0), col=C.CREAM, font=FONT_BLOCK)
+    rng = a.rng
+    for k in range(10):
+        a.sphere(rng.uniform(1, 2.2), at=(X - rng.uniform(4, 16), rng.uniform(-1500, 1900), 826), rz=0.6, col=C.WHITE, segs=6, rings=3)
+    for y in (-1250, -700, 700, 1250, 1750):
+        for dy in (-90, 40, 110):
+            a.box((0.4, rng.uniform(3, 6), rng.uniform(30, 60)), at=(X - 0.6, y + dy, 100), col=C.shade(C.TEAL, 0.78), bevel=0, jitter=0, wear=False)
 
 
 # ============================================================================== marquee
@@ -158,6 +203,14 @@ def marquee(a):
         a.sphere(6, at=(-1826 - pv[0], y, 562), col=C.BRASS, segs=8, rings=5, rough=0.3)
     for r in [r for r in bulbs if r["size"][0] < 12]:
         pass
+    # bolts along the marquee box edges, service hatch and conduit on the pylons, drip line under the canopy
+    for y in range(-440, 441, 110):
+        D.screw(a, (-1872 - pv[0], y, 596), "-x", r=1.3)
+        D.screw(a, (-1872 - pv[0], y, 764), "-x", r=1.3)
+    for y in (-560, 560):
+        D.plate(a, (-1872 - pv[0], y, 500), "-x", 20, 34, t=0.8, col=C.CREAM_DARK)
+        a.cyl(2.2, 180, at=(-1826 - pv[0], y + (24 if y > 0 else -24), 470), col=C.GREY, sides=8)
+    a.box((2, 770, 1.6), at=(cx - 164, 0, 369), col=C.shade(C.TEAL_DARK, 0.6), bevel=0.3)
 
 
 # ============================================================================== entrance
@@ -183,6 +236,15 @@ def entrance(a):
     a.box((6, 90, 56), at=(-1838 - pv[0], 0, 372), col=C.INK, bevel=2)
     for k in range(4):
         a.box((3, 90, 7), at=(-1842 - pv[0], 0, 392 - k * 13), rot=(0, 0, 0), col=C.WHITE if k % 2 == 0 else C.INK, bevel=0.6)
+    # door closers at the head, lock cylinders, kick plates, floor pivots, a sticker on the glass
+    for y in (-330, 330):
+        a.box((8, 40, 8), at=(-1800 - pv[0], y, 334), col=C.GREY, bevel=2, rough=0.4)
+        a.box((2, 14, 1.4), at=(-1804 - pv[0], y + (-16 if y < 0 else 16), 328), rot=(0, 30 if y < 0 else -30, 0), col=C.GREY_DARK, bevel=0.3)
+        a.cyl(2.2, 2, at=(-1799 - pv[0], y + (-60 if y < 0 else 60), 100), rot=(90, 0, 0), col=C.CHROME, sides=10, bevel=0.3)
+        a.box((2, 130, 22), at=(-1798 - pv[0], y, 20), col=C.BRASS, bevel=0.6, rough=0.3)
+        a.cyl(4, 2, at=(-1790 - pv[0], y + (-70 if y < 0 else 70), 1), col=C.GREY_DARK, sides=10, bevel=0.3)
+    a.cyl(7, 0.4, at=(-1797 - pv[0], -300, 150), rot=(90, 0, 0), col=C.WHITE, sides=14, bevel=0)
+    a.cyl(5.5, 0.4, at=(-1797.4 - pv[0], -300, 150), rot=(90, 0, 0), col=C.CORAL, sides=14, bevel=0)
 
 
 @asset("SM_Studio_RedCarpet", F,
@@ -205,6 +267,12 @@ def red_carpet(a):
             rr = 38 if k % 2 == 0 else 16
             pts.append((x + math.cos(ang) * rr, math.sin(ang) * rr))
         a.slab(pts, 0.6, at=(0, 0, 2.2), col=C.BRASS, ao=False, rough=0.35)
+    # worn path down the middle, lint, a couple of scuff marks at the door end, brass rod clips
+    a.box((380, 60, 0.3), at=(0, 0, 2.3), col=C.shade(C.CARPET, 0.88), bevel=0, jitter=0, ao=False)
+    D.scuffs(a, (200, 0, 2.3), "+z", 50, 200, n=6, col=C.shade(C.CARPET, 0.7))
+    for y in (-152, 152):
+        for x in (-180, -60, 60, 180):
+            a.box((6, 6, 4), at=(x, y, 2), col=C.BRASS, bevel=1, rough=0.3)
 
 
 @asset("SM_Studio_Stage4StreetSign", F,
@@ -227,6 +295,11 @@ def stage4_street_sign(a):
         a.tube([(2, y, 296), (-6, y, 308), (-24, y, 312)], 2, col=C.CHARCOAL, sides=6)
         a.cone(8, 11, at=(-27, y, 306), rot=(-40, 0, 0), col=C.CHARCOAL, sides=8)
         a.cyl(5.5, 2, at=(-30, y, 302), rot=(-40, 0, 0), col=C.CREAM, sides=8, glow=8)
+    # screws on the board frame, weathered scuffs, a sticker, rust at the foot plate
+    D.screws_rect(a, (-11, 0, 226), "-x", 300, 140, inset=6, r=1.4, col=C.BRASS)
+    D.scuffs(a, (-12, 0, 226), "-x", 280, 120, n=6, col=C.shade(C.NAVY, 1.4))
+    a.cyl(5, 0.4, at=(-12.4, 120, 180), rot=(90, 0, 0), col=C.YELLOW, sides=12, bevel=0)
+    a.box(D._size("+z", 58, 4, 0.3), at=(0, -29, 5.2), col=C.hex_rgb(0x8A4A2E), bevel=0, jitter=0, wear=False)
 
 
 # ============================================================================== blocks across the street
@@ -283,6 +356,26 @@ def _block(idx):
         a.tube([(-60, bw * 0.35, bh), (-60, bw * 0.35, bh + 45), (-80, bw * 0.35, bh + 55)], 6, col=C.GREY_DARK, sides=8)
         a.box((120, 70, 40), at=(-230, bw * 0.1, bh + 20), col=C.shade(col, 1.2), bevel=4)
         a.box((6, 50, 26), at=(-168, bw * 0.1, bh + 20), col=C.CHARCOAL, bevel=1.5)
+        # detail pass: window AC units, drainpipe, door number + mail slot, posters and tags on the shop front
+        rng = a.rng
+        wins = [r for r in recs if r["line"] == 536]
+        for r in wins[1::5]:
+            y, z = r["center"][1] - by, r["center"][2]
+            a.box((34, 44, 30), at=(20, y + 10, z - 34), col=C.GREY, bevel=3, rough=0.5)
+            D.vent(a, (37, y + 10, z - 34), "+x", 36, 22, slats=5, col=C.GREY_DARK)
+            a.box((10, 6, 3), at=(8, y + 10, z - 50), col=C.GREY_DARK, bevel=0.6)
+        a.tube([(6, -bw / 2 + 12, 0), (6, -bw / 2 + 12, bh - 50), (14, -bw / 2 + 12, bh - 30)], 5, col=C.GREY_DARK, sides=8, rough=0.5)
+        for z in range(150, int(bh) - 80, 250):
+            a.box((8, 14, 5), at=(4, -bw / 2 + 12, z), col=C.GREY, bevel=1)
+        a.box((1, 16, 10), at=(11, bw * 0.3, 128), col=C.BRASS, bevel=0.3, rough=0.3)
+        a.box((1, 22, 3), at=(11, bw * 0.3, 70), col=C.BRASS, bevel=0.3, rough=0.3)
+        yp = (bw * 0.13 + bw * 0.3 - 45) / 2
+        for k in range(2):
+            pc = [C.CREAM, C.CORAL, C.SKY_BLUE][(k + idx) % 3]
+            a.box((0.6, 38, 48), at=(8.8, yp, 48 + k * 56), rot=(0, 0, rng.uniform(-4, 4)), col=pc, bevel=0.1, jitter=0)
+        for k in range(2):
+            a.box((0.4, rng.uniform(30, 60), rng.uniform(8, 16)), at=(8.6, -bw * 0.4 + k * 50, 30), rot=(0, 0, rng.uniform(-12, 12)),
+                  col=[C.MAGENTA, C.CYAN, C.YELLOW][(idx + k) % 3], bevel=0, jitter=0)
         # fire escape on the taller blocks
         if bh >= 1150:
             for z in range(380, int(bh) - 250, 180):

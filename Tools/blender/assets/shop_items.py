@@ -9,6 +9,7 @@ import math
 import os
 import sys
 
+from ftb import detail as D
 from ftb import palette as C
 from ftb.core import bm_box, bm_extrude, bm_lathe, bm_sphere, deform, wobble, xf
 from ftb.registry import ASSETS, asset
@@ -175,6 +176,12 @@ def treasure_chest(a):
         a.cyl(2.6, 0.9, at=(x, y, 43.6 + (k % 2)), rot=(k * 17, k * 40, 0), col=C.AMBER, sides=10, glow=2.0)
     a.box((4, 9, 12), at=(32, 0, 30), col=C.YELLOW, bevel=1, rough=0.35)
     a.cyl(1.4, 1.2, at=(34.2, 0, 28), rot=(0, 90, 90), col=C.INK, sides=8)
+    for sx in (-1, 1):
+        D.hinge(a, (sx * 20, 21.4, 40), "x", 10, r=1.2, col=C.YELLOW)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            for z in (6, 30):
+                a.sphere(0.8, at=(sx * 32.6, sy * 18, z), col=C.BRASS, segs=6, rings=3)
 
 
 @item("Prop.GiantClam", "SM_Item_GiantClam", "Props",
@@ -258,6 +265,7 @@ def pyro_fountain(a):
         a.torus(7.2, 0.7, at=(0, 0, 21.5 + k * 3.5), col=C.GREY, major=12, minor=4)
     a.sphere(4, at=(0, 0, 34), col=C.ORANGE, segs=10, rings=6, glow=2)
     control_box(a, -21 - 8)
+    D.label(a, (0, -21, 6), "-y", 20, 6, lines=1)
 
 
 @item("Fx.Fog", "SM_Fx_FogMachine", "Effects",
@@ -275,6 +283,9 @@ def fog_machine(a):
     for s in (-1, 1):
         a.box((50, 3, 3), at=(0, s * 22, 1.5), col=C.RUBBER, bevel=0.8)
     control_box(a, -30 - 8)
+    for n, y in (("+y", 21), ("-y", -21)):
+        D.screws_rect(a, (0, y, 20), n, 52, 32, inset=3, r=0.7)
+    D.label(a, (0, -21, 30), "-y", 16, 6, lines=2)
 
 
 @item("Fx.Confetti", "SM_Fx_ConfettiCannon", "Effects",
@@ -314,6 +325,8 @@ def bubble_machine(a):
     for (x, y, z, r) in ((16, -6, 58, 2.6), (3, 5, 55, 1.8), (12, 7, 53, 1.4)):
         a.sphere(r, at=(x, y, z), col=C.SKY_BLUE, segs=8, rings=5, mat="glass")
     control_box(a, -20 - 8)
+    D.screws_rect(a, (0, 20, 18), "+y", 32, 28, inset=3, r=0.7)
+    D.label(a, (0, -20, 22), "-y", 16, 8, lines=2)
 
 
 # ============================================================================ shark rig kits
@@ -459,6 +472,8 @@ def cardboard_moon(a):
     bag = bm_sphere(12, 8, 5, 10, 6)
     wobble(bag, 0.8, scale=0.3, seed=5)
     a.add(bag, xf((-24, 16, 11)), C.SAND, rough=1.0)
+    for k in range(5):
+        D.tape(a, (-4.2, -40 + k * 20, 140 + (k % 2) * 60), "-x", 12, 4, deg=20 * (k - 2), col=C.SAND)
 
 
 # ============================================================================ bounds from the C++ part lists

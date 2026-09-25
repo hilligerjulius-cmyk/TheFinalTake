@@ -1,6 +1,7 @@
 """Downtown boulevard: ground, road, street furniture, alleys, pocket park, parking lot, billboard."""
 import math
 
+from ftb import detail as D
 from ftb import layout as L
 from ftb import palette as C
 from ftb.core import bm_box, bulge, xf
@@ -53,6 +54,31 @@ def boulevard(a):
             a.box((80, 8, 3), at=(x - pv[0], y - pv[1], 0.8), col=C.CHARCOAL, bevel=0.5)
             for k in range(5):
                 a.box((3, 9, 3.2), at=(x - pv[0] - 30 + k * 15, y - pv[1], 0.9), col=C.GREY, bevel=0.2)
+    # detail pass: tar crack seams, worn lane paint patches, gum spots and weeds on the sidewalks, sidewalk cracks,
+    # a utility cover and a bus-stop kerb marking
+    for k in range(10):
+        x0 = rng.uniform(-10200, -4000)
+        y0 = rng.uniform(-380, 80)
+        pts = [(x0 - pv[0] + i * 30, y0 - pv[1] + rng.uniform(-14, 14), 0.9) for i in range(6)]
+        a.tube(pts, 1.5, col=C.shade(C.ASPHALT, 0.6), sides=4, ao=False)
+    for k in range(16):
+        a.box((rng.uniform(20, 60), 8, 0.2), at=(rng.uniform(-10200, -3900) - pv[0], rng.uniform(-60, 60), 1.15),
+              col=C.shade(C.ASPHALT, 0.9), bevel=0, jitter=0, ao=False)
+    for (y0, y1) in ((-600, -410), (110, 300)):
+        for k in range(40):
+            a.cyl(rng.uniform(0.8, 1.5), 0.2, at=(rng.uniform(-10300, -3800) - pv[0], rng.uniform(y0, y1) - pv[1], 5.6), col=C.shade(C.SIDEWALK, 0.55), sides=6, bevel=0, jitter=0, ao=False)
+        for k in range(16):
+            x = rng.uniform(-10300, -3800) - pv[0]
+            y = rng.uniform(y0, y1) - pv[1]
+            for j in range(3):
+                a.leaf(rng.uniform(6, 10), 2.2, at=(x, y, 5.3), rot=(rng.uniform(25, 55), rng.uniform(0, 360), 0), col=C.GREEN_DARK if j % 2 else C.GREEN, droop=0.3, thick=0.5, segs=4)
+        for k in range(8):
+            x = rng.uniform(-10300, -3800) - pv[0]
+            y = rng.uniform(y0, y1) - pv[1]
+            for j in range(3):
+                a.box((rng.uniform(8, 16), 0.6, 0.3), at=(x + j * 8, y + rng.uniform(-3, 3), 5.5), rot=(0, rng.uniform(-50, 50), 0), col=C.shade(C.SIDEWALK, 0.6), bevel=0, jitter=0, ao=False)
+    a.box((60, 60, 1), at=(-5600 - pv[0], 200 - pv[1], 5.5), col=C.GREY_DARK, bevel=0.4, rough=0.5)
+    D.seams(a, (-5600 - pv[0], 200 - pv[1], 6), "+z", 56, 56, n=3, along="u", col=C.shade(C.GREY_DARK, 0.7))
 
 
 @asset("SM_City_TrafficLight", F,
@@ -73,6 +99,16 @@ def traffic_light(a):
     a.box((10, 16, 22), at=(8, 0, 120), col=C.YELLOW, bevel=2.5)
     a.cyl(4, 2, at=(13.5, 0, 124), rot=(-90, 0, 0), col=C.CHARCOAL, sides=10)
     a.box((1, 10, 6), at=(13.5, 0, 114), col=C.WHITE, bevel=0.2)
+    # back plate with a white border, flange bolts, access hatch, cable into the head, a sticker on the pole
+    a.box((3, 44, 100), at=(-16.5, 0, 400), col=C.CHARCOAL, bevel=1)
+    D.border(a, (-18, 0, 400), "-x", 44, 100, bar=2.5, t=0.4, col=C.WHITE)
+    for k in range(6):
+        ang = math.radians(k * 60 + 30)
+        a.cyl(1.4, 2, at=(12 * math.cos(ang), 12 * math.sin(ang), 5), col=C.CHROME, sides=6)
+    D.plate(a, (6, 0, 60), "+x", 8, 18, t=0.6, col=C.shade(C.CHARCOAL, 1.3))
+    D.cable(a, [(0, -6, 350), (0, -10, 356), (0, -12, 362)], r=0.8)
+    a.box((0.3, 8, 10), at=(-6.2, 0, 160), col=C.YELLOW, bevel=0, jitter=0)
+    a.box((0.4, 14, 6), at=(-6.2, 0, 175), col=C.WHITE, bevel=0, jitter=0)
 
 
 def _hydrants():
@@ -98,6 +134,12 @@ def hydrant(a):
     for k in range(8):
         ang = math.radians(k * 45)
         a.sphere(1.4, at=(12 * math.cos(ang), 12 * math.sin(ang), 6.5), col=C.GREY, segs=5, rings=3)
+    # chains from the outlet caps, chipped paint
+    for s in (-1, 1):
+        D.cable(a, [(4, s * 18, 34), (6, s * 15, 28), (8, s * 12, 30)], r=0.5, col=C.GREY)
+    for (ang, z) in ((40, 20), (200, 44), (300, 12)):
+        c = math.radians(ang)
+        a.box((0.3, 3, 2), at=(11.1 * math.cos(c), 11.1 * math.sin(c), z), rot=(0, ang, 0), col=C.GREY, bevel=0, jitter=0, wear=False)
 
 
 def _bins():
@@ -121,6 +163,10 @@ def trash_bin(a):
     for k in range(3):
         ang = math.radians(k * 120)
         a.box((6, 6, 4), at=(16 * math.cos(ang), 16 * math.sin(ang), 1), col=C.CHARCOAL, bevel=1)
+    # liner lip, city crest plate
+    a.torus(21, 1.0, at=(0, 0, 76.5), col=C.INK, major=14, minor=4)
+    D.plate(a, (-21, 0, 30), "-x", 12, 12, t=0.5, col=C.CREAM, screws=False)
+    a.cyl(3.5, 0.4, at=(-21.8, 0, 30), rot=(90, 0, 0), col=C.TEAL, sides=10, bevel=0)
 
 
 def _benches():
@@ -145,6 +191,14 @@ def park_bench(a):
         a.torus(6, 1.4, at=(x, -20, 52), rot=(0, 0, 90), col=C.CHARCOAL, major=10, minor=4)
         for y in (-20, 28):
             a.box((8, 8, 3), at=(x, y, 1.5), col=C.CHARCOAL, bevel=1)
+    # bolt heads through the slats, a brass dedication plaque on the backrest, gum under the seat
+    for x in (-70, 70):
+        for k in range(4):
+            a.sphere(0.8, at=(x, -16 + k * 10, 46.2), col=C.GREY, segs=6, rings=3)
+        for k in range(3):
+            a.sphere(0.8, at=(x, 28.8, 58 + k * 14), col=C.GREY, segs=6, rings=3)
+    D.plate(a, (0, 27.6, 72), "-y", 30, 6, t=0.5, col=C.BRASS, screws=False, rough=0.3)
+    a.box((22, 0.3, 1), at=(0, 27.1, 72), col=C.INK, bevel=0, jitter=0, wear=False)
 
 
 @asset("SM_City_Signpost", F,
@@ -161,6 +215,10 @@ def signpost(a):
     a.prism((10, 60, 76), at=(0, -150, 300), rot=(0, 0, -90), col=C.CORAL)
     a.prism((10, 40, 46), at=(0, -120, 236), rot=(0, 0, -90), col=C.NAVY)
     a.box((14, 304, 4), at=(0, 0, 337), col=C.CREAM, bevel=1)
+    for z in (236, 300):
+        a.box((14, 18, 8), at=(0, 0, z + 42), col=C.GREY_DARK, bevel=1.5)
+    D.screws_rect(a, (7, 0, 8), "+z", 14, 30, inset=2, r=0.8)
+    a.box((0.4, 8, 12), at=(7.3, 0, 140), col=C.CORAL, bevel=0, jitter=0)
 
 
 def _alley(width):
@@ -196,6 +254,15 @@ def _alley(width):
         for s in (-1, 1):
             a.box((6, 90, 8), at=(s * dw / 2, -60, 70), col=C.GREY_DARK, bevel=2)
             a.cyl(6, 5, at=(s * (dw / 2 - 12), -80, 6), rot=(0, 0, 90), col=C.RUBBER, sides=8)
+        # detail pass: graffiti tags, a flattened cardboard box, dumpster lid handles + stencil, a puddle
+        for k in range(3):
+            a.box((1, a.rng.uniform(40, 90), a.rng.uniform(14, 30)), at=(a.rng.uniform(-width / 2 + 40, width / 2 - 40), -21.2, a.rng.uniform(60, 160)),
+                  rot=(0, 0, a.rng.uniform(-10, 10)), col=[C.MAGENTA, C.CYAN, C.YELLOW][k], bevel=0, jitter=0)
+        a.box((60, 40, 2), at=(dw / 2 - 20, -120, 1), rot=(0, 20, 0), col=C.SAND, bevel=0.5)
+        for s in (-1, 1):
+            a.box((4, 12, 4), at=(s * dw * 0.3, -104, 118), col=C.GREY_DARK, bevel=1)
+        D.stencil_number(a, (0, -101, 70), "-y", "NO PARKING", 9, col=C.WHITE)
+        a.cyl(36, 0.4, at=(-20, -125, 0.3), ry=20, col=C.PUDDLE, sides=12, bevel=0, jitter=0, rough=0.1)
         for k in range(2):
             b = bm_box(40, 40, 42, 16, 2)
             bulge(b, 5, axis=2)
@@ -235,6 +302,13 @@ def pocket_park(a):
     a.box((170, 50, 8), at=(-150, -330, 48), col=C.PLAZA_STONE, bevel=3)
     for x in (-210, -90):
         a.box((20, 40, 40), at=(x, -330, 22), col=C.shade(C.PLAZA_STONE, 0.9), bevel=3)
+    # joints in the stone edge, fallen leaves, a brass PARK plaque on the bench
+    for y in range(-400, 401, 100):
+        for x in (-300, 300):
+            a.box((15, 0.6, 12.4), at=(x, y, 6), col=C.PLAZA_JOINT, bevel=0, jitter=0, wear=False)
+    for k in range(12):
+        a.leaf(8, 4, at=(rng.uniform(-280, 280), rng.uniform(-430, 430), 12.5), rot=(4, rng.uniform(0, 360), 0), col=C.shade(C.ORANGE, 0.8), droop=0.1, thick=0.4, segs=3)
+    D.plate(a, (-150, -355.2, 42), "-y", 40, 8, t=0.5, col=C.BRASS, screws=True, rough=0.3)
 
 
 @asset("SM_City_ParkingLot", F,
@@ -253,6 +327,21 @@ def parking_lot(a):
     a.box((50, 250, 10), at=(-10420 - pv[0], -1620 - pv[1], 125), col=C.shade(C.ALLEY_WALL, 1.3), bevel=3)
     # white frame behind the blue P board (board turned to face +Y like its text, see ftb.layout.BOARD_FIXES)
     a.box((98, 8, 98), at=(-9500 - pv[0], -1607 - pv[1], 380), col=C.WHITE, bevel=3)
+    # stencilled bay numbers, wheel-stop bolts, a painted arrow, a drain grate and cracks
+    for b in range(4):
+        x = -10350 + b * 225 + 112 - pv[0]
+        D.stencil_number(a, (x, -1380 - pv[1], 1.1), "+z", str(b + 1), 30, col=C.WHITE)
+        for dx in (-40, 40):
+            D.screw(a, (x + dx, -1450 - pv[1], 12), "+z", r=1.2, col=C.GREY)
+    a.slab([(-60, -10), (20, -10), (20, -24), (50, 0), (20, 24), (20, 10), (-60, 10)], 0.4, at=(-9700 - pv[0], -1000 - pv[1], 1.0), col=C.WHITE, ao=False)
+    a.box((50, 50, 1), at=(-9600 - pv[0], -1250 - pv[1], 0.8), col=C.GREY_DARK, bevel=0.3)
+    D.seams(a, (-9600 - pv[0], -1250 - pv[1], 1.3), "+z", 46, 46, n=5, along="u", col=C.INK, width=2)
+    rng = a.rng
+    for k in range(5):
+        x0 = rng.uniform(-10350, -9450)
+        y0 = rng.uniform(-1400, -900)
+        pts = [(x0 - pv[0] + i * 25, y0 - pv[1] + rng.uniform(-12, 12), 1.0) for i in range(5)]
+        a.tube(pts, 1.2, col=C.shade(C.ASPHALT, 0.6), sides=4, ao=False)
 
 
 @asset("SM_City_RooftopBillboard", F,
@@ -275,3 +364,15 @@ def billboard(a):
         a.tube([(20, y, 96), (70, y, 140), (80, y, 170)], 2.2, col=C.CHARCOAL, sides=6)
         a.cone(12, 16, at=(80, y, 176), rot=(140, 0, 0), col=C.CHARCOAL, sides=8)
         a.cyl(8, 2, at=(76, y, 182), rot=(140, 0, 0), col=C.CREAM, sides=8, glow=8)
+    # paper seams on the poster face, frame bolts, lattice bracing and a service ladder on the back
+    for y in range(-360, 361, 120):
+        a.box((1, 1, 480), at=(12.6, y, 260), col=C.shade(C.CORAL, 0.8), bevel=0, jitter=0, wear=False)
+    for y in range(-420, 421, 105):
+        D.screw(a, (14, y, 505), "+x", r=1.4)
+    for (y0, y1) in ((-380, -130), (-130, 130), (130, 380)):
+        a.tube([(-12, y0, 100), (-12, y1, 480)], 2.2, col=C.GREY_DARK, sides=6)
+        a.tube([(-12, y1, 100), (-12, y0, 480)], 2.2, col=C.GREY_DARK, sides=6)
+    for sy in (-1, 1):
+        a.box((5, 5, 420), at=(-16, 300 + sy * 22, 300), col=C.GREY, bevel=1)
+    for k in range(14):
+        a.cyl(1.4, 44, at=(-16, 300, 110 + k * 28), rot=(0, 0, 90), col=C.GREY, sides=6)

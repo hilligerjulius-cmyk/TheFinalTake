@@ -1,11 +1,12 @@
 """Stage 4: floor, walls, ceiling, entry wall, landings, camera deck, sound booth, truss, work lights, signs, warehouse."""
 import math
 
+from ftb import detail as D
 from ftb import layout as L
 from ftb import palette as C
 from ftb.core import bm_box, bulge, xf
 from ftb.registry import P, asset
-from assets.studio_lobby import vent
+from assets.studio_lobby import exit_sign, extinguisher, outlet, sprinkler, vent
 
 F = "Studio/Stage4"
 FWH = "Studio/Warehouse"
@@ -52,6 +53,23 @@ def stage_floor(a):
     for k in range(10):
         a.cyl(rng.uniform(6, 16), 0.3, at=(rng.uniform(-500, 1250) - PV[0], rng.uniform(-1500, 1900) - PV[1], 0.15),
               col=C.shade(rng.choice((C.CREAM, C.TEAL, C.CORAL)), 0.7), sides=8, bevel=0, ao=False)
+    # detail pass: a cable run with a yellow cable ramp from the sound booth to the camera deck, chalk marks,
+    # gaffer-tape spike marks, anchor plates in the slab, worn paint along the walkway tape
+    D.cable(a, [(260 - PV[0], -1080 - PV[1], 1.2), (300 - PV[0], -700 - PV[1], 1.2), (310 - PV[0], -300 - PV[1], 1.2), (300 - PV[0], -160 - PV[1], 1.2)], r=1.3)
+    D.cable(a, [(266 - PV[0], -1080 - PV[1], 1.2), (306 - PV[0], -700 - PV[1], 1.2), (316 - PV[0], -300 - PV[1], 1.2), (306 - PV[0], -160 - PV[1], 1.2)], r=1.0, col=C.shade(C.RUBBER, 1.5))
+    a.box((60, 90, 5), at=(306 - PV[0], -600 - PV[1], 2.5), rot=(0, 5, 0), col=C.YELLOW, bevel=2)
+    for k in range(3):
+        a.box((58, 8, 0.6), at=(306 - PV[0], -630 - PV[1] + k * 30, 5.2), rot=(0, 5, 0), col=C.INK, bevel=0, jitter=0, wear=False)
+    for (x, y) in ((1300, 900), (600, -900), (1500, -300)):
+        for s in (-1, 1):
+            a.box((40, 2, 0.3), at=(x - PV[0], y - PV[1], 0.35), rot=(0, s * 45, 0), col=C.WHITE, bevel=0, jitter=0, ao=False)
+    for (x, y) in ((-300, 1400), (2200, -1300), (2200, 1500), (-300, -1300)):
+        a.box((30, 30, 1), at=(x - PV[0], y - PV[1], 0.5), col=C.GREY, bevel=0.3, rough=0.4)
+        D.screws_rect(a, (x - PV[0], y - PV[1], 1), "+z", 30, 30, inset=4, r=1.4, col=C.GREY_DARK)
+    rng = a.rng
+    for k in range(12):
+        a.box((rng.uniform(10, 30), rng.uniform(1, 3), 0.3), at=(rng.uniform(-500, 2300) - PV[0], rng.uniform(-1500, 1900) - PV[1], 0.3),
+              rot=(0, rng.uniform(0, 180), 0), col=C.shade(C.STAGE_FLOOR, 0.7), bevel=0, jitter=0, ao=False)
 
 
 # ============================================================================== walls + ceiling
@@ -96,6 +114,44 @@ def stage_walls(a):
             a.cyl(3, s1 - s0, at=(pos - PV[0] + s * 6, (s0 + s1) / 2 - PV[1], Z(95)), rot=(0, 0, 90), col=C.GREY, sides=6, rough=0.4)
     # exit sign above the ladder side
     a.box((8, 70, 28), at=(2396 - PV[0] - 8, -1400 - PV[1], Z(420)), col=C.GREEN, bevel=2, glow=2)
+    # detail pass: yellow padded guards with hazard stripes around every column foot, base plates with anchor
+    # bolts, stiffener plates, outlets on the conduit, extinguishers and NO SMOKING plates, cable hooks with coils
+    for (pos, ax, s, (s0, s1)) in walls:
+        n = ("+y" if s > 0 else "-y") if ax == "y" else ("+x" if s > 0 else "-x")
+        for i, c in enumerate(range(s0 + 250, s1, 500)):
+            if ax == "y":
+                gc = (c - PV[0], pos - PV[1] + s * 17, 55)
+                a.box((40, 34, 110), at=gc, col=C.YELLOW, bevel=4, rough=0.8)
+                D.hazard(a, (gc[0], gc[1] + s * 17, 55), n, 36, 96, stripes=5, t=0.6)
+                a.box((50, 40, 3), at=(c - PV[0], pos - PV[1] + s * 20, 1.5), col=C.GREY_DARK, bevel=0.8)
+                for dx in (-20, 20):
+                    D.screw(a, (c - PV[0] + dx, pos - PV[1] + s * 36, 3), "+z", r=1.6, col=C.GREY)
+                for z in (Z(400), Z(800)):
+                    a.box((32, 4, 12), at=(c - PV[0], pos - PV[1] + s * 17, z), col=C.shade(C.GREY_DARK, 1.2), bevel=1)
+            else:
+                gc = (pos - PV[0] + s * 17, c - PV[1], 55)
+                a.box((34, 40, 110), at=gc, col=C.YELLOW, bevel=4, rough=0.8)
+                D.hazard(a, (gc[0] + s * 17, gc[1], 55), n, 36, 96, stripes=5, t=0.6)
+                a.box((40, 50, 3), at=(pos - PV[0] + s * 20, c - PV[1], 1.5), col=C.GREY_DARK, bevel=0.8)
+                for dy in (-20, 20):
+                    D.screw(a, (pos - PV[0] + s * 36, c - PV[1] + dy, 3), "+z", r=1.6, col=C.GREY)
+                for z in (Z(400), Z(800)):
+                    a.box((4, 32, 12), at=(pos - PV[0] + s * 17, c - PV[1], z), col=C.shade(C.GREY_DARK, 1.2), bevel=1)
+            if i % 2 == 0:
+                oc = (c + 120 - PV[0], pos - PV[1] + s * 1, Z(95)) if ax == "y" else (pos - PV[0] + s * 1, c + 120 - PV[1], Z(95))
+                outlet(a, D.on(oc, n, 0, -24), n, col=C.GREY)
+                hc = (c - 120 - PV[0], pos - PV[1] + s * 1, Z(170)) if ax == "y" else (pos - PV[0] + s * 1, c - 120 - PV[1], Z(170))
+                a.box(D._size(n, 4, 4, 14), at=D.on(hc, n, 0, 0, 7), col=C.GREY_DARK, bevel=1)
+                for k in range(3):
+                    a.torus(16 - k * 1.2, 1.3, at=D.on(hc, n, k * 1.5, -18 - k * 1.5, 10), rot=D.NORMAL_ROT[n],
+                            col=C.RUBBER, major=16, minor=4)
+            if i == 1:
+                ec = (c + 60 - PV[0], pos - PV[1] + s * 1, Z(95)) if ax == "y" else (pos - PV[0] + s * 1, c + 60 - PV[1], Z(95))
+                extinguisher(a, ec, n)
+                sc = (c - 60 - PV[0], pos - PV[1] + s * 1, Z(250)) if ax == "y" else (pos - PV[0] + s * 1, c - 60 - PV[1], Z(250))
+                D.plate(a, sc, n, 40, 26, t=0.8, col=C.WHITE, screws=True)
+                a.torus(9, 1.4, at=D.on(sc, n, dn=1.2), rot=D.NORMAL_ROT[n], col=C.RED, major=16, minor=4)
+                a.box(D._size(n, 22, 2, 0.4), at=D.on(sc, n, dn=1.4), rot=D._rot_in_plane(n, 45), col=C.RED, bevel=0, jitter=0, wear=False)
 
 
 @asset("SM_Stage4_Ceiling", F,
@@ -108,6 +164,19 @@ def stage_ceiling(a):
         a.box((20, 3600, 50), at=(x - PV[0], 0, 1320 - PV[2] - 25), col=C.GREY_DARK, bevel=3)
     for y in (-900, 200, 1300):
         a.box((3000, 16, 26), at=(0, y - PV[1], 1320 - PV[2] - 13), col=C.shade(C.GREY_DARK, 0.8), bevel=2)
+    # red sprinkler mains along three rafters with heads, a cable tray across the rafters
+    for x in (0, 800, 1600):
+        a.cyl(4, 3500, at=(x - PV[0] + 16, 0, 1320 - PV[2] - 44), rot=(0, 0, 90), col=C.RED, sides=8, rough=0.5)
+        for y in range(-1500, 1901, 400):
+            a.cyl(1.2, 8, at=(x - PV[0] + 16, y - PV[1], 1320 - PV[2] - 51), col=C.CHROME, sides=6)
+            a.cyl(2.4, 1, at=(x - PV[0] + 16, y - PV[1], 1320 - PV[2] - 55.5), col=C.CHROME, sides=8, bevel=0.2)
+        for y in range(-1400, 1901, 700):
+            a.box((6, 4, 14), at=(x - PV[0] + 16, y - PV[1], 1320 - PV[2] - 38), col=C.GREY_DARK, bevel=0.5)
+    for sy in (-1, 1):
+        a.box((2900, 2, 10), at=(0, 1000 - PV[1] + sy * 15, 1320 - PV[2] - 60), col=C.GREY, bevel=0.4, rough=0.4)
+    a.box((2900, 32, 1.5), at=(0, 1000 - PV[1], 1320 - PV[2] - 65), col=C.GREY, bevel=0.3, rough=0.4)
+    for k in range(3):
+        a.cyl(1.8 + k * 0.3, 2900, at=(0, 1000 - PV[1] - 8 + k * 8, 1320 - PV[2] - 61), rot=(90, 0, 0), col=[C.RUBBER, C.GREY_DARK, C.CORAL_DARK][k], sides=6)
 
 
 # ============================================================================== entry wall
@@ -149,6 +218,41 @@ def entry_wall(a):
     # office side skirting under the window
     a.box((3, 960, 12), at=(lx - 1.5, 1500, 6), col=C.TEAL_DARK, bevel=1)
     vent(a, (lx - 2, -600, 470), rot=(0, 180, 0))
+    # stage side: QUIET-ON-SET lamp box beside the big door, door-track hangers get bolts, a hose reel cabinet,
+    # lobby side: sockets, EXIT sign above the Stage 4 door
+    qa = (sx + 6, -420, 360)
+    a.box((12, 70, 26), at=qa, col=C.CHARCOAL, bevel=2)
+    a.box((1, 62, 18), at=(sx + 12.3, -420, 360), col=C.RED, glow=2.5)
+    a.text("QUIET", 11, 0.6, at=(sx + 13, -420, 356), col=C.WHITE, ao=False)
+    D.cable(a, [(sx + 3, -380, 360), (sx + 3, -380, 430)], r=1.0)
+    for y in range(-280, 900, 120):
+        D.screw(a, (sx + 11.2, y, 436), "+x", r=1.0)
+    a.box((10, 60, 80), at=(sx + 5, -900, 150), col=C.RED, bevel=2)
+    D.plate(a, (sx + 10, -900, 150), "+x", 50, 70, t=0.6, col=C.shade(C.RED, 0.85))
+    a.box((0.6, 40, 50), at=(sx + 10.8, -900, 150), col=C.GLASS, mat="glass")
+    a.torus(16, 4, at=(sx + 6, -900, 150), rot=(-90, 0, 0), col=C.shade(C.RED, 0.7), major=16, minor=6)
+    D.label(a, (sx + 10.6, -900, 196), "+x", 40, 8, lines=1)
+    for y in (-800, -500, 500, 800):
+        outlet(a, (lx - 0.5, y, 30), "-x")
+    exit_sign(a, (lx - 0.5, 0, 470), "-x")
+    # the stage face gets the same structure as the other soundstage walls: I-beam columns with padded guards,
+    # ring girder, quilted sound panels above the doors and a conduit run
+    for y in (-1000, -500, 500, 1000, 1900):
+        a.box((14, 30, 1440), at=(sx + 7, y, 600), col=C.GREY_DARK, bevel=2)
+        a.box((20, 10, 1440), at=(sx + 17, y, 600), col=C.shade(C.GREY_DARK, 0.85), bevel=1)
+        a.box((34, 40, 110), at=(sx + 17, y, -65), col=C.YELLOW, bevel=4, rough=0.8)
+        D.hazard(a, (sx + 34, y, -65), "+x", 36, 96, stripes=5, t=0.6)
+    a.box((24, 3560, 40), at=(sx + 12, 200, 1180), col=C.GREY_DARK, bevel=3)
+    for yc in range(-1450, 1900, 250):
+        if -380 < yc < 380:
+            continue
+        p = bm_box(12, 220, 200, 5, 1)
+        bulge(p, 4, axis=0)
+        a.add(p, xf((sx + 6, yc, 1000)), C.NAVY_LIGHT, rough=0.95)
+    a.cyl(3, 3500, at=(sx + 6, 200, -25), rot=(0, 0, 90), col=C.GREY, sides=6, rough=0.4)
+    for y in (-800, 800, 1500):
+        a.box((8, 22, 22), at=(sx + 6, y, -25), col=C.GREY, bevel=2, rough=0.4)
+        outlet(a, (sx + 1, y, -60), "+x", col=C.GREY)
 
 
 # ============================================================================== landings
@@ -171,6 +275,15 @@ def entry_landing(a):
         c = r["center"]
         a.sphere(5.5, at=(c[0] - pv[0], c[1] - pv[1], 100), col=C.YELLOW, segs=8, rings=5)
     a.cyl(2.2, 460, at=(-300 - pv[0], 550 - pv[1], 55), rot=(0, 0, 90), col=C.YELLOW, sides=8)
+    # anti-slip strips on the landing and treads, stringer bolts, rail brackets
+    for k in range(5):
+        x = -300 + 60 * k - pv[0]
+        z = -20 * (k + 1)
+        for dx in (-20, -8):
+            a.box((3, 560, 0.4), at=(x + 30 + dx, -200, z + 2.2), col=C.shade(C.GREY_DARK, 0.8), bevel=0, jitter=0)
+    for y in range(-500, 501, 100):
+        if abs(y) < 460:
+            a.box((3, 50, 0.4), at=(100, y, 0.25), col=C.shade(C.GREY_DARK, 0.8), bevel=0, jitter=0)
 
 
 @asset("SM_Stage4_WardrobeStairs", F,
@@ -184,6 +297,10 @@ def wardrobe_stairs(a):
     hazard(a, 250, (65 + 0.8, 0, -8), h=14)
     for k in range(5):
         a.box((6, 250, 4), at=(-450 + 60 * k - pv[0] + 3, 0, -20 * (k + 1) + 1), col=C.GREY, bevel=1, rough=0.4)
+    for k in range(5):
+        x = -450 + 60 * k - pv[0]
+        for dx in (18, 30):
+            a.box((3, 220, 0.4), at=(x + dx, 0, -20 * (k + 1) + 2.2), col=C.shade(C.GREY_DARK, 0.8), bevel=0, jitter=0)
 
 
 # ============================================================================== signs
@@ -204,6 +321,11 @@ def soundstage_banner(a):
             a.sphere(3, at=(11, y, z), col=C.BRASS, segs=6, rings=4, rough=0.3)
     for y in (-300, 300):
         a.box((24, 10, 10), at=(-12, y, 100), col=C.GREY_DARK, bevel=2)
+    # weather-worn paint edge, bracket bolts and a sagging cable to the wall
+    for y in (-300, 300):
+        for z in (97, 103):
+            D.screw(a, (-2, y, z), "+x", r=1.0)
+    D.scuffs(a, (6, 0, 0), "+x", 880, 160, n=8, col=C.shade(C.YELLOW, 0.7))
 
 
 @asset("SM_Stage4_SafetySign", F,
@@ -224,6 +346,9 @@ def safety_sign(a):
         a.box((24, 2, 8), at=(118 + k * 16, 11, -40 + k * 12), col=C.NAVY, bevel=0.5)
     a.sphere(6, at=(146, 12, 12), col=C.NAVY, segs=8, rings=5, ry=1.5)
     a.box((6, 2, 20), at=(144, 12, -6), rot=(0, 0, 10), col=C.NAVY, bevel=0.5)
+    D.scuffs(a, (8, 0, 0), "+y", 320, 220, n=6, col=C.shade(C.CREAM, 0.75))
+    a.box((6, 2, 20), at=(152, 12, -24), rot=(0, 0, -20), col=C.NAVY, bevel=0.5)
+    a.box((6, 2, 18), at=(138, 12, -22), rot=(0, 0, 25), col=C.NAVY, bevel=0.5)
 
 
 @asset("SM_Stage4_EffectsSign", F,
@@ -234,6 +359,10 @@ def effects_sign(a):
     a.records(L.select("studio", lines=[(811, 811)]), pivot=(900, 2000, 260), bevel=1.5)
     a.box((514, 3, 104), at=(0, -2.5, 0), col=C.CORAL_DARK, bevel=1)
     a.poly([(0, 30), (8, 8), (30, 0), (8, -8), (0, -30), (-8, -8), (-30, 0), (-8, 8)], 3, at=(-230, -9, 0), rot=(0, 90, 0), col=C.YELLOW, glow=0.8)
+    for sy in (-1, 1):
+        for sz in (-1, 1):
+            D.screw(a, (sy * 240, -4.5, sz * 44), "-y", r=1.6)
+    D.scuffs(a, (0, -4, 0), "-y", 480, 90, n=5, col=C.shade(C.CORAL, 0.7))
 
 
 @asset("SM_Stage4_ProjectionSign", F,
@@ -264,6 +393,13 @@ def camera_deck(a):
         a.box((6, 10, 6), at=(-153, y, 30), col=C.GREY, bevel=1.5)
         a.tube([(-154, y, 28), (-160, y, 20), (-160, y, 12)], 1.5, col=C.GREY, sides=5)
     a.box((14, 210, 70), at=(-146, -500, 100), col=C.CREAM, bevel=2)
+    # deck edge nosing, fascia bolts, a cable ramp over the lip, board screws
+    a.box((6, 1600, 3), at=(-151, 0, 61.5), col=C.GREY, bevel=0.8, rough=0.4)
+    for y in range(-760, 761, 95):
+        D.screw(a, (-153.8, y, 52), "-x", r=1.2)
+    a.box((40, 60, 6), at=(-160, -380, 3), rot=(0, 0, 0), col=C.YELLOW, bevel=2)
+    D.cable(a, [(-200, -380, 1.2), (-170, -380, 6.4), (-150, -380, 20), (-140, -380, 60), (-120, -380, 61.5)], r=1.2)
+    D.screws_rect(a, (-138.8, -500, 100), "-x", 210, 70, inset=4, r=1.2)
 
 
 # ============================================================================== sound booth
@@ -290,6 +426,14 @@ def sound_booth(a):
         a.box((34, 34, 14), at=(400 - pv[0], y - pv[1], 7), col=C.shade(C.BOOTH_PURPLE, 0.8), bevel=3)
         a.box((34, 34, 14), at=(400 - pv[0], y - pv[1], 383), col=C.shade(C.BOOTH_PURPLE, 0.8), bevel=3)
     a.box((6, 440, 6), at=(417 - pv[0], 0, 390), col=C.MAGENTA, glow=0.8)
+    # RECORDING light over the booth header, cable conduit down a post, headphone hook, a patch of gaffer tape
+    a.box((10, 40, 16), at=(420 - pv[0], -60, 410), col=C.CHARCOAL, bevel=2)
+    a.box((1, 34, 10), at=(425.3 - pv[0], -60, 410), col=C.RED, glow=2.5)
+    a.box((4, 4, 370), at=(420 - pv[0], -1552 - pv[1] + 20, 200), col=C.GREY, bevel=0.6)
+    a.box((6, 3, 8), at=(412 - pv[0], -1158 - pv[1] - 20, 140), col=C.GREY_DARK, bevel=0.8)
+    a.torus(9, 1.6, at=(410 - pv[0], -1158 - pv[1] - 20, 126), rot=(-90, 0, 0), col=C.CHARCOAL, major=14, minor=4)
+    for s in (-1, 1):
+        a.cyl(4.5, 3, at=(410 - pv[0], -1158 - pv[1] - 20 + s * 9, 118), rot=(0, 0, 90), col=C.CHARCOAL, sides=10, bevel=0.8)
 
 
 # ============================================================================== truss + work lights + ladder
@@ -325,6 +469,17 @@ def truss_run(a):
                 a.cyl(2.5, 8, at=(x, dy, dz), rot=(90, 0, 0), col=C.CHROME, sides=6)
     for x in range(L0 + 70, L1, 280):
         a.box((10, 12, 14), at=(x, 0, 40), col=C.CHARCOAL, bevel=2)
+    # safety wires at the clamps, a cable bundle with ties along the bottom chords, spigot bolts at every bay,
+    # rating labels on the end plates
+    for x in range(L0 + 70, L1, 280):
+        a.torus(9, 0.6, at=(x + 12, 0, 30), rot=(0, 0, 90), col=C.GREY, major=12, minor=3)
+    D.cable_tie_run(a, [(L0 + 20, -26, -31), (0, -26, -32), (L1 - 20, -26, -31)], r=2.0, col=C.RUBBER, ties=18)
+    for x in range(L0 + 140, L1, 280):
+        for dy in (-30, 30):
+            for dz in (-25, 25):
+                a.cyl(5.2, 6, at=(x, dy, dz), rot=(90, 0, 0), col=C.GREY, sides=8, bevel=0.8, rough=0.4)
+    for x in (L0, L1):
+        D.label(a, (x + (6 if x == L0 else -6), 0, 18), "+x" if x == L0 else "-x", 30, 10, lines=2)
 
 
 def _work_recs():
@@ -349,6 +504,11 @@ def work_light(a):
         a.cyl(4, 5, at=(0, sy * 25, 24), rot=(0, 0, 90), col=C.GREY, sides=8)
     a.box((6, 58, 5), at=(0, 0, 33), col=C.YELLOW, bevel=1.5)
     a.box((12, 16, 8), at=(0, 0, 38), col=C.GREY_DARK, bevel=2)
+    # safety wire loop, power cable up to the truss, a label on the can, clamp knob
+    a.torus(7, 0.6, at=(8, 0, 36), rot=(0, 0, 90), col=C.GREY, major=12, minor=3)
+    D.cable(a, [(-20, 0, 22), (-26, 4, 30), (-24, 6, 44)], r=1.2)
+    D.label(a, (0, 22.4, 17), "+y", 12, 8, lines=2)
+    a.box((2, 8, 2), at=(0, 0, 44), col=C.YELLOW, bevel=0.5)
 
 
 @asset("SM_Stage4_WallLadder", F,
@@ -364,6 +524,14 @@ def wall_ladder(a):
             a.box((5, 20, 5), at=(x, -10, z), col=C.GREY_DARK, bevel=1)
     for i in range(12):
         a.cyl(2.6, 50, at=(0, 0, 40 + i * 35), rot=(90, 0, 0), col=C.YELLOW, sides=8, bevel=0)
+    # anchor bolts in the brackets, grip grooves on the rungs, a yellow/black hazard band at the foot
+    for x in (-25, 25):
+        for z in (80, 380):
+            D.screw(a, (x, -20, z), "+y", r=1.2)
+    for i in range(12):
+        for dx in (-12, 0, 12):
+            a.torus(2.65, 0.3, at=(dx, 0, 40 + i * 35), rot=(0, 0, 90), col=C.shade(C.YELLOW, 0.7), major=8, minor=3)
+    D.hazard(a, (0, 4, 15), "+y", 56, 14, stripes=5, t=0.4)
 
 
 # ============================================================================== warehouse
@@ -380,6 +548,10 @@ def floor_mat(a):
     for sx in (-1, 1):
         for sy in (-1, 1):
             a.box((40, 40, 1), at=(sx * 460, sy * 220, 1.6), col=C.YELLOW, bevel=0.3, ao=False)
+    D.scuffs(a, (0, 0, 1.6), "+z", 900, 440, n=12, col=C.shade(C.GREY_DARK, 0.7))
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            D.stencil_number(a, (sx * 460, sy * 220, 2.2), "+z", "!", 20, col=C.INK)
 
 
 def _shelf_x():
@@ -404,6 +576,14 @@ def shelf_unit(a):
         a.box((212, 60, 8), at=(0, 0, z), col=C.WOOD, bevel=2)
         a.box((212, 4, 6), at=(0, -30, z + 5), col=C.WOOD_DARK, bevel=1.5)
         a.box((30, 2, 10), at=(0, -32.5, z - 7), col=C.CREAM, bevel=0.5)
+    # bolts at the brace crossings, label lines, scuffed shelf fronts, levelling feet
+    for sx in (-1, 1):
+        D.screw(a, (sx * 110.2, 0, 200), "+x" if sx > 0 else "-x", r=1.2)
+        for sy in (-1, 1):
+            a.cyl(5, 3, at=(sx * 106, sy * 26, 1.5), col=C.GREY_DARK, sides=8, bevel=0.6)
+    for z in (76, 186, 296, 396):
+        a.box((20, 0.3, 1), at=(0, -33.6, z - 6), col=C.INK, bevel=0, jitter=0, wear=False)
+        D.scuffs(a, (0, -32, z + 5), "-y", 200, 5, n=4, col=C.shade(C.WOOD_DARK, 0.7))
 
 
 def _slot_props(kind):
@@ -436,6 +616,11 @@ def lens_case(a):
         a.box((8, 4, 13), at=(sx * 21, -24, 9), col=C.CREAM_DARK, bevel=1.2, rough=0.35)
     a.tube([(-12, 0, 22), (-10, 0, 29), (10, 0, 29), (12, 0, 22)], 2, col=C.CHARCOAL, sides=6)
     a.cyl(8, 1, at=(12, -22.5, -6), rot=(0, 0, 90), col=C.YELLOW, sides=12, bevel=0)
+    D.hinge(a, (0, 22.8, 9), "x", 50, r=1.0)
+    D.scuffs(a, (0, -22, -5), "-y", 60, 26, n=4)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            a.box((6, 6, 44.6), at=(sx * 31, sy * 20, 0), col=C.GREY, bevel=1.2, rough=0.35)
 
 
 @asset("SM_Prop_FilmCanStand", FWH,
@@ -452,6 +637,10 @@ def film_can_stand(a):
     a.cyl(6.5, 12, at=(0, -5, 17), rot=(0, 0, 90), col=C.TEAL, sides=10, bevel=1)
     for k in range(3):
         a.box((38, 4, 4), at=(0, -8, 17), rot=(k * 60, 0, 0), col=C.GREY, bevel=0.5, rough=0.4)
+    for k in range(8):
+        ang = math.radians(k * 45)
+        a.sphere(1, at=(22 * math.cos(ang), -10.5, 17 + 22 * math.sin(ang)), col=C.shade(C.CREAM_DARK, 0.8), segs=6, rings=3)
+    D.label(a, (0, -20, -20), "-y", 30, 5, lines=1)
 
 
 @asset("SM_Prop_SoundBlankets", FWH,
@@ -469,6 +658,8 @@ def sound_blankets(a):
             a.box((60, 0.8, 0.8), at=(k * 2, -12 + j * 12, -12 + k * 9), col=C.shade(col, 1.3), bevel=0, ao=False)
     a.torus(12, 3, at=(0, 0, 13), col=C.CHARCOAL, major=16, minor=6)
     a.torus(10, 3, at=(1, 1, 17), col=C.CHARCOAL, major=16, minor=6)
+    for k in range(3):
+        a.box((1.2, 45.5, 10), at=(33 + k * 2, 0, -17 + k * 9), col=C.shade(C.CORAL if k % 2 else C.NAVY_LIGHT, 0.75), bevel=0.4)
 
 
 @asset("SM_Warehouse_HarpoonRack", FWH,
@@ -486,6 +677,16 @@ def harpoon_rack(a):
     for y in (-100, 100):
         a.box((8, 8, 126), at=(36, y, 147), col=C.CHARCOAL, bevel=2)
     a.box((6, 226, 66), at=(38, 0, 180), col=C.shade(C.RED, 0.75), bevel=2)
+    # bolts on the post feet, foam grain on the cradles, board screws, a tool clipboard
+    for y in (-100, 100):
+        a.box((20, 20, 3), at=(36, y, 85.5), col=C.GREY_DARK, bevel=0.8)
+        D.screws_rect(a, (36, y, 87), "+z", 20, 20, inset=3, r=0.9)
+    for y in (-70, 70):
+        for k in range(3):
+            a.box((30.4, 1, 0.8), at=(0, y - 5 + k * 5, 99.5), col=C.shade(C.YELLOW, 0.75), bevel=0, jitter=0, wear=False)
+    D.screws_rect(a, (41.2, 0, 180), "+x", 226, 66, inset=5, r=1.3)
+    a.box((2, 26, 34), at=(-18, 60, 50), col=C.WOOD, bevel=0.6)
+    a.box((0.4, 22, 28), at=(-19.2, 60, 48), col=C.WHITE, bevel=0.05, jitter=0)
 
 
 def _spare_recs():
@@ -506,6 +707,15 @@ def _spare_cov(coral):
 
 
 def _spare(a, col):
+    # (detail pass: leg feet, clamp knob, cable, vents)
+    for k in range(3):
+        ang = k * 120
+        a.cyl(3, 2, at=(math.cos(math.radians(ang)) * 26, math.sin(math.radians(ang)) * 26, 1), col=C.RUBBER, sides=8, bevel=0.5)
+    a.box((1.4, 8, 1.4), at=(6, 0, 40), col=col, bevel=0.4)
+    D.cable(a, [(-19, 0, 124), (-18, 4, 100), (-6, 6, 60), (-4, 10, 10), (4, 20, 1.2)], r=0.9)
+    D.vent(a, (0, 0, 147), "+z", 26, 22, slats=4, col=C.shade(col, 0.7), depth=0.8)
+    for sy in (-1, 1):
+        D.screws_rect(a, (0, sy * 17, 130), "+y" if sy > 0 else "-y", 36, 30, inset=3, r=0.7)
     for k in range(3):
         ang = k * 120
         a.cyl(1.8, 44, at=(math.cos(math.radians(ang)) * 14, math.sin(math.radians(ang)) * 14, 18), rot=(34, ang, 0), col=C.CHARCOAL, sides=6)
@@ -546,6 +756,8 @@ def beach_ball(a):
         bm = bm_lathe(prof, sides=4, arc=60)
         a.add(bm, xf((0, 0, 40), (0, k * 60, 0)), cols[k], rough=0.35)
     a.cyl(8, 2, at=(0, 0, 80), col=C.CORAL, sides=10)
+    a.cyl(3, 1, at=(0, 0, 0.3), col=C.CORAL, sides=10)
+    a.cyl(1.6, 3, at=(8, 0, 79), rot=(0, 0, 0), col=C.WHITE, sides=8, bevel=0.5)
 
 
 @asset("SM_Warehouse_Sign", FWH,

@@ -1,6 +1,6 @@
 # Blender-Asset-Bibliothek (PEAK-Stil)
 
-Stand 24.09.2026 · Branch `claude/happy-mendel-cyq16k`
+Stand 25.09.2026 · Branch `claude/happy-mendel-cyq16k`
 
 ## Kurzfassung
 
@@ -11,6 +11,7 @@ Stand 24.09.2026 · Branch `claude/happy-mendel-cyq16k`
   - die vier Fahrzeuge aus `FTEconomy.cpp`;
   - die 21 Shop-Artikel sowie optionale 3D-Schriftzüge.
 - **Stil:** chunky low-poly mit kleinen Fasen, gesättigter FT-Palette und vielen kleinen Details (Nieten, Nähte, Beschläge, Kabel, Fugen) statt nackter Primitive.
+- **Detail- und Qualitäts-Pass (25.09.):** Alle Modelle wurden auf ihrer bestehenden Form überarbeitet, ohne Layout, Pivots oder Silhouetten zu ändern. Siehe [Detail-Pass](#detail--und-qualitäts-pass).
 - **Export:** jedes Asset einzeln als FBX unter `Content/TheFinalTake/Meshes/<Bereich>/…`, im Unreal-Maßstab (1 Einheit = 1 cm), mit Pivot am Einbaupunkt.
 - **Maßstab und Silhouette** werden automatisch gegen die Code-Geometrie geprüft (219 von 233 geprüften Meshes „ok“, 13 „close“, 1 „check“; 63 ohne Code-Gegenstück (Fahrzeuge, Schriftzüge, neue Dealership-Teile)). Details stehen in [`SourceArt/Blender/fit_report.md`](SourceArt/Blender/fit_report.md).
 - **Zuordnung:** Welches Modell welches Code-Objekt ersetzt, steht in [`SourceArt/Blender/ASSET_MAPPING.md`](SourceArt/Blender/ASSET_MAPPING.md). Die Tabelle wird aus dem Manifest erzeugt.
@@ -20,7 +21,12 @@ Stand 24.09.2026 · Branch `claude/happy-mendel-cyq16k`
 
 - **Blender-MCP (`blender-mcp`)** war in dieser Cloud-Sitzung nicht verfügbar. Auch `unreal-mcp` war nicht erreichbar (Verbindung abgelehnt).
 - Stattdessen lief Blender 4.2 als Python-Modul (`bpy`) per Skript. Jede Form ist Code in `Tools/blender/assets/*.py` und damit reproduzierbar und versionierbar.
-- Dieselben Skripte laufen auch in einer Blender-Instanz mit blender-mcp oder im GUI (`blender --python Tools/blender/build_all.py`). Die fertigen Szenen liegen zusätzlich als `.blend` pro Bereich unter `SourceArt/Blender/`.
+- Dieselben Skripte laufen auch in einer Blender-Instanz mit blender-mcp oder im GUI (`blender --python Tools/blender/build_all.py`).
+- **Zum Anschauen in Blender** liegen fertig zusammengesetzte Szenen unter `SourceArt/Blender/`:
+  - `Studio.blend`: das ganze Studio mit allen Platzierungen (Instanzen teilen sich ihr Mesh), die Laufzeit-Objekte (Shop-Artikel, Filmrolle) stehen in einer Reihe vor dem Gebäude.
+  - `City.blend`: Boulevard, Gebäude, Grand Cinema und Dream Cars, die vier Autos auf den Drehscheiben.
+  - `Catalog.blend`: jedes Mesh einmal, im Raster, eine Collection pro Ordner.
+  - Decken und Dächer liegen in einer eigenen, ausgeblendeten Collection, damit man direkt in die Räume schaut. Die Ansicht ist auf den cm-Maßstab eingestellt (Clipping, Vertex-Farben, Kamera).
 - **Geprüft wurde:**
   - FBX-Reimport jedes Assets in Blender (Bounds, Dreiecke, Material-Slots);
   - Cycles-Vorschaubilder;
@@ -31,10 +37,11 @@ Stand 24.09.2026 · Branch `claude/happy-mendel-cyq16k`
 
 ```bash
 pip install bpy==4.2.0                                   # Python 3.11; alternativ: blender -b --python ... -- <args>
-python3 Tools/blender/build_all.py                       # alles: FBX, Previews, Kontaktbögen, .blend, Manifest, Fit-Report
+python3 Tools/blender/build_all.py                       # alles: FBX, Previews, Kontaktbögen, Manifest, Fit-Report, .blend-Szenen
 python3 Tools/blender/build_all.py --only Vehicles       # Teilmenge (Name/Ordner, Wildcards erlaubt), Manifest wird ergänzt
 python3 Tools/blender/build_all.py --fit-only            # nur Maßprüfung + Platzierungen neu rechnen (ohne Rendern/Export)
-python3 Tools/blender/build_all.py --blend-only          # nur die .blend-Dateien pro Bereich neu schreiben
+python3 Tools/blender/build_all.py --blend-only          # nur die .blend-Szenen neu schreiben (= python3 Tools/blender/scenes.py)
+python3 Tools/blender/scenes.py --web                    # zusätzlich GLB-Dateien für einen Browser-Viewer (nicht eingecheckt)
 python3 Tools/blender/render_overview.py                 # Übersichtsbilder: Code-Blockout neben den Blender-Assets
 python3 Tools/blender/write_mapping.py                   # SourceArt/Blender/ASSET_MAPPING.md aus dem Manifest
 python3 Tools/blender/layout/extract_layout.py           # Shell-Layout neu aus dem C++ lesen (braucht g++)
@@ -42,7 +49,9 @@ python3 Tools/blender/layout/cppactor.py AFTStageLight   # Komponentenbaum eines
 python3 Tools/blender/layout/cppactor.py --spawns        # alle Actor-Instanzen aus FTMapBuilder.cpp
 ```
 
-Ein kompletter Build dauert auf 4 Kernen rund 10 Minuten, der Großteil davon sind die Cycles-Previews. Die Übersichtsbilder brauchen weitere rund 7 Minuten.
+Ein kompletter Build dauert auf 4 Kernen rund 15 Minuten, der Großteil davon sind die Cycles-Previews; die drei .blend-Szenen kommen mit gut einer Minute dazu. Die Übersichtsbilder brauchen weitere rund 10 Minuten.
+
+`Catalog.blend` (rund 60 MB) ist nicht eingecheckt; `scenes.py` erzeugt sie lokal. Eingecheckt sind `Studio.blend` und `City.blend`.
 
 ## Ordnerstruktur
 
@@ -58,7 +67,7 @@ Ein kompletter Build dauert auf 4 Kernen rund 10 Minuten, der Großteil davon si
 | `SourceArt/Blender/asset_manifest.json` | maschinenlesbar: Pfade, Ersetzt, Pivot, Platzierungen, Sockets, Bounds, Tris, Fit, Einbau |
 | `SourceArt/Blender/ASSET_MAPPING.md`, `fit_report.md` | Zuordnungstabelle, Maßprüfung |
 | `SourceArt/Blender/Previews/` | ein Bild pro Asset, Kontaktbögen `Sheet_*.png`, Übersichten `Overview/*.png` (Code-Blockout links, Blender-Assets rechts) |
-| `SourceArt/Blender/*.blend` | Blender-Szenen pro Bereich |
+| `SourceArt/Blender/{Studio,City,Catalog}.blend` | zusammengesetzte Szenen zum Anschauen in Blender (siehe oben) |
 | `SourceArt/Blender/layout/shell_layout.json` | alle Primitive der Studio-/Stadt-Hülle mit Datei:Zeile |
 | `Tools/blender/` | Pipeline: `build_all.py`, `ftb/` (Kern, Palette, Export, Render, Layout), `assets/` (Modelle), `layout/` (C++-Auswertung), `fonts/` (OFL-Schriften) |
 | `Tools/unreal/ft_blender_import.py` | Import-Helfer für den Unreal-Editor (**ungetestet**) |
@@ -74,11 +83,13 @@ Ein kompletter Build dauert auf 4 Kernen rund 10 Minuten, der Großteil davon si
   - **Actor-Meshes** haben den Pivot im Ursprung der ersetzten Komponente, mit denselben Achsen.
   - **Mehrfach-Props** (Pflanze, Kiste, Palme, Felsen …) sind in einer Referenzgröße modelliert. Die Skalierung entspricht dem Code-Aufruf, z. B. `Crate(Size)` → `Size/100`.
   - Jede Platzierung steht im Manifest.
-- **Polycount:** Median 1223 Dreiecke pro Mesh, 90 % unter 4404, Maximum 17164 (`SM_City_Bld_HotelContinental`), zusammen 629 496. Kleine Props bleiben meist unter 1 500 Dreiecken und eignen sich damit für Instancing und ISM.
+- **Polycount (nach dem Detail-Pass):** Median 2 369 Dreiecke pro Mesh, 90 % unter 13 544, zusammen 1 715 734 (vorher 629 496).
+  - Requisiten (Studio/Shared Props): Median 1 764, höchstens 6 980. Sie eignen sich weiter für Instancing und ISM.
+  - Die großen Hüllen tragen den Löwenanteil, weil große Flächen für die Farbvariation in ein ~70-cm-Raster unterteilt sind: `SM_Stage4_Walls` 82 772, `SM_City_Bld_HotelContinental` 59 560, `SM_Stage4_EntryWall` 44 720, `SM_Cinema_Shell` 43 580. Für diese Meshes Nanite einschalten.
 - **Shading:**
   - Weiche Fasen statt Texturen. Kanten über 50° sind hart, dazu kommen Weighted Normals.
   - Leichte Handarbeits-Unregelmäßigkeit und etwas Ambient Occlusion in den Vertex-Farben.
-  - Keine Texturen, keine UV-Kanäle; Lightmap-UVs beim Import erzeugen lassen.
+  - Keine Texturen. Jedes Mesh hat einen Box-projizierten UV-Kanal `UVMap` (1 UV-Einheit = 1 m) für Detail-Normalmaps oder Tiling-Masken; Lightmap-UVs beim Import erzeugen lassen.
 
 ### Materialien und Vertex-Farben
 
@@ -95,6 +106,37 @@ Alle Farben sind Vertex-Farben (`Col`, sRGB). Die Material-Slots tragen feste Na
 - Das Skript linearisiert die sRGB-Vertex-Farben mit dem Parameter `VertexColourGamma` = 2,2. Wirken die Farben zu dunkel, den Wert auf 1,0 setzen.
 - Vom Code eingefärbte oder zur Laufzeit leuchtende Teile bleiben Code-Teile, weil der Code sie per Custom Primitive Data umschaltet. Beispiele: Kippschalter- und Farbkappen am Lichtpult, Statuslampen, Pegelanzeigen, der Schalter-Leuchtpunkt an den Effektgeräten, Linsenglühen am Projektor.
 - Im Manifest steht bei jedem Asset unter `integration` bzw. `hookup`, welche Teile beim Code bleiben.
+
+## Detail- und Qualitäts-Pass
+
+Ausgangslage: Formen und Positionen stimmten, die Modelle wirkten aber wie 1:1-Blockouts der Code-Primitive. Der Pass baut auf den vorhandenen Modellen auf. Nichts wurde neu gebaut, kein Layout, Pivot oder Socket verändert.
+
+1. **Oberflächen-Pass für alle opaken Teile** (`Tools/blender/ftb/core.py`, steckt komplett in den Vertex-Farben, also ohne Texturen und ohne Material-Mehraufwand):
+   - Jedes Teil ist minimal anders getönt (±4,5 % Helligkeit, ±2 % Farbton). Wiederholte Bretter, Kacheln und Props wirken dadurch nicht geklont.
+   - Große Flächen sind in ein Raster von rund 70 cm unterteilt, damit Variation darauf sichtbar wird: großflächige Fleckung und dunklere Schmutzflecken, am Boden stärker.
+   - Konvexe Fasenkanten sind heller abgegriffen, mit gelegentlichen Abplatzern. Innenecken tragen etwas Schmutz, Oberseiten sind minimal heller, Unterseiten dunkler.
+2. **Detail-Kit** (`Tools/blender/ftb/detail.py`): Schrauben, Nieten, verschraubte Platten, Etiketten, Lüftungsgitter, Lochgitter, Rahmen und eingelassene Paneele, Fugen, Warnstreifen, Griffe, Drehknöpfe, Scharniere, Gummifüße, Eckschützer, Kabel mit Durchhang und Kabelbindern, LEDs, Schablonenschrift, Kratzer, Gaffer-Tape, Räder mit Felge, Profil und Radmuttern, Lenkrollen, Patchfelder, Rack-Einschübe, Winkel. Mit `D.Local(...)` sitzen Details auch auf schrägen oder gedrehten Flächen, etwa auf den geneigten Pultflächen.
+3. **Handarbeit pro Asset**, in allen Modulen und ausdrücklich auch auf Seiten und Rückseiten. Beispiele:
+   - **Stationen:**
+     - Leuchtturm mit Wartungsleiter, Konsolen unter der Galerie, verschraubten Bullaugen und Rettungsring.
+     - Scheinwerfer mit Lüftung, Torblenden-Scharnieren, Rückseitenpanel und Kabel; Stativ mit Sandsack und Kabelrolle.
+     - Licht- und Tonpult mit Flightcase-Beschlägen, Patchfeld und Kabeln auf der Rückseite, Kaffeetasse und Cue-Zettel.
+     - Effektmaschinen mit Profilreifen, Schiebebügel, Kühlrippen, Manometern und Sandsäcken.
+     - Hai-Rig mit Energiekette, Anschlagpuffern und Hydraulikschlauch; Hai mit Formnaht, Nasenlöchern, Narben und Montageplatte.
+     - Kamera-Dolly mit Akkubox und Monitor-Sonnenblende; Projektor mit Filmweg zwischen den Spulen.
+   - **Requisiten und Türen:** Stage-4-Tor mit Nietreihen, Laufrollen, Griff und Kickleiste auf beiden Seiten; Besetzungsliste an der Garderobentür; Rettungsboot mit Paddel, Kanister, Ventilen und Kennung; Pinnwand mit Pins, rotem Faden und Polaroids.
+   - **Räume:** Steckdosen, Schalter, Feuerlöscher, EXIT-Schilder, Kabelkanal, Sprinkler, Rauchmelder, feine Putzrisse und Scheuerspuren. Dazu im Büro Heizkörper und Urkunden, in der Garderobe Garderobenhaken, Spiegel und Spot-Schiene.
+   - **Stage 4:** gepolsterte Warnschutz-Manschetten an allen Stützen, Fußplatten mit Ankerbolzen, Kabelhaken mit Kabelrollen, Sprinklerleitungen und Kabeltrasse unter der Decke, eine QUIET-Lampe am Tor. Die Kulisse hat eine Rückseite mit Latten und Gewichten.
+   - **Außen und Stadt:**
+     - Risse, Unkraut und Kaugummiflecken im Gehweg, Teerfugen, Klimageräte, Überwachungskamera, Fallrohre, Stromzähler, Plakate und Tags.
+     - Die Stadtgebäude haben jetzt auch an Seiten und Rückseite Fenster, umlaufendes Gesims, Hintertür und Feuerleiter.
+     - Das Kino hat Seitenausgänge, Dachluken und Saal-Lautsprecher.
+   - **Dealership und Fahrzeuge:** Entwässerungsrinne, Stellplatznummern, Aussteifung hinter dem Schild, Dachrinne. Die Autos haben Unterboden, Achsen, Tank, Auspuff, Scheibenwischer, Antenne, Tankdeckel, Schmutzfänger und Seitenblinker.
+4. **Regeln:**
+   - Details stehen nur wenige Zentimeter über und bleiben innerhalb der Silhouette.
+   - Teile, die der Code einfärbt oder leuchten lässt, bleiben frei sichtbar. Dabei sind zwei Fehler der ersten Fassung behoben: Das Meter-Gehäuse am Tonpult verdeckte die Pegelanzeigen `Meter0-5` des Codes, die Titeltafel am Lichtpult hätte den Schriftzug „LIGHTING“ verdeckt. Das Gehäuse steht jetzt hinter den Anzeigen, die Tafel hinter dem Schriftzug.
+   - Flächen verschiedener Teile liegen nie exakt in einer Ebene; die automatische Entkopplung gilt jetzt auch für Meshes mit mehr als 50 Teilen.
+5. **Prüfung:** Die Maßprüfung ist unverändert (219 ok, 13 close, 1 check, 63 ohne Code-Gegenstück), jedes Asset wurde vor und nach dem Pass verglichen. Der FBX-Reimport ist für alle 296 Assets ok.
 
 ## Maßstab- und Silhouettentreue
 
@@ -132,12 +174,12 @@ Die Modelle wurden nicht nach Augenmaß, sondern gegen die tatsächliche Code-Ge
   - Schwanenhalslampe am Lichtpult.
 - **Fahrzeuge:** Es gibt keine Code-Geometrie. Maße, Sitzzahl, Stil und Farben folgen `FTEconomy.cpp`:
 
-| Fahrzeug (`FTEconomy.cpp`) | Karosserie-Mesh | Außenmaß L×B×H (cm, inkl. Spiegel) | Sitze (Sockets) | Räder |
+| Fahrzeug (`FTEconomy.cpp`) | Karosserie-Mesh | L×B (cm, inkl. Spiegel) · Höhe über Boden | Sitze (Sockets) | Räder |
 |---|---|---|---|---|
-| Studio Van (`Car.StudioVan`, Van, Cream/Teal) | `SM_Veh_StudioVan_Body` | 532×258×273 | 4 (Seat_0, Seat_1, Seat_2, Seat_3) | `SM_Veh_StudioVan_Wheel` |
-| Checker Cab (`Car.CheckerTaxi`, Taxi, Yellow/Charcoal) | `SM_Veh_CheckerTaxi_Body` | 524×234×160 | 4 (Seat_0, Seat_1, Seat_2, Seat_3) | `SM_Veh_CheckerTaxi_Wheel` |
-| Coral Muscle Car (`Car.MuscleCar`, Muscle, Coral/Cream) | `SM_Veh_MuscleCar_Body` | 502×234×113 | 2 (Seat_0, Seat_1) | `SM_Veh_MuscleCar_WheelFront`, `SM_Veh_MuscleCar_WheelRear` |
-| Premiere Limousine (`Car.StarLimo`, Limo, Navy/Magenta) | `SM_Veh_StarLimo_Body` | 750×242×120 | 4 (Seat_0, Seat_1, Seat_2, Seat_3) | `SM_Veh_StarLimo_Wheel` |
+| Studio Van (`Car.StudioVan`, Van, Cream/Teal) | `SM_Veh_StudioVan_Body` | 532×258 · 296 | 4 (Seat_0, Seat_1, Seat_2, Seat_3) | `SM_Veh_StudioVan_Wheel` |
+| Checker Cab (`Car.CheckerTaxi`, Taxi, Yellow/Charcoal) | `SM_Veh_CheckerTaxi_Body` | 524×234 · 192 | 4 (Seat_0, Seat_1, Seat_2, Seat_3) | `SM_Veh_CheckerTaxi_Wheel` |
+| Coral Muscle Car (`Car.MuscleCar`, Muscle, Coral/Cream) | `SM_Veh_MuscleCar_Body` | 502×234 · 137 | 2 (Seat_0, Seat_1) | `SM_Veh_MuscleCar_WheelFront`, `SM_Veh_MuscleCar_WheelRear` |
+| Premiere Limousine (`Car.StarLimo`, Limo, Navy/Magenta) | `SM_Veh_StarLimo_Body` | 750×242 · 155 | 4 (Seat_0, Seat_1, Seat_2, Seat_3) | `SM_Veh_StarLimo_Wheel` |
 
 Die Karosserien haben Sockets `Wheel_FL/FR/RL/RR`, `Seat_n` und `Exhaust*`. Die Räder sind eigene Meshes mit Pivot in der Nabe, damit sie drehen können.
 

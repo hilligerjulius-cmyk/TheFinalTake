@@ -6,7 +6,7 @@ Run (either works; the second is what blender-mcp / a Blender GUI session would 
 
 Outputs
     Content/TheFinalTake/Meshes/<Folder>/<SM_Name>.fbx        one FBX per asset (Unreal axes, cm, pivot = origin)
-    SourceArt/Blender/<Category>.blend                        all assets of a category, assembled at their map positions
+    SourceArt/Blender/{Studio,City,Catalog}.blend             assembled scenes that open ready to view (see scenes.py)
     SourceArt/Blender/asset_manifest.json                     what each asset replaces + every placement (Unreal world)
     SourceArt/Blender/Previews/...                            thumbnails and contact sheets
     SourceArt/Blender/fit_report.md                           bounds of each asset vs. the code-built geometry it replaces
@@ -44,7 +44,7 @@ def parse():
     ap.add_argument("--no-blend", action="store_true")
     ap.add_argument("--samples", type=int, default=20)
     ap.add_argument("--fit-only", action="store_true", help="rebuild meshes in memory only; refresh fit/placements in the manifest + fit report")
-    ap.add_argument("--blend-only", action="store_true", help="rebuild meshes in memory and write the per-category .blend files")
+    ap.add_argument("--blend-only", action="store_true", help="rebuild meshes in memory and write the assembled .blend scenes (scenes.py)")
     return ap.parse_args(argv)
 
 
@@ -67,43 +67,6 @@ def fit_expect(spec, a):
            "code_refs": getattr(spec, "code_parts", "")}
     rec["status"] = "ok" if (rec["dev_cm"] <= 10 or rec["rel"] <= 0.08) else ("close" if rec["rel"] <= 0.2 else "check")
     return rec
-
-
-def save_blends(cats):
-    """One .blend per category that holds only that category: a scene with the category collection, written with
-    bpy.data.libraries.write so nothing else (other categories, preview rig) ends up in the file."""
-    main = bpy.context.scene
-    for cat, col in cats.items():
-        path = os.path.join(ART_ROOT, cat + ".blend")
-        sc = bpy.data.scenes.new("FT_" + cat)
-        sc.unit_settings.system = main.unit_settings.system
-        sc.unit_settings.scale_length = main.unit_settings.scale_length
-        sc.unit_settings.length_unit = main.unit_settings.length_unit
-        sc.world = main.world
-        sc.collection.children.link(col)
-        if os.path.exists(path):
-            os.remove(path)
-        bpy.data.libraries.write(path, {sc}, compress=True)
-        sc.collection.children.unlink(col)
-        bpy.data.scenes.remove(sc)
-        print("[ftb] wrote %s" % os.path.relpath(path, REPO), flush=True)
-
-
-def blend_only():
-    """Rebuild every mesh in memory and write the per-category .blend files (manifest untouched)."""
-    cats = {}
-    for spec in registry.ASSETS:
-        a = core.Asset(spec.name, spec.folder, spec.desc)
-        spec.build(a)
-        cat = spec.folder.split("/")[0]
-        if cat not in cats:
-            cats[cat] = bpy.data.collections.new(cat)
-            bpy.context.scene.collection.children.link(cats[cat])
-        obj = a.build(cats[cat])
-        pls = spec.placements() if spec.placements else []
-        if pls:
-            obj.matrix_world = L.to_blender_matrix(pls[0]["loc"], pls[0]["rot"], pls[0]["scale"])
-    save_blends(cats)
 
 
 def placed_bounds(a, p):
@@ -194,8 +157,8 @@ def main():
         fit_only(pats)
         return
     if args.blend_only:
-        export.reset_scene()
-        blend_only()
+        import scenes
+        scenes.main(web=False)
         return
     export.reset_scene()
     render.setup(samples=args.samples, res=(384, 384))
@@ -269,8 +232,6 @@ def main():
         vehicle_previews(manifest)
     for o in bpy.context.scene.objects:
         o.hide_render = False
-    if not args.no_blend and not pats:
-        save_blends(cats)
     os.makedirs(ART_ROOT, exist_ok=True)
     ordered = [manifest[n] for n in sorted(manifest, key=lambda n: (manifest[n]["folder"], n))]
     with open(manifest_path, "w") as f:
@@ -280,6 +241,9 @@ def main():
     if not args.no_render:
         sheets(ordered)
     print("[ftb] built %d assets in %.1fs" % (len(built), time.time() - t0))
+    if not args.no_blend and not pats:
+        import scenes
+        scenes.main(web=False)
 
 
 def vehicle_previews(manifest):

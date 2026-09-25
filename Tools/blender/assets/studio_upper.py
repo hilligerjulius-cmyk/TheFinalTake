@@ -1,5 +1,6 @@
 """Upper level: long stair to the projection room, the projection room itself, its ceiling and plush seats."""
 
+from ftb import detail as D
 from ftb import layout as L
 from ftb import palette as C
 from ftb.core import bm_box, bulge, xf
@@ -32,6 +33,15 @@ def projection_stairs(a):
     for r in L.select("studio", lines=[(941, 941)]):
         c = r["center"]
         a.sphere(5, at=(c[0] - pv[0], c[1] - pv[1], c[2] - pv[2] + 52), col=C.YELLOW, segs=8, rings=5)
+    # anti-slip grooves on every tread, stringer bolts, a hazard strip on the first and last step
+    for k in range(27):
+        x = 1300 - 33.3 * (k + 0.5) - pv[0]
+        top = 20 * (k + 1)
+        for dx in (4, -6):
+            a.box((1.6, 206, 0.4), at=(x + dx, 0, top + 0.3), col=C.shade(C.STAIR_BLUE, 0.7), bevel=0, jitter=0)
+        if k % 3 == 0:
+            D.screw(a, (x, 125.2, top - 12), "+y", r=1.3)
+    D.hazard(a, (1300 - 33.3 * 0.5 - pv[0] + 16.2, 0, 10), "+x", 220, 16, stripes=10, t=0.5)
 
 
 @asset("SM_Projection_Room", F,
@@ -68,6 +78,27 @@ def projection_room(a):
     for x in (-450, -50):
         a.box((6, 12, 26), at=(x - pv[0], -910 - pv[1] - 5, 230), col=C.BRASS, bevel=1.5, rough=0.35)
         a.cone(10, 16, at=(x - pv[0], -910 - pv[1] - 14, 244), r_top=5, rot=(180, 0, 0), col=C.CREAM, sides=10, glow=6)
+    # detail pass: tie-backs on the curtain panels, sockets, a film-can rack and a rewind bench by the wall,
+    # a NO SMOKING plate, exit sign over the door, carpet wear, brass stair nosing at the landing
+    for x in range(-590, 220, 180):
+        a.torus(5, 1.2, at=(x + 28 - pv[0], -1590 - pv[1], 110), rot=(90, 0, 0), col=C.BRASS, major=10, minor=4)
+    for x in (-500, -100):
+        D.plate(a, (x - pv[0], -1591 - pv[1], 30), "+y", 16, 9, t=0.8, col=C.CREAM, screws=False)
+    a.box((80, 30, 4), at=(-560 - pv[0], -960 - pv[1], 76), col=C.WOOD_DARK, bevel=1)
+    for sx in (-1, 1):
+        a.box((4, 26, 74), at=(-560 - pv[0] + sx * 36, -960 - pv[1], 37), col=C.WOOD_DARK, bevel=1)
+    for k in range(3):
+        a.cyl(14, 5, at=(-580 - pv[0] + k * 20, -960 - pv[1], 80.5 + (k % 2) * 5.2), col=C.GREY, sides=14, bevel=1, rough=0.4)
+    for sx in (-1, 1):
+        a.cyl(10, 2, at=(-560 - pv[0] + sx * 25, -960 - pv[1], 95), rot=(0, 0, 90), col=C.GREY_DARK, sides=14, bevel=0.5)
+        a.box((2, 4, 16), at=(-560 - pv[0] + sx * 25, -960 - pv[1], 86), col=C.GREY_DARK, bevel=0.5)
+    D.plate(a, (-300 - pv[0], -1591 - pv[1], 200), "+y", 30, 20, t=0.6, col=C.WHITE)
+    a.torus(6, 1.0, at=(-300 - pv[0], -1590 - pv[1], 200), rot=(0, 0, 90), col=C.RED, major=14, minor=4)
+    a.box(D._size("+y", 15, 1.4, 0.3), at=(-300 - pv[0], -1589.8 - pv[1], 200), rot=D._rot_in_plane("+y", 45), col=C.RED, bevel=0, jitter=0, wear=False)
+    exit_x = 240 - pv[0] - 12
+    D.plate(a, (exit_x, -1460 - pv[1], 250), "-x", 36, 14, t=3, col=C.GREY_DARK, screws=False)
+    a.box(D._size("-x", 32, 10, 0.5), at=(exit_x - 3.2, -1460 - pv[1], 250), col=C.GREEN, glow=3)
+    D.scuffs(a, (-150 - pv[0], -1250 - pv[1], 1.8), "+z", 500, 400, n=10, col=C.shade(C.CARPET, 0.7))
 
 
 @asset("SM_Projection_Ceiling", F,
@@ -79,6 +110,10 @@ def projection_ceiling(a):
     a.records(L.select("studio", lines=[(948, 948)]), pivot=pv, bevel=1.2)
     for x in (-450, -150, 150):
         a.box((18, 700, 20), at=(x - pv[0], 0, 740 - pv[2] - 10), col=C.shade(C.PROJ_CEIL, 1.4), bevel=2)
+    for x in (-450, -150, 150):
+        for y in (-330, 330):
+            a.box((24, 10, 24), at=(x - pv[0], y, 740 - pv[2] - 12), col=C.GREY_DARK, bevel=1)
+    a.cyl(7, 3, at=(-300 - pv[0], 0, 740 - pv[2] - 1.5), col=C.WHITE, sides=14, bevel=1)
 
 
 def _seats():
@@ -107,3 +142,9 @@ def projection_seat(a):
         a.box((12, 10, 40), at=(30, sy * 45, 40), col=C.NAVY, bevel=3)
         a.torus(4.5, 1.6, at=(23, sy * 45, 67), col=C.BRASS, major=12, minor=5, rough=0.3)
         a.cyl(4, 5, at=(23, sy * 45, 64), col=C.CHARCOAL, sides=10)
+    # seat-back piping, row/seat number plate, a gum wrapper
+    a.cyl(1.1, 88, at=(-46, 0, 110), rot=(0, 0, 90), col=C.shade(C.CORAL_DARK, 0.8), sides=6)
+    D.plate(a, (-48.5, 0, 90), "-x", 14, 6, t=0.5, col=C.BRASS, screws=False, rough=0.3)
+    a.box((0.3, 8, 3), at=(-49.2, 0, 90), col=C.INK, bevel=0, jitter=0, wear=False)
+    for sy in (-1, 1):
+        D.screw(a, (34, sy * 50.2, 40), "+y" if sy > 0 else "-y", r=0.9, col=C.BRASS)

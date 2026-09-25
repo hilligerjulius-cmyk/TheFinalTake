@@ -354,9 +354,14 @@ _FONTS = {}
 
 
 def load_font(path):
-    if path not in _FONTS:
-        _FONTS[path] = bpy.data.fonts.load(path, check_existing=True)
-    return _FONTS[path]
+    f = _FONTS.get(path)
+    try:
+        f is not None and f.name   # a scene reset (read_factory_settings) frees the datablock
+    except ReferenceError:
+        f = None
+    if f is None:
+        f = _FONTS[path] = bpy.data.fonts.load(path, check_existing=True)
+    return f
 
 
 # ------------------------------------------------------------------------------- deformers
@@ -413,6 +418,58 @@ def bulge(bm, amount, axis=2):
     return bm
 
 
+# ------------------------------------------------------------------------------ surface pass
+
+def _grid_large_faces(bm, matrix, cell=70.0, min_area=6000.0):
+    """Split big flat faces into a grid (~cell cm) so vertex colours can vary across them."""
+    sc = abs(matrix.to_3x3().determinant()) ** (1.0 / 3.0) or 1.0
+    big = [f for f in bm.faces if f.calc_area() * sc * sc >= min_area and len(f.verts) == 4]
+    if not big:
+        return
+    longest = max(e.calc_length() for f in big for e in f.edges) * sc
+    cuts = max(1, min(9, int(round(longest / cell)) - 1))
+    edges = list({e for f in big for e in f.edges})
+    bmesh.ops.subdivide_edges(bm, edges=edges, cuts=cuts, use_grid_fill=True)
+
+
+def _surface_shading(bm, matrix, prng):
+    """Per-face factors: worn (lighter, sometimes chipped) bevel strips on convex edges, grime in concave
+    corners, slightly lighter tops and darker undersides."""
+    bm.faces.index_update()
+    bm.normal_update()
+    sc = abs(matrix.to_3x3().determinant()) ** (1.0 / 3.0) or 1.0
+    rot = matrix.to_3x3().normalized()
+    areas = [f.calc_area() * sc * sc for f in bm.faces]
+    out = []
+    for f, area in zip(bm.faces, areas):
+        k = 1.0
+        n = rot @ f.normal
+        if n.length > 1e-8:
+            nz = n.normalized().z
+            if nz > 0.7:
+                k *= 1.035
+            elif nz < -0.7:
+                k *= 0.88
+        longest = max((e.calc_length() for e in f.edges), default=0.0) * sc
+        width = area / longest if longest > 1e-6 else 0.0
+        conv, conc = 0.0, 0.0
+        big_nb = False
+        for e in f.edges:
+            if len(e.link_faces) != 2:
+                continue
+            a = e.calc_face_angle_signed(0.0)
+            conv, conc = max(conv, a), min(conc, a)
+            other = e.link_faces[0] if e.link_faces[1] == f else e.link_faces[1]
+            if areas[other.index] > 4.0 * area:
+                big_nb = True
+        if width < 3.2 and big_nb and conv > math.radians(10):
+            k *= 1.28 if prng.random() < 0.18 else 1.1          # worn edge, now and then a chip
+        elif conc < -math.radians(25):
+            k *= 0.9                                            # grime in inner corners
+        out.append(k)
+    return out
+
+
 # ----------------------------------------------------------------------------------- asset
 
 class Asset:
@@ -434,6 +491,7 @@ class Asset:
         self.frough = []
         self.fmat = []
         self.fflat = []
+        self.fshade = []  # per-face surface factor (worn edges, grime, up/down facing)
         self.sockets = {}
         self.meta = {}
         self.fpart = []   # part index per face (for the coplanar-overlap check)
@@ -442,25 +500,37 @@ class Asset:
         self.rng = random.Random(self._seed)
 
     # -- core ---------------------------------------------------------------------------
-    def add(self, bm, matrix=None, col=P.GREY, rough=1.0, mat="opaque", flat=False, ao=True, jitter=None, var=0.035, glow=None):
+    def add(self, bm, matrix=None, col=P.GREY, rough=1.0, mat="opaque", flat=False, ao=True, jitter=None, var=0.035, glow=None,
+            wear=True):
         """glow: emissive strength on the code's scale (0.3 tape ... 20 bulbs); implies the glow slot.
-        Stored as vertex alpha = sqrt(glow / 20) in the glow slot (alpha = roughness everywhere else)."""
+        Stored as vertex alpha = sqrt(glow / 20) in the glow slot (alpha = roughness everywhere else).
+        wear: surface pass for opaque parts (tint jitter, worn edges, grime, mottled large faces)."""
         matrix = matrix or Matrix.Identity(4)
         if glow is not None and glow > 0:
             mat = "glow"
-        if MAT_ALIASES.get(mat, mat) == MAT_GLOW:
+        m = MAT_ALIASES.get(mat, mat)
+        if m == MAT_GLOW:
             rough = math.sqrt(min(max(glow if glow else 4.0, 0.0), 20.0) / 20.0)
+        plain = m in (MAT_GLOW, MAT_GLASS) or not ao or not wear
         jitter = self.default_wobble if jitter is None else jitter
         if jitter:
             self._seed += 1
             wobble(bm, jitter, seed=self._seed)
+        prng = random.Random(self._seed * 7919 + self._part * 104729)
+        if not plain:
+            # every part a hair different (value + hue), so repeated boards/tiles/props never look cloned
+            k = 1.0 + prng.uniform(-0.045, 0.045)
+            col = tuple(min(1.0, col[i] * k * (1.0 + prng.uniform(-0.02, 0.02))) for i in range(3))
+            _grid_large_faces(bm, matrix)
         bm.verts.ensure_lookup_table()
         bm.verts.index_update()
+        bm.faces.ensure_lookup_table()
+        fshade = _surface_shading(bm, matrix, prng) if not plain else [1.0] * len(bm.faces)
         base = len(self.v)
         pts = [matrix @ v.co for v in bm.verts]
         # De-coplanarise: push each part out along its normals by a tiny, growing amount so faces of different
         # parts never lie exactly in one plane (that renders black / z-fights). Later parts (details) win.
-        eps = 0.02 + 0.003 * min(self._part, 50)
+        eps = 0.02 + 0.003 * min(self._part, 50) + 0.0006 * max(0, self._part - 50)
         bm.normal_update()
         nmat = matrix.to_3x3().inverted_safe().transposed()
         for k, v in enumerate(bm.verts):
@@ -469,19 +539,25 @@ class Asset:
                 pts[k] = pts[k] + n.normalized() * eps
         zs = [p.z for p in pts] or [0.0]
         z0, z1 = min(zs), max(zs)
-        glow = MAT_ALIASES.get(mat, mat) == MAT_GLOW
+        off = Vector((self._seed * 3.1, self._seed * 1.7, 0.0))
         for p in pts:
             self.v.append(p)
-            if glow or not ao:
+            if m == MAT_GLOW or not ao:
                 s = 1.0
             else:
                 t = (p.z - z0) / max(z1 - z0, 1e-6)
                 s = 0.8 + 0.2 * min(1.0, t * 3.0) if (z1 - z0) > 4 else 1.0
                 s *= 1.0 + var * noise.noise(p * 0.07 + Vector((self._seed, 0, 0)))
+                if not plain:
+                    # broad mottling (~1 m) and darker grime blotches, strongest low down
+                    s *= 1.0 + 0.05 * noise.noise(p * 0.011 + off)
+                    b = noise.noise(p * 0.023 + off * 1.9)
+                    if b > 0.3:
+                        low = 1.0 if p.z < z0 + 60 else 0.45
+                        s *= 1.0 - 0.1 * low * min(1.0, (b - 0.3) / 0.35)
             self.vshade.append(s)
         flip = matrix.to_3x3().determinant() < 0
-        m = MAT_ALIASES.get(mat, mat)
-        for face in bm.faces:
+        for fi, face in enumerate(bm.faces):
             idx = [base + l.vert.index for l in face.loops]
             if flip:
                 idx.reverse()
@@ -491,6 +567,7 @@ class Asset:
             self.fmat.append(m)
             self.fflat.append(flat)
             self.fpart.append(self._part)
+            self.fshade.append(fshade[fi])
         self._part += 1
         bm.free()
         return self
@@ -649,7 +726,7 @@ class Asset:
                 continue
             n.normalize()
             d = n.dot(pts[0])
-            key = (round(n.x, 2), round(n.y, 2), round(n.z, 2), round(d * 4))
+            key = (round(n.x, 2), round(n.y, 2), round(n.z, 2), round(d * 1000))   # same plane within ~0.001 cm
             groups.setdefault(key, []).append((fi, n, pts))
         out = []
         for key, faces in groups.items():
@@ -726,7 +803,7 @@ class Asset:
             ax = max(range(3), key=lambda i: abs(n[i]))
             for li in poly.loop_indices:
                 vi = loop_vi[li]
-                s = self.vshade[vi]
+                s = self.vshade[vi] * self.fshade[pi]
                 if glow:
                     cols.extend((c[0], c[1], c[2], rough))
                 else:

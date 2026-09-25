@@ -3,6 +3,7 @@ import math
 
 from mathutils import Vector
 
+from ftb import detail as D
 from ftb import layout as L
 from ftb import palette as C
 from ftb.core import bm_sphere, xf
@@ -47,6 +48,24 @@ def basin(a):
         a.box((40, 40, 1), at=(x - pv[0], y - pv[1], 0.6), col=C.GREY, bevel=0.5)
         for k in range(4):
             a.box((34, 3, 1.2), at=(x - pv[0], y - pv[1] - 12 + k * 8, 1.2), col=C.GREY_DARK, bevel=0)
+    # detail pass: depth markers and NO DIVING tiles on the coping, coping joints, a skimmer box and a hose
+    # over the edge, algae line on the inner waterline, outside wall bolts
+    for (x, y, txt) in ((1320, -600, "1.2 M"), (1320, 700, "1.2 M"), (2280, 400, "0.9 M")):
+        a.box((22, 40, 0.5), at=(x - pv[0], y - pv[1], 108.8), col=C.WHITE, bevel=0.1, jitter=0)
+        a.text(txt, 8, 0.4, at=(x - pv[0], y - pv[1], 109.3), rot=(90, 90 if x < 1800 else -90, 0), col=C.NAVY, ao=False)
+    for y in range(-800, 1081, 160):
+        for x in (1320, 2280):
+            a.box((58, 0.8, 0.4), at=(x - pv[0], y - pv[1], 108.7), col=C.shade(C.WHITE, 0.8), bevel=0, jitter=0, wear=False)
+    for x in range(1400, 2240, 160):
+        for y in (-880, 1080):
+            a.box((0.8, 58, 0.4), at=(x - pv[0], y - pv[1], 108.7), col=C.shade(C.WHITE, 0.8), bevel=0, jitter=0, wear=False)
+    a.box((30, 12, 16), at=(2259 - pv[0] - 15, 600 - pv[1], 86), col=C.WHITE, bevel=2)
+    a.box((24, 1, 10), at=(2259 - pv[0] - 30.5, 600 - pv[1], 86), col=C.INK, bevel=0.2)
+    D.cable(a, [(2330 - pv[0], 300 - pv[1], 0.8), (2300 - pv[0], 300 - pv[1], 60), (2290 - pv[0], 300 - pv[1], 112), (2270 - pv[0], 300 - pv[1], 106), (2262 - pv[0], 300 - pv[1], 60)], r=2.4, col=C.YELLOW)
+    for x, s in ((1340, 1), (2260, -1)):
+        a.box((1, 1880, 3), at=(x - pv[0] + s * 2.2, 100 - pv[1], 62), col=C.hex_rgb(0x3E7A5A), bevel=0, jitter=0, wear=False)
+    for y in range(-800, 1061, 200):
+        D.screw(a, (1300 - pv[0] - 1.2, y - pv[1], 50), "-x", r=1.6, col=C.GREY)
 
 
 @asset("SM_Tank_Island", F,
@@ -93,6 +112,14 @@ def island(a):
         a.leaf(30, 8, at=(-205, y, -30), rot=(60, rng.uniform(-180, 180), 0), col=C.GREEN_DARK, droop=0.3, thick=1, segs=5)
     a.cyl(8, 120, at=(-120, -250, 3), rot=(90, 25, 0), r_top=6, col=C.shade(C.WOOD, 0.8), sides=8, bevel=2)
     a.cyl(3, 30, at=(-110, -225, 12), rot=(40, 60, 0), col=C.shade(C.WOOD, 0.8), sides=6)
+    # footprints in the sand, a flip-flop, a message in a bottle half buried
+    for k in range(6):
+        s = 1 if k % 2 else -1
+        a.sphere(6, at=(-150 + k * 22, -100 + s * 8, 0.4), ry=3.4, rz=0.5, col=C.shade(C.SAND, 0.82), segs=8, rings=3)
+    a.box((22, 9, 1.4), at=(-40, -60, 1), rot=(0, 30, 0), col=C.CORAL, bevel=0.6)
+    a.cyl(4, 22, at=(150, -300, 4), rot=(-80, 20, 0), col=C.hex_rgb(0x7FC7A6), sides=10, bevel=1.5, mat="glass")
+    a.cyl(1.6, 4, at=(161, -296, 6), rot=(-80, 20, 0), col=C.WOOD, sides=6)
+    a.box((10, 6, 0.4), at=(150, -300, 4.4), rot=(0, 20, 0), col=C.CREAM, bevel=0.1, jitter=0)
 
 
 @asset("SM_Prop_BeachTowel", F,
@@ -112,6 +139,10 @@ def beach_towel(a):
     for s in (-1, 1):
         a.cyl(4.5, 1.2, at=(40, s * 5, 2.4), rot=(0, 0, 0), col=C.INK, sides=10)
     a.box((2, 18, 1), at=(40, 0, 2.6), col=C.MAGENTA, bevel=0.3)
+    a.box((160, 2, 0.4), at=(0, 30, 1.6), col=C.YELLOW, bevel=0.1, ao=False)
+    a.box((160, 2, 0.4), at=(0, -30, 1.6), col=C.YELLOW, bevel=0.1, ao=False)
+    a.cyl(4, 12, at=(60, -30, 6), rot=(-90, 0, 0), col=C.WHITE, sides=10, bevel=1)
+    a.cyl(2, 3, at=(67, -30, 6), rot=(-90, 0, 0), col=C.CORAL, sides=8, bevel=0.6)
 
 
 @asset("SM_Prop_BeachUmbrella", F,
@@ -128,6 +159,11 @@ def beach_umbrella(a):
         ang = math.radians(k * 22.5 + 11)
         a.sphere(4, at=(math.cos(ang) * 44, math.sin(ang) * 44, 54), col=C.MAGENTA if (k // 2) % 2 else C.WHITE, segs=6, rings=4, rz=2.5)
     a.sphere(3, at=(0, 0, 76), col=C.YELLOW, segs=8, rings=5)
+    for k in range(8):
+        ang = math.radians(k * 45)
+        a.cyl(0.6, 44, at=(math.cos(ang) * 22, math.sin(ang) * 22, 57), rot=(-73, k * 45, 0), col=C.GREY, sides=5)
+    a.cyl(3, 3, at=(0, 0, 50), col=C.GREY, sides=8, bevel=0.6)
+    a.cyl(3.4, 6, at=(0, 0, 3), col=C.shade(C.SAND, 0.85), sides=10, bevel=1)
 
 
 @asset("SM_Tank_IslandRamp", F,
@@ -164,6 +200,19 @@ def island_ramp(a):
                 sag.append(tuple(q))
         sag.append(pts[-1])
         a.tube(sag, 1.4, col=C.CREAM_DARK, sides=6)
+    # nail heads on the slats, a hazard strip at the foot, rope lashings on the stanchions
+    for i in range(12):
+        t = (i + 0.5) / 12
+        y = -225 + 450 * t
+        for x in (-70, 70):
+            a.sphere(0.8, at=(x, y, 110 * t + 3), col=C.GREY, segs=6, rings=3)
+    D.hazard(a, (0, -224, 3), "-y", 150, 5, stripes=6, t=0.4)
+    for x in (-86, 86):
+        for k in range(4):
+            t = k / 3
+            y = -210 + 420 * t
+            z = 110 * (y + 225) / 450
+            a.torus(3.6, 0.8, at=(x, y, z + 62), col=C.CREAM_DARK, major=10, minor=4)
 
 
 @asset("SM_Tank_Dock", F,
@@ -191,6 +240,19 @@ def dock(a):
         t = (i + 0.5) / 10
         y = 1100 + 400 * t - pv[1]
         a.box((214, 30, 3), at=(1825 - pv[0], y, (-120 + 90 * (1 - t)) - pv[2] + 1.5), col=C.shade(C.WOOD, rng.uniform(0.9, 1.1)), bevel=0.8, segs=1)
+    # nail heads over the joists, a lantern post, a bucket with bait, fishing net draped over the east posts
+    for x in range(1502, 2150, 30):
+        for y in (-150, 0, 150):
+            for dx in (-7, 7):
+                a.sphere(0.8, at=(x + 14 + dx - pv[0], y, 2.4), col=C.GREY, segs=6, rings=3)
+    a.box((14, 14, 20), at=(1540 - pv[0], 1030 - pv[1], 12.4), col=C.CHARCOAL, bevel=2)
+    a.box((10, 10, 14), at=(1540 - pv[0], 1030 - pv[1], 12.4), col=C.WINDOW_WARM, glow=4)
+    a.torus(4, 0.8, at=(1540 - pv[0], 1030 - pv[1], 26), rot=(90, 0, 0), col=C.CHARCOAL, major=10, minor=4)
+    a.cyl(10, 18, at=(1700 - pv[0], 1000 - pv[1], 11), r_top=11, col=C.GREY, sides=12, bevel=1)
+    a.torus(11, 0.8, at=(1700 - pv[0], 1000 - pv[1], 20), col=C.GREY_DARK, major=14, minor=4)
+    for k in range(8):
+        x = 1830 + k * 20 - pv[0]
+        a.box((0.6, 30, 0.6), at=(x, 730 - pv[1] + 16, 20 - (k % 2) * 3), col=C.SAND, bevel=0)
 
 
 @asset("SM_Tank_Backdrop", F,
@@ -221,3 +283,14 @@ def backdrop(a):
     a.box((16, 3580, 14), at=(X + 2, 0, 767), col=C.WOOD_DARK, bevel=3)
     for y in (-1780, 1780):
         a.box((16, 14, 770), at=(X + 2, y, 385), col=C.WOOD_DARK, bevel=3)
+    # back of the flat (+X): battens, corner blocks, a stencilled flat number, stage weights at the foot
+    for z in (150, 380, 610):
+        a.box((6, 3560, 10), at=(X + 13, 0, z), col=C.WOOD, bevel=1.5)
+    for y in range(-1500, 1501, 600):
+        a.box((6, 10, 740), at=(X + 13, y, 385), col=C.WOOD, bevel=1.5)
+        for z in (150, 380, 610):
+            a.prism((2, 16, 16), at=(X + 16.5, y, z), rot=(0, 0, 0), col=C.shade(C.WOOD, 0.85))
+    D.stencil_number(a, (X + 16.5, 0, 500), "+x", "SHARK! FLAT 3", 26, col=C.INK)
+    for y in (-1200, 0, 1200):
+        a.box((20, 30, 8), at=(X + 2, y, 4), col=C.GREY_DARK, bevel=1.5)
+        a.box((20, 30, 8), at=(X + 2, y, 12.5), col=C.GREY_DARK, bevel=1.5)

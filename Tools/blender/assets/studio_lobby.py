@@ -1,6 +1,7 @@
 """Studio lobby: room shell, ceiling, office door surround, reception, bench, STAGE 4 header, pendant lamps."""
 import math
 
+from ftb import detail as D
 from ftb import layout as L
 from ftb import palette as C
 from ftb.registry import P, asset
@@ -32,6 +33,62 @@ def vent(a, at, rot=(0, 0, 0), w=60, h=30, col=C.CREAM_DARK):
     for k in range(5):
         off = R @ Vector((-1.8, 0, -h * 0.35 + k * h * 0.175))
         a.box((2, w - 8, 2.2), at=(at[0] + off.x, at[1] + off.y, at[2] + off.z), rot=rot, col=C.shade(col, 0.7), bevel=0.4)
+
+
+def outlet(a, at, normal, col=C.CREAM, double=True):
+    """Wall socket plate with one or two sockets (normal: the room side of the wall)."""
+    D.plate(a, at, normal, 16 if double else 9, 9, t=0.8, col=col, screws=False)
+    for du in ((-4, 4) if double else (0,)):
+        p = D.on(at, normal, du, 0, 0.8)
+        a.cyl(2.6, 0.5, at=D.on(p, normal, dn=0.25), rot=D.NORMAL_ROT[normal], col=C.shade(col, 0.9), sides=10, bevel=0.1)
+        for dv in (-0.9, 0.9):
+            a.cyl(0.35, 0.3, at=D.on(p, normal, dv * 0.9, 0, 0.55), rot=D.NORMAL_ROT[normal], col=C.INK, sides=5, bevel=0, jitter=0, wear=False)
+
+
+def switch(a, at, normal, col=C.CREAM):
+    D.plate(a, at, normal, 8, 12, t=0.8, col=col, screws=False)
+    a.box(D._size(normal, 2.4, 4, 1.2), at=D.on(at, normal, 0, 0.6, 1.4), col=C.shade(col, 0.85), bevel=0.3)
+
+
+def extinguisher(a, at, normal):
+    """Red extinguisher on a wall bracket with a sign above (at = bracket on the wall, ~1 m up)."""
+    n = D.frame(normal)[0]
+    base = D.on(at, normal, dn=9)
+    a.cyl(8, 46, at=base, col=C.RED, sides=12, bevel=3, rough=0.4)
+    a.cyl(3.4, 6, at=base + D.Vector((0, 0, 26)), col=C.GREY_DARK, sides=8, bevel=0.8)
+    a.box(D._size(normal, 3, 2, 10), at=base + D.Vector((0, 0, 30)) + n * 2, col=C.GREY_DARK, bevel=0.5)
+    D.cable(a, [base + D.Vector((0, 0, 28)) - n * 2, base + D.Vector((0, 0, 20)) - n * 7.5, base + D.Vector((0, 0, -10)) - n * 8.5], r=1.0)
+    a.box(D._size(normal, 12, 26, 0.8), at=base + D.Vector((0, 0, 4)), col=C.WHITE, bevel=0.2, rough=0.4)
+    D.bracket(a, D.on(at, normal, 0, 10), normal, w=8, h=8, col=C.GREY_DARK)
+    D.plate(a, D.on(at, normal, 0, 58), normal, 22, 22, t=0.6, col=C.RED, screws=False)
+    a.box(D._size(normal, 10, 12, 0.3), at=D.on(at, normal, 0, 58, 0.8), col=C.WHITE, bevel=0, jitter=0, wear=False)
+
+
+def exit_sign(a, at, normal):
+    D.plate(a, at, normal, 40, 16, t=4, col=C.GREY_DARK, screws=False)
+    a.box(D._size(normal, 36, 12, 0.6), at=D.on(at, normal, dn=4.2), col=C.GREEN, glow=3.0)
+    a.box(D._size(normal, 8, 8, 0.3), at=D.on(at, normal, -12, 0, 4.7), col=C.WHITE, bevel=0, jitter=0, wear=False)
+
+
+def cracks(a, at, normal, rng, n=3):
+    """Hairline plaster cracks: short dark zig-zag strokes."""
+    for _ in range(n):
+        du, dv = rng.uniform(-40, 40), rng.uniform(-30, 30)
+        ang = rng.uniform(-70, 70)
+        for k in range(3):
+            a.box(D._size(normal, rng.uniform(5, 11), 0.35, 0.12), at=D.on(at, normal, du + k * 6, dv + k * rng.uniform(-3, 3), 0.06),
+                  rot=D._rot_in_plane(normal, ang + rng.uniform(-35, 35)), col=C.shade(C.INK, 2.5), bevel=0, jitter=0, wear=False)
+
+
+def sprinkler(a, at):
+    a.cyl(3, 1, at=(at[0], at[1], at[2] - 0.5), col=C.CHROME, sides=10, bevel=0.3, rough=0.3)
+    a.cyl(0.8, 4, at=(at[0], at[1], at[2] - 3), col=C.CHROME, sides=6)
+    a.cyl(2.2, 0.8, at=(at[0], at[1], at[2] - 5.2), col=C.RED, sides=8, bevel=0.2)
+
+
+def smoke_detector(a, at):
+    a.cyl(7, 3, at=(at[0], at[1], at[2] - 1.5), col=C.WHITE, sides=14, bevel=1, rough=0.5)
+    a.cyl(1, 0.6, at=(at[0] + 3, at[1], at[2] - 3.2), col=C.RED, sides=6, glow=1.5)
 
 
 # ============================================================================== shell
@@ -78,6 +135,28 @@ def lobby_shell(a):
     # carpet end caps (brass nosing where the runner meets the tiles)
     for x in (-1800, -600):
         a.box((6, 312, 3), at=(x + (3 if x < -1000 else -3) - pv[0], 0, 2), col=C.BRASS, bevel=1, rough=0.3)
+    # detail pass: sockets on the skirting, light switches by the doors, an extinguisher + EXIT signs,
+    # thermostat, surface conduit with a junction box, hairline cracks and scuffs along the skirting
+    for x in (-1700, -1400, -1100, -800):
+        outlet(a, (x - pv[0], -977.5, 30), "+y")
+    for x in (-1700, -800):
+        outlet(a, (x - pv[0], 977.5, 30), "-y")
+    switch(a, (-1410 - pv[0], 977.5, 135), "-y")
+    switch(a, (-640 - pv[0], -977.5, 135), "+y")
+    extinguisher(a, (-660 - pv[0], 977.5, 95), "-y")
+    exit_sign(a, (-1200 - pv[0], 977.5, 520), "-y")
+    exit_sign(a, (-1200 - pv[0], -977.5, 520), "+y")
+    D.plate(a, (-1480 - pv[0], -977.5, 150), "+y", 9, 12, t=1.6, col=C.CREAM)
+    a.box((6, 0.4, 3), at=(-1480 - pv[0], -975.6, 152), col=C.hex_rgb(0x2A9D5B), glow=1.0)
+    a.box((2, 3, 250), at=(-1100 - pv[0], -976.5, 330), col=C.GREY, bevel=0.6)
+    a.box((12, 4, 12), at=(-1100 - pv[0], -976, 460), col=C.GREY, bevel=1)
+    D.screws_rect(a, (-1100 - pv[0], -974, 460), "+y", 12, 12, inset=1.5, r=0.5)
+    for z in (250, 350, 420):
+        a.box((4, 2.4, 2), at=(-1100 - pv[0], -976, z), col=C.GREY_DARK, bevel=0.4)
+    cracks(a, (-1500 - pv[0], -979, 420), "+y", a.rng, n=2)
+    cracks(a, (-900 - pv[0], 979, 380), "-y", a.rng, n=2)
+    D.scuffs(a, (-1200 - pv[0], -977, 18), "+y", 1100, 12, n=14)
+    D.scuffs(a, (-1200 - pv[0], 977, 18), "-y", 1100, 12, n=10)
 
 
 @asset("SM_Lobby_Ceiling", F,
@@ -96,6 +175,15 @@ def lobby_ceiling(a):
     for k in range(12):
         ang = k * 30
         a.box((70, 8, 3), at=(math.cos(math.radians(ang)) * 60, math.sin(math.radians(ang)) * 60, 553), rot=(0, ang, 0), col=C.BRASS, bevel=1, rough=0.3)
+    # sprinklers and smoke detectors in the coffers, a return-air grille and an access hatch
+    for x in (-1350, -1050):
+        for y in (-750, -250, 250, 750):
+            sprinkler(a, (x - pv[0], y, 560))
+    smoke_detector(a, (-1350 - pv[0], 0, 560))
+    smoke_detector(a, (-1050 - pv[0], 0, 560))
+    D.vent(a, (-1650 - pv[0], -750, 560), "-z", 80, 40, slats=6, col=C.CREAM_DARK)
+    D.border(a, (-750 - pv[0], 750, 560), "-z", 70, 70, bar=2.5, t=0.8, col=C.shade(C.CEILING, 0.85))
+    D.screws_rect(a, (-750 - pv[0], 750, 559.2), "-z", 70, 70, inset=3, r=0.8)
 
 
 # ============================================================================== office door surround
@@ -118,6 +206,14 @@ def office_door_surround(a):
     a.poly([(-18, 0), (18, 0), (12, 28), (-12, 28)], 8, at=(0, -32, 300), rot=(0, 90, 0), col=C.YELLOW, bevel=1.5, glow=0.5)
     # the navy name board comes from the code record (line 579); brass frame behind it
     a.box((310, 4, 80), at=(0, -33, 380), col=C.BRASS, bevel=2, rough=0.3)
+    # name-board screws, sunburst rays on the capitals, brass kick caps on the plinths
+    D.screws_rect(a, (0, -35, 380), "-y", 310, 80, inset=4, r=1.2, col=C.BRASS)
+    for x in (-165, 165):
+        for k in range(5):
+            ang = -60 + k * 30
+            a.box((1.2, 1, 22), at=(x + 8 * D.math.sin(D.math.radians(ang)), -34, 262 + 8 * D.math.cos(D.math.radians(ang))),
+                  rot=(0, 0, ang), col=C.YELLOW, bevel=0.2)
+        a.box((42, 1.6, 6), at=(x, -33.8, 13), col=C.BRASS, bevel=0.5, rough=0.3)
 
 
 # ============================================================================== reception desk
@@ -161,6 +257,29 @@ def reception_desk(a):
     a.cyl(4, 10, at=(95, 30, 119), col=C.TEAL, sides=10, bevel=0.6)
     for k in range(3):
         a.cyl(0.6, 12, at=(95 + (k - 1) * 1.6, 30, 125), rot=(0, 0, (k - 1) * 8), col=[C.RED, C.BLUE, C.YELLOW][k], sides=5)
+    # receptionist side (-Y): drawer bank with pulls, knee recess; keyboard, CRT cable and sticky notes,
+    # a small succulent, a stack of forms; the visitor side gets a brass kick rail
+    for sx in (-1, 1):
+        x = sx * 100
+        for k in range(3):
+            a.box((70, 2, 24), at=(x, -56, 88 - k * 28), col=C.shade(C.CORAL, 1.08), bevel=1.2)
+            a.box((16, 3, 3), at=(x, -58, 88 - k * 28), col=C.BRASS, bevel=0.8, rough=0.3)
+    a.box((110, 2, 80), at=(0, -54, 52), col=C.shade(C.CORAL, 0.6), bevel=1)
+    a.box((32, 12, 2), at=(40, -2, 115.5), rot=(0, 0, 6), col=C.CREAM_DARK, bevel=0.8)
+    for r in range(3):
+        for c in range(8):
+            a.box((3, 2.6, 0.8), at=(28 + c * 3.6, -6 + r * 3.4, 116.8), rot=(0, 0, 6), col=C.shade(C.CREAM_DARK, 0.85), bevel=0.2, jitter=0)
+    D.cable(a, [(40, -40, 124), (44, -52, 118), (46, -58, 108), (50, -58, 60)], r=0.8)
+    a.box((0.4, 6, 6), at=(58.3, -30, 142), rot=(0, 0, 4), col=C.YELLOW, bevel=0.05, jitter=0)
+    a.box((0.4, 6, 6), at=(58.3, -21, 138), rot=(0, 0, -6), col=C.hex_rgb(0x9FE3D9), bevel=0.05, jitter=0)
+    a.cyl(5, 7, at=(125, -30, 117.5), r_top=6, col=C.TERRACOTTA, sides=10, bevel=0.8)
+    for k in range(5):
+        ang = k * 72
+        a.sphere(3, at=(125 + 2.4 * D.math.cos(D.math.radians(ang)), -30 + 2.4 * D.math.sin(D.math.radians(ang)), 123), rz=4.5,
+                 rot=(20, ang, 0), col=C.GREEN, segs=6, rings=4)
+    for k in range(4):
+        a.box((22, 30, 0.9), at=(-70, -30, 114.5 + k * 1), rot=(0, (k % 2) * 4 - 2, 0), col=C.WHITE, bevel=0.1)
+    a.slab([(p[0] * 0.95, p[1] * 0.95 + 4) for p in top[1:-1]] + [(150, 60), (-150, 60)], 3, at=(0, 0, 12), col=C.BRASS, rough=0.3)
 
 
 # ============================================================================== waiting bench
@@ -187,6 +306,15 @@ def waiting_bench(a):
         a.torus(12, 1.5, at=(0, sy * 133, 62), rot=(90, 0, 0), col=C.BRASS, major=14, minor=5)
     a.box((24, 30, 1.2), at=(10, 60, 62), rot=(0, 16, 3), col=C.MAGENTA, bevel=0.3)
     a.box((20, 26, 0.4), at=(10, 60, 62.8), rot=(0, 16, 3), col=C.CREAM, bevel=0.1)
+    # piping on the cushion edges, brass corner caps, a folded newspaper
+    for sx in (-1, 1):
+        a.cyl(1.1, 262, at=(sx * 45, 0, 60), rot=(0, 0, 90), col=C.CORAL_DARK, sides=6)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            a.box((7, 7, 38), at=(sx * 37.5, sy * 126, 25), col=C.BRASS, bevel=1.5, rough=0.3)
+    a.box((26, 34, 1.6), at=(-15, -80, 62.6), rot=(0, -12, 2), col=C.hex_rgb(0xE9E4D8), bevel=0.3)
+    for k in range(5):
+        a.box((20, 0.6, 0.2), at=(-15, -92 + k * 5, 63.6), rot=(0, -12, 2), col=C.shade(C.INK, 2.5), bevel=0, jitter=0, wear=False)
 
 
 # ============================================================================== STAGE 4 header
@@ -216,6 +344,13 @@ def stage4_header(a):
         for k in range(6):
             ang = math.radians(k * 60)
             a.cyl(7, 12, at=(-8, y + 24 * math.cos(ang), 24 * math.sin(ang)), rot=(90, 0, 0), col=C.GREY_DARK, sides=8, bevel=0)
+    # frame screws, top hanger brackets with rods into the wall, a cable feed at the side
+    for y in range(-360, 361, 90):
+        D.screw(a, (-10.2, y, 71), "-x", r=1.2, col=C.BRASS)
+        D.screw(a, (-10.2, y, -71), "-x", r=1.2, col=C.BRASS)
+    for y in (-250, 0, 250):
+        a.box((20, 8, 6), at=(4, y, 80), col=C.GREY_DARK, bevel=1)
+        a.cyl(1.4, 16, at=(12, y, 80), rot=(-90, 0, 0), col=C.GREY, sides=6)
 
 
 # ============================================================================== pendant lamp
@@ -255,3 +390,11 @@ def pendant_lamp(a):
         ang = k * 45
         a.box((16, 2, 2), at=(math.cos(math.radians(ang)) * 21, math.sin(math.radians(ang)) * 21, -43), rot=(-32, ang, 0), col=C.shade(C.TEAL, 1.2), bevel=0.4)
     a.sphere(13, at=(0, 0, -56), col=C.CREAM, segs=12, rings=8, glow=14)
+    # link chain over the cord, gallery ring and screws on the shade, bulb collar
+    for k in range(8):
+        a.torus(1.4, 0.45, at=(0, 0, -4.5 - k * 3), rot=(90, (k % 2) * 90, 0), col=C.BRASS, major=8, minor=3, rough=0.3)
+    a.torus(4.6, 0.9, at=(0, 0, -33), col=C.BRASS, major=12, minor=4, rough=0.3)
+    for k in range(4):
+        ang = D.math.radians(k * 90 + 45)
+        a.sphere(0.8, at=(25 * D.math.cos(ang), 25 * D.math.sin(ang), -45.5), col=C.BRASS, segs=6, rings=3)
+    a.cyl(6, 3, at=(0, 0, -45), col=C.GREY, sides=10, bevel=0.6)

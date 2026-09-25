@@ -13,3 +13,7 @@ DerivedDataCache/
 # Python caches (Tools/blender pipeline)
 __pycache__/
 *.pyc
+
+# Blender pipeline: browser-viewer exports (large, regenerate with Tools/blender/scenes.py --web)
+SourceArt/Blender/Web/
+SourceArt/Blender/Catalog.blend

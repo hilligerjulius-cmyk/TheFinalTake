@@ -8,6 +8,7 @@ the 300 x 900 cm Dream Cars bays and the 225 x 500 cm city parking bays."""
 import math
 
 
+from ftb import detail as D
 from ftb import palette as C
 from ftb.core import FONT_BLOCK
 from ftb.registry import P, asset
@@ -121,6 +122,36 @@ def plate(a, x, z, txt, face=1):
     a.text(txt, 7, 0.6, at=(x + face * 1.0, 0, z - 3), rot=(0, 0 if face > 0 else 180, 0), col=C.NAVY, font=FONT_BLOCK)
 
 
+def car_details(a, W, wb, r, z0, x_rear, x_front, wipers, antenna, exhaust=None, flaps=True, fuel_side=1, under_col=C.CHARCOAL):
+    """Shared quality-pass dressing: underbody with axles, fuel tank and exhaust, wipers, antenna, fuel cap,
+    mud flaps and side marker lights."""
+    a.box((x_front - x_rear - 60, W - 50, 6), at=((x_front + x_rear) / 2, 0, z0 - 6), col=under_col, bevel=1.5, rough=0.9)
+    for x in (wb / 2, -wb / 2):
+        a.cyl(4, W - 30, at=(x, 0, r), rot=(0, 0, 90), col=C.GREY_DARK, sides=8, rough=0.6)
+        a.box((30, 20, 12), at=(x, 0, r + 2), col=C.GREY_DARK, bevel=2, rough=0.6)
+    a.box((60, 70, 22), at=(-wb / 2 + 60, -20, z0 - 2), col=C.GREY_DARK, bevel=4, rough=0.7)
+    if exhaust:
+        ex, ey, ez = exhaust
+        a.tube([(wb / 2 - 40, 30, z0 - 6), (-wb / 2, ey * 0.8, z0 - 8), (ex + 14, ey, ez)], 3, col=C.GREY_DARK, sides=8, rough=0.6)
+        a.cyl(4.2, 12, at=(ex + 4, ey, ez), rot=(90, 0, 0), col=C.CHROME, sides=10, bevel=0.6, rough=0.25)
+        a.cyl(3, 1, at=(ex - 2.3, ey, ez), rot=(90, 0, 0), col=C.INK, sides=10, bevel=0)
+    wx, wz, span, pitch = wipers
+    for s in (-1, 1):
+        a.box((2, span, 1.4), at=(wx, s * span * 0.55, wz), rot=(pitch, 0, s * 8), col=C.INK, bevel=0.4)
+        a.cyl(1.6, 3, at=(wx - 2, s * span * 0.1 + s * 6, wz - 1), col=C.CHARCOAL, sides=8)
+    ax, ay, az, ah = antenna
+    a.cyl(1.6, 3, at=(ax, ay, az + 1.5), col=C.CHROME, sides=8, rough=0.25)
+    a.cyl(0.4, ah, at=(ax, ay, az + ah / 2), col=C.CHROME, sides=4, rough=0.25)
+    a.sphere(0.9, at=(ax, ay, az + ah), col=C.CHROME, segs=6, rings=3)
+    a.cyl(5, 1.6, at=(-wb / 2 - r - 14, fuel_side * (W / 2 + 0.4), z0 + 44), rot=(0, 0, 90), col=C.CHROME, sides=12, bevel=0.5, rough=0.25)
+    if flaps:
+        for s in (-1, 1):
+            a.box((2, 24, 24), at=(-wb / 2 - r - 10, s * (W / 2 - 14), 22), col=C.RUBBER, bevel=0.6, rough=0.9)
+    for s in (-1, 1):
+        a.box((6, 1.5, 3), at=(x_front - 30, s * (W / 2 + 0.8), z0 + 30), col=C.AMBER, bevel=0.4, glow=1)
+        a.box((6, 1.5, 3), at=(x_rear + 30, s * (W / 2 + 0.8), z0 + 30), col=C.RED, bevel=0.4, glow=1)
+
+
 # ============================================================================== Studio Van
 
 VAN = dict(wb=300, track=86, r=38)
@@ -205,6 +236,7 @@ def van_body(a):
     seats(a, [(150, -45, 70), (150, 45, 70), (40, -40, 70), (40, 40, 70)], C.CORAL, C.CORAL_DARK)
     a.box((60, W - 30, 20), at=(215, 0, 120), col=C.CHARCOAL, bevel=4)
     a.torus(14, 2.5, at=(185, -45, 130), rot=(60, 0, 0), col=C.INK, major=14, minor=5)
+    car_details(a, W, wb, r, z0, -250, 250, wipers=(236, 150, 60, -60), antenna=(200, 90, 150, 60), exhaust=(-250, 60, 30))
     wheel_sockets(a, wb, tr, r)
     a.socket("Exhaust", (-250, 60, 30))
     a.meta["seats"] = 4
@@ -268,6 +300,7 @@ def taxi_body(a):
     seats(a, [(20, -40, 60), (20, 40, 60), (-80, -40, 60), (-80, 40, 60)], C.CHARCOAL, C.GREY_DARK)
     a.box((50, W - 40, 16), at=(80, 0, 100), col=C.CHARCOAL, bevel=4)
     a.torus(14, 2.5, at=(55, -40, 110), rot=(60, 0, 0), col=C.INK, major=14, minor=5)
+    car_details(a, W, wb, r, z0, -245, 246, wipers=(94, 106, 60, -40), antenna=(-200, -84, 108, 60), exhaust=(-250, 55, 28))
     wheel_sockets(a, wb, tr, r)
     a.socket("Exhaust", (-250, 55, 28))
     a.meta["seats"] = 4
@@ -333,6 +366,7 @@ def muscle_body(a):
     seats(a, [(-60, -40, 50), (-60, 40, 50)], C.CREAM, C.CORAL_DARK)
     a.box((44, W - 50, 14), at=(-10, 0, 92), col=C.CHARCOAL, bevel=4)
     a.torus(13, 2.5, at=(-30, -40, 102), rot=(60, 0, 0), col=C.INK, major=14, minor=5)
+    car_details(a, W, wb, rf, z0, -235, 236, wipers=(26, 92, 56, -34), antenna=(-200, 84, 96, 40), flaps=False, fuel_side=-1)
     a.socket("Wheel_FL", (wb / 2, -tr, rf))
     a.socket("Wheel_FR", (wb / 2, tr, rf))
     a.socket("Wheel_RL", (-wb / 2, -tr, rr))
@@ -407,6 +441,7 @@ def limo_body(a):
     a.socket("Seat_3", (40, 0, 70))
     a.box((50, W - 40, 16), at=(200, 0, 96), col=C.CHARCOAL, bevel=4)
     a.torus(14, 2.5, at=(180, -40, 106), rot=(60, 0, 0), col=C.INK, major=14, minor=5)
+    car_details(a, W, wb, r, z0, -360, 360, wipers=(196, 102, 64, -38), antenna=(-320, 0, 104, 50), exhaust=(-360, 60, 28), flaps=False)
     wheel_sockets(a, wb, tr, r)
     a.socket("Exhaust", (-360, 60, 28))
     a.meta["seats"] = 4

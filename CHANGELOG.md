@@ -1,5 +1,16 @@
 # Änderungsprotokoll
 
+## 2026-09-25 – Blender-Assets: Detail- und Qualitäts-Pass
+- **Alle 296 Meshes überarbeitet**, auf Basis der bestehenden Modelle: gleiche Formen, Positionen, Pivots und Sockets, kein Layoutwechsel, kein C++ geändert.
+  - Oberflächen-Pass in den Vertex-Farben: Farbvariation pro Teil, Fleckung und Schmutz auf großen Flächen, abgegriffene Kanten mit Abplatzern, Schmutz in Innenecken.
+  - Neues Detail-Kit `Tools/blender/ftb/detail.py` (Schrauben, Nieten, Platten, Gitter, Fugen, Griffe, Scharniere, Kabel, Etiketten, Räder …).
+  - Handgesetzte Details in allen Bereichen, auch auf Seiten und Rückseiten (z. B. Rückseiten der Pulte, Kulisse und Stadtgebäude).
+- **Maßprüfung unverändert:** 219 ok, 13 close, 1 check, 63 ohne Code-Gegenstück. FBX-Reimport für alle 296 Assets ok.
+- **Polycount:** zusammen 1,72 Mio. Dreiecke statt 0,63 Mio.; Median 2 369 pro Mesh, Requisiten im Median 1 764. Die großen Hüllen (bis 82 772 bei `SM_Stage4_Walls`) sind für Nanite gedacht.
+- **Korrekturen an der ersten Fassung:** Das Meter-Gehäuse am Tonpult verdeckte die Pegelanzeigen des Codes, die Titeltafel am Lichtpult hätte den Schriftzug „LIGHTING“ verdeckt. Beides steht jetzt dahinter.
+- **Blender-Szenen:** `SourceArt/Blender/Studio.blend` und `City.blend` öffnen jetzt als fertig zusammengesetzte Szenen (alle Platzierungen, Autos auf den Drehscheiben, Decken ausgeblendet, Ansicht im cm-Maßstab). Sie ersetzen `Shared.blend`, `Dealership.blend` und `Vehicles.blend`. `Catalog.blend` (jedes Mesh einmal) erzeugt `Tools/blender/scenes.py` lokal.
+- Doku: `BLENDER_ASSETS.md` (neuer Abschnitt „Detail- und Qualitäts-Pass“, Polycount, UV-Kanal `UVMap` richtiggestellt), `SourceArt/Blender/ASSET_MAPPING.md`, `fit_report.md`, Previews und Übersichtsbilder neu erzeugt.
+
 ## 2026-09-24 – Blender-Asset-Bibliothek (PEAK-Stil)
 - **Neue Ersatz-Meshes:** 296 handmodellierte Meshes für Studio, Stadt, Grand Cinema, Dream Cars, Fahrzeuge, Shop-Artikel und Schriftzüge.
   - Pro Asset eine FBX unter `Content/TheFinalTake/Meshes/…`.
